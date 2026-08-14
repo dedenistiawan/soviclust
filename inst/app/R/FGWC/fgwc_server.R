@@ -11,6 +11,38 @@
 # =============================================================================
 
 fgwc_server <- function(input, output, session, rv) {
+
+  rv_fgwc_sample_dist <- reactiveVal(NULL)
+  rv_fgwc_sample_pop  <- reactiveVal(NULL)
+
+  observeEvent(input$fgwc_load_sample, {
+    withProgress(message = "Memuat data sampel FGWC...", value = 0, {
+      extdata <- system.file("extdata", package = "soviclust")
+      mode <- input$fgwc_dist_mode %||% "matrix"
+      incProgress(0.3)
+      if (mode == "lonlat") {
+        df_c <- as.data.frame(readxl::read_excel(file.path(extdata, "Koordinat.xlsx")))
+        cols <- tolower(names(df_c))
+        lon_col <- names(df_c)[which(cols %in% c("longitude","lon","long","x"))[1]]
+        lat_col <- names(df_c)[which(cols %in% c("latitude","lat","y"))[1]]
+        id_col  <- names(df_c)[which(cols %in% c("districtcode","id","kode","code"))[1]]
+        mat <- haversine_matrix(as.numeric(df_c[[lon_col]]), as.numeric(df_c[[lat_col]]))
+        if (!is.na(id_col)) { rownames(mat) <- df_c[[id_col]]; colnames(mat) <- df_c[[id_col]] }
+        attr(mat, "dist_mode") <- "lonlat"; attr(mat, "dist_unit") <- "kilometer"
+      } else {
+        df_d <- as.data.frame(readxl::read_excel(file.path(extdata, "Distance_matrix_514.xlsx")))
+        mat  <- parse_distance_matrix(df_d)
+        attr(mat, "dist_mode") <- "matrix"; attr(mat, "dist_unit") <- "unit asli"
+      }
+      rv_fgwc_sample_dist(mat)
+      incProgress(0.7)
+      rv_pop <- as.data.frame(readxl::read_excel(file.path(extdata, "sovi_data_pop_514.xlsx")))
+      rv_fgwc_sample_pop(parse_population(rv_pop))
+      incProgress(1.0)
+    })
+    showNotification(paste0("✓ Data sampel FGWC dimuat: ", nrow(rv_fgwc_sample_dist()), "x", ncol(rv_fgwc_sample_dist()), " | pop ", length(rv_fgwc_sample_pop())), type = "message", duration = 5)
+  })
+
   
   # ==========================================================================
   # REACTIVE: Baca matriks jarak dari upload
@@ -18,6 +50,8 @@ fgwc_server <- function(input, output, session, rv) {
   # ==========================================================================
   
   rv_fgwc_dist <- reactive({
+    if (!is.null(rv_fgwc_sample_dist())) return(rv_fgwc_sample_dist())
+
     mode <- input$fgwc_dist_mode %||% "matrix"
     
     if (mode == "matrix") {
@@ -85,6 +119,8 @@ fgwc_server <- function(input, output, session, rv) {
   # ==========================================================================
   
   rv_fgwc_pop <- reactive({
+    if (!is.null(rv_fgwc_sample_pop())) return(rv_fgwc_sample_pop())
+
     req(input$fgwc_file_pop)
     tryCatch({
       df  <- read_uploaded_file(input$fgwc_file_pop)

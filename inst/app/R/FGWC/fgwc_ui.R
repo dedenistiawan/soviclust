@@ -33,6 +33,14 @@ fgwc_tab_ui <- function() {
           solidHeader = TRUE,
           width       = 12,
 
+          div(class = "sample-data-banner", style = "padding:10px 14px; margin-bottom:10px;",
+            tags$p(style = "margin:0 0 6px 0; font-weight:700; color:#1a73c1; font-size:13px;",
+                   icon("database"), " Gunakan Data Sampel FGWC"),
+            tags$p(style = "margin:0 0 8px 0; font-size:11.5px; color:#546e7a;",
+                   "Matriks jarak dan populasi 514 kabupaten/kota Indonesia."),
+            actionButton("fgwc_load_sample", tags$span(icon("play-circle"), " Muat Data Sampel"),
+              class = "btn-primary btn-sm btn-block")
+          ),
           div(class = "step-header", "1. Input Matriks Jarak"),
           radioButtons("fgwc_dist_mode", NULL,
                        choices  = c("Upload Matriks n\u00d7n Jarak" = "matrix",
