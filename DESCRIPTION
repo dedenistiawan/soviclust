@@ -18,8 +18,7 @@ RoxygenNote: 7.3.3
 Depends:
     R (>= 4.1.0)
 Imports:
-    shiny (>= 1.7.0)
-Suggests:
+    shiny (>= 1.7.0),
     shinydashboard,
     shinyjs,
     shinyWidgets,
@@ -43,7 +42,8 @@ Suggests:
     stabledist,
     MASS,
     Rtsne,
-    uwot,
+    uwot
+Suggests:
     devtools,
     roxygen2
 URL: https://github.com/dedenistiawan/soviclust
