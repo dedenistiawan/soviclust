@@ -118,13 +118,11 @@ server <- function(input, output, session) {
 
     withProgress(message = "Memuat data sampel...", value = 0, {
 
-      # 1. Load dataset dari inst/extdata
+      # 1. Load dataset dari inst/extdata (sovi_data_kab_514_15.xlsx)
       incProgress(0.2, detail = "Membaca dataset...")
-      extdata <- system.file("extdata", package = "soviclust")
-      data_path <- file.path(extdata, "sovi_data_kab_514.RData")
-      env <- new.env()
-      load(data_path, envir = env)
-      df <- as.data.frame(get(ls(env)[1], envir = env))
+      extdata   <- system.file("extdata", package = "soviclust")
+      data_path <- file.path(extdata, "sovi_data_kab_514_15.xlsx")
+      df        <- as.data.frame(readxl::read_excel(data_path))
 
       # 2. Load shapefile dari inst/app/map
       incProgress(0.4, detail = "Membaca shapefile...")
@@ -134,34 +132,31 @@ server <- function(input, output, session) {
       shp <- sf::st_make_valid(shp)
       sf::sf_use_s2(TRUE)
 
-      # 3. Tambah kolom ID dan Nama dari shapefile ke dataset
-      #    (dataset 514 baris diurutkan sesuai shapefile)
-      incProgress(0.6, detail = "Menggabungkan data...")
-      df <- cbind(
-        ID    = as.character(shp$idkab),
-        Nama  = as.character(shp$nmkab),
-        df
-      )
-
-      # 4. Simpan ke reactive values
+      # 3. Simpan ke reactive values
+      incProgress(0.6, detail = "Menyimpan data...")
       rv$data      <- df
       rv$shp       <- shp
       rv$upload_ok <- FALSE
 
-      # 5. Update UI inputs
+      # 4. Update UI inputs
       incProgress(0.8, detail = "Mengisi konfigurasi...")
       cols     <- names(df)
       num_cols <- cols[sapply(df, is.numeric)]
 
-      updateSelectInput(session, "id_col",   choices = cols, selected = "ID")
-      updateSelectInput(session, "name_col", choices = cols, selected = "Nama")
-      updateSelectInput(session, "join_shp", choices = setdiff(names(shp), attr(shp, "sf_column")),
+      updateSelectInput(session, "id_col",
+                        choices  = cols,
+                        selected = "DISTRICTCODE")
+      updateSelectInput(session, "name_col",
+                        choices  = cols,
+                        selected = "KABUPATEN")
+      updateSelectInput(session, "join_shp",
+                        choices  = setdiff(names(shp), attr(shp, "sf_column")),
                         selected = "idkab")
       updateCheckboxGroupInput(session, "sovi_vars",
                                choices  = num_cols,
                                selected = num_cols)
 
-      # 6. Sembunyikan panel upload (tidak perlu upload manual)
+      # 5. Sembunyikan panel upload
       shinyjs::hide("panel_upload")
 
       incProgress(1.0)

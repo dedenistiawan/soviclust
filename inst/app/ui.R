@@ -106,7 +106,7 @@ upload_tab_ui <- function() shinydashboard::tabItem("tab_upload",
             style = "margin:0; color:#546e7a; font-size:13px;",
             icon("info-circle"), " Dataset: ",
             tags$strong("514 Kabupaten/Kota Indonesia"),
-            " (19 variabel SoVI, tahun 2019) + Shapefile batas wilayah.",
+            " (15 variabel SoVI, tahun 2015) + Shapefile batas wilayah.",
             tags$br(),
             "Cocok untuk eksplorasi dan demo sebelum menggunakan data Anda sendiri."
           )
