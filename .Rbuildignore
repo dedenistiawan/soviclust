@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.posit$
+^LICENSE\.md$
+^Panduan_ALFGWC\.md$
+^README\.html$
+^rsconnect$
+^\.git$
+^\.github$
+^docs$

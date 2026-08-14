@@ -1,0 +1,50 @@
+Package: soviclust
+Type: Package
+Title: SoVI Interactive Mapper - Social Vulnerability Index Analysis
+Version: 0.1.0
+Authors@R: person("Deden", "Istiawan", email = "deden@example.com",
+    role = c("aut", "cre"))
+Description: Platform interaktif berbasis R Shiny untuk menghitung, memvisualisasikan,
+    dan menganalisis Social Vulnerability Index (SoVI) di tingkat wilayah administratif.
+    Mengimplementasikan metodologi Cutter et al. (2003) dengan peningkatan berupa bobot
+    proporsional berdasarkan factor loading PCA, tiga opsi metode penentuan arah variabel,
+    integrasi analisis spasial (Moran's I, LISA), serta tiga algoritma clustering spasial:
+    ClustGeo, FGWC (Fuzzy Geographically Weighted Clustering), LFGWC, dan ALFGWC dengan
+    dukungan 9 algoritma metaheuristik untuk optimasi centroid.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: false
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1.0)
+Imports:
+    shiny (>= 1.7.0)
+Suggests:
+    shinydashboard,
+    shinyjs,
+    shinyWidgets,
+    DT,
+    ggplot2,
+    dplyr,
+    tidyr,
+    readxl,
+    psych,
+    classInt,
+    sf,
+    tmap,
+    leaflet,
+    ClustGeo,
+    spdep,
+    cluster,
+    fmsb,
+    RColorBrewer,
+    patchwork,
+    rdist,
+    stabledist,
+    MASS,
+    Rtsne,
+    uwot,
+    devtools,
+    roxygen2
+URL: https://github.com/dedenistiawan/soviclust
+BugReports: https://github.com/dedenistiawan/soviclust/issues
