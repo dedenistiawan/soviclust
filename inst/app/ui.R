@@ -94,54 +94,113 @@ home_tab_ui         <- function() shinydashboard::tabItem("tab_home",
 )
 
 upload_tab_ui <- function() shinydashboard::tabItem("tab_upload",
-                                                    fluidRow(
-                                                      column(6, shinydashboard::box(
-                                                        title = tags$span(icon("file-upload"), " Upload Dataset"),
-                                                        status = "primary", solidHeader = TRUE, width = 12,
-                                                        div(class = "upload-zone",
-                                                            icon("file-excel"),
-                                                            tags$p(style="color:#1a73c1;font-weight:600;margin:0;",
-                                                                   "Klik untuk upload atau drag & drop"),
-                                                            tags$p(style="color:#78909c;font-size:12px;margin:4px 0 0;",
-                                                                   "Format: .xlsx atau .csv | Maks 200 MB")),
-                                                        fileInput("file_data", NULL, accept = c(".xlsx",".csv"),
-                                                                  placeholder = "Belum ada file dipilih"),
-                                                        div(class = "step-header", "Konfigurasi Kolom"),
-                                                        fluidRow(
-                                                          column(6, selectInput("id_col",   "Kolom ID Wilayah",   choices = NULL)),
-                                                          column(6, selectInput("name_col", "Kolom Nama Wilayah", choices = NULL))
-                                                        ),
-                                                        div(class = "step-header", "Status Dataset"),
-                                                        verbatimTextOutput("data_status")
-                                                      )),
-                                                      column(6, shinydashboard::box(
-                                                        title = tags$span(icon("map"), " Upload Shapefile"),
-                                                        status = "primary", solidHeader = TRUE, width = 12,
-                                                        div(class = "upload-zone",
-                                                            icon("map-marked-alt"),
-                                                            tags$p(style="color:#1a73c1;font-weight:600;margin:0;",
-                                                                   "Pilih semua file shapefile sekaligus"),
-                                                            tags$p(style="color:#78909c;font-size:12px;margin:4px 0 0;",
-                                                                   ".shp + .dbf + .shx + .prj | Maks 200 MB")),
-                                                        fileInput("file_shp", NULL, multiple = TRUE,
-                                                                  accept = c(".shp",".dbf",".shx",".prj",".cpg"),
-                                                                  placeholder = "Belum ada file dipilih"),
-                                                        div(class = "step-header", "Konfigurasi Join"),
-                                                        selectInput("join_shp", "Kolom ID di Shapefile", choices = NULL),
-                                                        div(class = "step-header", "Status Shapefile"),
-                                                        verbatimTextOutput("shp_status")
-                                                      ))
-                                                    ),
-                                                    fluidRow(column(12, shinydashboard::box(
-                                                      title = tags$span(icon("table"), " Preview Dataset"),
-                                                      status = "info", solidHeader = TRUE, width = 12, collapsible = TRUE,
-                                                      DT::DTOutput("preview_data")
-                                                    ))),
-                                                    fluidRow(column(12, div(style="text-align:right; margin-bottom:20px;",
-                                                                            actionButton("confirm_upload",
-                                                                                         tags$span(icon("check-circle"), " Konfirmasi & Lanjut \u2192"),
-                                                                                         class = "btn-success btn-lg")
-                                                    )))
+
+  # ── Banner: Pilihan Data ──────────────────────────────────────────────────
+  fluidRow(column(12,
+    div(class = "sample-data-banner",
+      fluidRow(
+        column(8,
+          tags$h4(icon("database"), " Gunakan Data Sampel Bawaan",
+                  style = "margin:0 0 6px 0; color:#1a73c1; font-weight:700;"),
+          tags$p(
+            style = "margin:0; color:#546e7a; font-size:13px;",
+            icon("info-circle"), " Dataset: ",
+            tags$strong("514 Kabupaten/Kota Indonesia"),
+            " (19 variabel SoVI, tahun 2019) + Shapefile batas wilayah.",
+            tags$br(),
+            "Cocok untuk eksplorasi dan demo sebelum menggunakan data Anda sendiri."
+          )
+        ),
+        column(4, div(style = "text-align:right; padding-top:4px;",
+          actionButton("load_sample",
+            tags$span(icon("play-circle"), " Muat Data Sampel"),
+            class = "btn-primary btn-lg"
+          ),
+          tags$br(), tags$br(),
+          actionButton("use_own_data",
+            tags$span(icon("upload"), " Upload Data Sendiri"),
+            class = "btn-default"
+          )
+        ))
+      )
+    )
+  )),
+
+  # ── Panel Upload (tersembunyi saat sample data aktif) ─────────────────────
+  shinyjs::hidden(
+    div(id = "panel_upload",
+      fluidRow(
+        column(6, shinydashboard::box(
+          title = tags$span(icon("file-upload"), " Upload Dataset"),
+          status = "primary", solidHeader = TRUE, width = 12,
+          div(class = "upload-zone",
+              icon("file-excel"),
+              tags$p(style="color:#1a73c1;font-weight:600;margin:0;",
+                     "Klik untuk upload atau drag & drop"),
+              tags$p(style="color:#78909c;font-size:12px;margin:4px 0 0;",
+                     "Format: .xlsx atau .csv | Maks 200 MB")),
+          fileInput("file_data", NULL, accept = c(".xlsx",".csv"),
+                    placeholder = "Belum ada file dipilih"),
+          div(class = "step-header", "Konfigurasi Kolom"),
+          fluidRow(
+            column(6, selectInput("id_col",   "Kolom ID Wilayah",   choices = NULL)),
+            column(6, selectInput("name_col", "Kolom Nama Wilayah", choices = NULL))
+          ),
+          div(class = "step-header", "Status Dataset"),
+          verbatimTextOutput("data_status")
+        )),
+        column(6, shinydashboard::box(
+          title = tags$span(icon("map"), " Upload Shapefile"),
+          status = "primary", solidHeader = TRUE, width = 12,
+          div(class = "upload-zone",
+              icon("map-marked-alt"),
+              tags$p(style="color:#1a73c1;font-weight:600;margin:0;",
+                     "Pilih semua file shapefile sekaligus"),
+              tags$p(style="color:#78909c;font-size:12px;margin:4px 0 0;",
+                     ".shp + .dbf + .shx + .prj | Maks 200 MB")),
+          fileInput("file_shp", NULL, multiple = TRUE,
+                    accept = c(".shp",".dbf",".shx",".prj",".cpg"),
+                    placeholder = "Belum ada file dipilih"),
+          div(class = "step-header", "Konfigurasi Join"),
+          selectInput("join_shp", "Kolom ID di Shapefile", choices = NULL),
+          div(class = "step-header", "Status Shapefile"),
+          verbatimTextOutput("shp_status")
+        ))
+      )
+    ) # end hidden panel_upload
+  ),
+
+  # ── Status & Preview (selalu tampil) ─────────────────────────────────────
+  fluidRow(column(12,
+    div(id = "panel_status",
+      shinydashboard::box(
+        title = tags$span(icon("info-circle"), " Status Data"),
+        status = "info", solidHeader = TRUE, width = 12, collapsible = TRUE,
+        fluidRow(
+          column(6,
+            div(class = "step-header", "Dataset"),
+            verbatimTextOutput("data_status")
+          ),
+          column(6,
+            div(class = "step-header", "Shapefile"),
+            verbatimTextOutput("shp_status")
+          )
+        )
+      )
+    )
+  )),
+
+  fluidRow(column(12, shinydashboard::box(
+    title = tags$span(icon("table"), " Preview Dataset"),
+    status = "info", solidHeader = TRUE, width = 12, collapsible = TRUE,
+    DT::DTOutput("preview_data")
+  ))),
+
+  fluidRow(column(12, div(style="text-align:right; margin-bottom:20px;",
+    actionButton("confirm_upload",
+                 tags$span(icon("check-circle"), " Konfirmasi & Lanjut \u2192"),
+                 class = "btn-success btn-lg")
+  )))
 )
 
 # =============================================================================

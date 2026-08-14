@@ -112,43 +112,118 @@ server <- function(input, output, session) {
   # ============================================================================
   # TAB 1 — DATA UPLOAD
   # ============================================================================
-  
+
+  # ── Tombol: Muat Data Sampel ──────────────────────────────────────────────
+  observeEvent(input$load_sample, {
+
+    withProgress(message = "Memuat data sampel...", value = 0, {
+
+      # 1. Load dataset dari inst/extdata
+      incProgress(0.2, detail = "Membaca dataset...")
+      extdata <- system.file("extdata", package = "soviclust")
+      data_path <- file.path(extdata, "sovi_data_kab_514.RData")
+      env <- new.env()
+      load(data_path, envir = env)
+      df <- as.data.frame(get(ls(env)[1], envir = env))
+
+      # 2. Load shapefile dari inst/app/map
+      incProgress(0.4, detail = "Membaca shapefile...")
+      shp_path <- system.file("app", "map", "514_kabupaten.shp", package = "soviclust")
+      sf::sf_use_s2(FALSE)
+      shp <- sf::st_read(shp_path, quiet = TRUE)
+      shp <- sf::st_make_valid(shp)
+      sf::sf_use_s2(TRUE)
+
+      # 3. Tambah kolom ID dan Nama dari shapefile ke dataset
+      #    (dataset 514 baris diurutkan sesuai shapefile)
+      incProgress(0.6, detail = "Menggabungkan data...")
+      df <- cbind(
+        ID    = as.character(shp$idkab),
+        Nama  = as.character(shp$nmkab),
+        df
+      )
+
+      # 4. Simpan ke reactive values
+      rv$data      <- df
+      rv$shp       <- shp
+      rv$upload_ok <- FALSE
+
+      # 5. Update UI inputs
+      incProgress(0.8, detail = "Mengisi konfigurasi...")
+      cols     <- names(df)
+      num_cols <- cols[sapply(df, is.numeric)]
+
+      updateSelectInput(session, "id_col",   choices = cols, selected = "ID")
+      updateSelectInput(session, "name_col", choices = cols, selected = "Nama")
+      updateSelectInput(session, "join_shp", choices = setdiff(names(shp), attr(shp, "sf_column")),
+                        selected = "idkab")
+      updateCheckboxGroupInput(session, "sovi_vars",
+                               choices  = num_cols,
+                               selected = num_cols)
+
+      # 6. Sembunyikan panel upload (tidak perlu upload manual)
+      shinyjs::hide("panel_upload")
+
+      incProgress(1.0)
+    }) # end withProgress
+
+    showNotification(
+      paste0("\u2713 Data sampel dimuat: ", nrow(rv$data), " kabupaten/kota, ",
+             sum(sapply(rv$data, is.numeric)), " variabel SoVI."),
+      type = "message", duration = 5
+    )
+  })
+
+  # ── Tombol: Upload Data Sendiri ────────────────────────────────────────────
+  observeEvent(input$use_own_data, {
+    shinyjs::show("panel_upload")
+    # Reset data jika sebelumnya muat sampel
+    rv$data      <- NULL
+    rv$shp       <- NULL
+    rv$upload_ok <- FALSE
+    updateSelectInput(session, "id_col",   choices = NULL)
+    updateSelectInput(session, "name_col", choices = NULL)
+    updateSelectInput(session, "join_shp", choices = NULL)
+  })
+
+  # ── Upload file dataset manual ─────────────────────────────────────────────
   observeEvent(input$file_data, {
     req(input$file_data)
     tryCatch({
       path <- input$file_data$datapath
       ext  <- tolower(tools::file_ext(input$file_data$name))
-      
+
       df <- if (ext == "xlsx") {
         as.data.frame(readxl::read_excel(path))
       } else {
         read.csv(path, stringsAsFactors = FALSE)
       }
-      
+
       rv$data  <- df
       cols     <- names(df)
       num_cols <- cols[sapply(df, is.numeric)]
-      
+
       id_guess <- cols[grep("id|code|kode", cols, ignore.case = TRUE)][1]
       if (is.na(id_guess)) id_guess <- cols[1]
-      
+
       name_guess <- cols[grep("name|nama|kab|city|wilayah",
                               cols, ignore.case = TRUE)][1]
       if (is.na(name_guess)) name_guess <- cols[2]
-      
+
       updateSelectInput(session, "id_col",   choices = cols, selected = id_guess)
       updateSelectInput(session, "name_col", choices = cols, selected = name_guess)
       updateCheckboxGroupInput(session, "sovi_vars",
                                choices  = num_cols,
                                selected = num_cols)
-      
+
       rv$upload_ok <- FALSE
-      
+
     }, error = function(e) {
       showNotification(paste("Error membaca dataset:", e$message),
                        type = "error", duration = 8)
     })
   })
+
   
   observeEvent(input$file_shp, {
     req(input$file_shp)
