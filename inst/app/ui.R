@@ -210,14 +210,34 @@ upload_tab_ui <- function() shinydashboard::tabItem("tab_upload",
 ui <- shinydashboard::dashboardPage(
   title = "SoVI Analysis App",
   skin  = "blue",
-  
+
   # ── Header ──────────────────────────────────────────────────────────────────
   shinydashboard::dashboardHeader(
     title = tags$span(
       icon("map-marked-alt", style = "color:#90caf9;"),
       tags$span(" Vulnerability Mapping", style = "font-weight:700;")
     ),
-    titleWidth = 260
+    titleWidth = 260,
+    # ── Language Switcher ──────────────────────────────────────────────────────
+    tags$li(
+      class = "dropdown",
+      style = "padding: 6px 12px; display:flex; align-items:center;",
+      tags$span(
+        style = "color:rgba(255,255,255,0.7); font-size:12px; margin-right:6px;",
+        icon("language"), " Lang:"
+      ),
+      tags$div(
+        style = "display:inline-block;",
+        selectInput(
+          inputId  = "lang",
+          label    = NULL,
+          choices  = c("\U0001F1EE\U0001F1E9 Indonesia" = "id",
+                       "\U0001F1EC\U0001F1E7 English"   = "en"),
+          selected = "id",
+          width    = "140px"
+        )
+      )
+    )
   ),
   
   # ── Sidebar ─────────────────────────────────────────────────────────────────
@@ -227,50 +247,50 @@ ui <- shinydashboard::dashboardPage(
       id = "sidebar_menu",
       
       # ── Navigasi Utama ──────────────────────────────────────────────────────
-      shinydashboard::menuItem("Home", tabName = "tab_home",
+      shinydashboard::menuItem(i18n$t("Beranda"), tabName = "tab_home",
                                icon = icon("home")),
-      
+
       shinydashboard::menuItem("Info", icon = icon("info-circle"),
                                startExpanded = FALSE,
                                shinydashboard::menuSubItem("SoVI Workflow",   tabName = "tab_workflow",
                                                            icon = icon("project-diagram")),
                                shinydashboard::menuSubItem("SoVI Method",     tabName = "tab_sovimethod",
                                                            icon = icon("flask")),
-                               shinydashboard::menuSubItem("Supported Files", tabName = "tab_files",
+                               shinydashboard::menuSubItem(i18n$t("Format Data"), tabName = "tab_files",
                                                            icon = icon("file-alt")),
-                               shinydashboard::menuSubItem("Team",            tabName = "tab_team",
+                               shinydashboard::menuSubItem(i18n$t("Tim Pengembang"), tabName = "tab_team",
                                                            icon = icon("users"))
       ),
-      
+
       shinydashboard::menuItem("Data", icon = icon("database"),
                                startExpanded = FALSE,
-                               shinydashboard::menuSubItem("Import / Load Data", tabName = "tab_upload",
+                               shinydashboard::menuSubItem(i18n$t("Upload Data"), tabName = "tab_upload",
                                                            icon = icon("upload")),
-                               shinydashboard::menuSubItem("Dataset Info",       tabName = "tab_datainfo",
+                               shinydashboard::menuSubItem(i18n$t("Informasi Dataset"), tabName = "tab_datainfo",
                                                            icon = icon("table"))
       ),
-      
+
       tags$li(class = "divider-item"),
-      
+
       # ── Pipeline SoVI ───────────────────────────────────────────────────────
-      shinydashboard::menuItem("Variable Config",
+      shinydashboard::menuItem(i18n$t("Konfigurasi Variabel"),
                                tabName = "tab_varconfig",
                                icon    = icon("sliders-h")),
-      
-      shinydashboard::menuItem("Method Comparison",
+
+      shinydashboard::menuItem(i18n$t("Method Comparison"),
                                tabName = "tab_comparison",
                                icon    = icon("balance-scale")),
-      
-      shinydashboard::menuItem("SoVI Computation",
+
+      shinydashboard::menuItem(i18n$t("Hitung SoVI"),
                                tabName = "tab_sovi",
                                icon    = icon("calculator")),
-      
-      shinydashboard::menuItem("Extended Analysis",
+
+      shinydashboard::menuItem(i18n$t("Extended Analysis"),
                                tabName = "tab_analysis",
                                icon    = icon("chart-bar")),
-      
+
       # ── Cluster Analysis ────────────────────────────────────────────────────
-      shinydashboard::menuItem("Cluster Analysis",
+      shinydashboard::menuItem(i18n$t("Cluster Analysis"),
                                icon = icon("object-group"), startExpanded = FALSE,
                                shinydashboard::menuSubItem("ClustGeo", tabName = "tab_clustgeo_adv",
                                                            icon = icon("globe-asia")),
@@ -281,12 +301,12 @@ ui <- shinydashboard::dashboardPage(
                                shinydashboard::menuSubItem("ALFGWC",   tabName = "tab_alfgwc",
                                                            icon = icon("map-marked-alt"))
       ),
-      
-      shinydashboard::menuItem("SoVI Analysis",
+
+      shinydashboard::menuItem(i18n$t("SoVI Analysis"),
                                tabName = "tab_sovi_analysis",
                                icon    = icon("chart-area")),
-      
-      shinydashboard::menuItem("Downloads",
+
+      shinydashboard::menuItem(i18n$t("Unduh Hasil"),
                                tabName = "tab_download",
                                icon    = icon("download")),
       
@@ -309,6 +329,7 @@ ui <- shinydashboard::dashboardPage(
   # ── Body ────────────────────────────────────────────────────────────────────
   shinydashboard::dashboardBody(
     shinyjs::useShinyjs(),
+    shiny.i18n::usei18n(i18n),
     tags$head(
       tags$link(rel = "stylesheet", href = "custom.css"),
       tags$script(src   = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js",

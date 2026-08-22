@@ -42,14 +42,17 @@ Imports:
     stabledist,
     MASS,
     Rtsne,
-    uwot
+    uwot,
+    shiny.i18n,
+    digest
 Suggests:
     devtools,
     roxygen2,
     testthat (>= 3.0.0),
     withr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    kableExtra
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 URL: https://dedenistiawan.github.io/soviclust/, https://github.com/dedenistiawan/soviclust
