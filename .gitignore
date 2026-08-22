@@ -25,3 +25,11 @@ docs/
 pkgdown/
 /doc/
 /Meta/
+
+# Shapefile mentah (terlalu besar untuk GitHub) — pakai .rds yang sudah dikompres
+inst/app/map/*.shp
+inst/app/map/*.dbf
+inst/app/map/*.prj
+inst/app/map/*.qpj
+inst/app/map/*.shx
+inst/app/map/*.cpg
