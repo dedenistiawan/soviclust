@@ -5,6 +5,7 @@
 [![R version](https://img.shields.io/badge/R-%3E%3D4.1.0-blue)](https://cran.r-project.org/)
 [![GitHub](https://img.shields.io/github/license/dedenistiawan/soviclust)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/dedenistiawan/soviclust)](https://github.com/dedenistiawan/soviclust/releases)
+[![R-CMD-check](https://github.com/dedenistiawan/soviclust/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dedenistiawan/soviclust/actions/workflows/R-CMD-check.yaml)
 
 ---
 
