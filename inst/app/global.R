@@ -46,8 +46,19 @@ library(stabledist)
 library(MASS)      # Sammon Mapping
 library(Rtsne)     # t-SNE
 library(uwot)      # UMAP
+library(shiny.i18n)
 
 tmap::tmap_mode("view")
+
+# =============================================================================
+# INTERNASIONALISASI (i18n)
+# Tersedia global untuk semua modul UI dan server
+# =============================================================================
+i18n <- shiny.i18n::Translator$new(
+  translation_json_path = "i18n/translation.json"
+)
+i18n$set_translation_language("id")  # default: Bahasa Indonesia
+
 
 # =============================================================================
 # TAHAP 1: CORE — Fondasi (harus di-source pertama)

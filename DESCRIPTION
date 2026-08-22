@@ -42,7 +42,8 @@ Imports:
     stabledist,
     MASS,
     Rtsne,
-    uwot
+    uwot,
+    shiny.i18n
 Suggests:
     devtools,
     roxygen2,
