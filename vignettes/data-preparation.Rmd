@@ -1,0 +1,273 @@
+---
+title: "Persiapan Data untuk Analisis SoVI"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Persiapan Data untuk Analisis SoVI}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+```
+
+## Gambaran Umum
+
+Analisis SoVI memerlukan dua jenis data utama:
+
+1. **Data Atribut** — tabel indikator sosial-ekonomi per wilayah (Excel/CSV)
+2. **Data Spasial** — shapefile batas wilayah administrasi
+
+Untuk analisis clustering (FGWC/LFGWC/ALFGWC), diperlukan tambahan:
+
+3. **Matriks Jarak** atau **Koordinat Lon/Lat**
+4. **Data Populasi**
+
+---
+
+## 1. Data Atribut (SoVI)
+
+### Format yang Diterima
+
+| Format | Ekstensi | Keterangan |
+|--------|----------|-----------|
+| Excel  | `.xlsx`  | Sheet pertama yang dibaca otomatis |
+| CSV    | `.csv`   | Separator koma (`,`) atau titik koma (`;`) |
+
+### Struktur yang Diperlukan
+
+```
+| DISTRICTCODE | NAMA_WILAYAH | VAR1 | VAR2 | VAR3 | ...
+|--------------|--------------|------|------|------|----
+| 1101         | Kab. Simeulue | 12.5 | 35.2 | 8.1 | ...
+| 1102         | Kab. Aceh Singkil | 11.3 | 28.7 | 9.4 | ...
+```
+
+**Syarat wajib:**
+- ✅ Satu kolom **ID wilayah** (unik per baris, tidak boleh duplikat)
+- ✅ Satu kolom **nama wilayah**
+- ✅ Minimal **5 kolom numerik** sebagai indikator SoVI
+- ✅ Tidak ada baris yang seluruhnya kosong
+
+**Tips:**
+- Gunakan kode wilayah BPS sebagai ID (konsisten dengan shapefile)
+- Hindari karakter khusus di nama kolom: spasi, `/`, `(`, `)`
+- Nilai yang hilang (NA) sebaiknya diisi atau baris tersebut dihapus
+
+### Contoh Cek Data di R
+
+```{r check-data}
+library(readxl)
+
+df <- read_excel("data_sovi_saya.xlsx")
+
+# Cek dimensi
+cat("Baris:", nrow(df), "| Kolom:", ncol(df), "\n")
+
+# Cek duplikat ID
+cat("Duplikat ID:", sum(duplicated(df$DISTRICTCODE)), "\n")
+
+# Cek missing values
+cat("Total NA:", sum(is.na(df)), "\n")
+colSums(is.na(df))
+
+# Cek kolom numerik
+sapply(df, class)
+```
+
+---
+
+## 2. Data Spasial (Shapefile)
+
+### Format yang Diterima
+
+Shapefile standar ESRI terdiri dari minimal 4 file:
+
+| File       | Keterangan |
+|------------|-----------|
+| `.shp`     | Geometri wilayah (wajib) |
+| `.dbf`     | Atribut/tabel (wajib) |
+| `.shx`     | Index geometri (wajib) |
+| `.prj`     | Sistem koordinat (sangat dianjurkan) |
+
+> ⚠️ **Penting**: Upload semua file sekaligus di aplikasi. Jika file `.prj`
+> tidak tersedia, koordinat mungkin ditampilkan dengan tidak benar.
+
+### Syarat Shapefile
+
+- ✅ Satu kolom **ID wilayah** yang cocok dengan ID di data atribut
+- ✅ Tipe geometri: Polygon atau MultiPolygon
+- ✅ Sistem koordinat: WGS84 (EPSG:4326) direkomendasikan
+- ✅ Jumlah fitur sama dengan jumlah baris data atribut
+
+### Cek Shapefile di R
+
+```{r check-shapefile}
+library(sf)
+
+shp <- st_read("shapefile_saya.shp", quiet = TRUE)
+
+# Informasi dasar
+cat("Jumlah wilayah:", nrow(shp), "\n")
+cat("Kolom:", names(shp), "\n")
+cat("CRS:", st_crs(shp)$input, "\n")
+cat("Tipe geometri:", unique(st_geometry_type(shp)), "\n")
+
+# Tampilkan peta sederhana
+plot(st_geometry(shp))
+```
+
+### Mencocokkan ID antara Data dan Shapefile
+
+```{r match-id}
+# Asumsi: kolom ID di data = "DISTRICTCODE", di shapefile = "KODE_WIL"
+id_data <- df$DISTRICTCODE
+id_shp  <- shp$KODE_WIL
+
+# ID di data tapi tidak ada di shapefile
+setdiff(id_data, id_shp)
+
+# ID di shapefile tapi tidak ada di data
+setdiff(id_shp, id_data)
+
+# Jumlah yang cocok
+cat("Cocok:", length(intersect(id_data, id_shp)), "wilayah\n")
+```
+
+---
+
+## 3. Data Matriks Jarak (untuk FGWC/LFGWC/ALFGWC)
+
+Ada dua cara menyediakan informasi jarak antar wilayah:
+
+### Opsi A: Upload Matriks n×n Langsung
+
+Matriks jarak simetris berukuran n×n di mana n = jumlah wilayah.
+
+```
+      | Wil_1 | Wil_2 | Wil_3 | ...
+------|-------|-------|-------|----
+Wil_1 |   0   | 45.2  | 120.5 | ...
+Wil_2 | 45.2  |   0   |  98.3 | ...
+Wil_3 | 120.5 |  98.3 |   0   | ...
+```
+
+**Syarat:**
+- ✅ Diagonal = 0
+- ✅ Simetris: `d(i,j) = d(j,i)`
+- ✅ Semua nilai ≥ 0
+- ✅ Urutan baris/kolom sesuai urutan wilayah di data SoVI
+
+```{r check-matrix}
+df_dist <- read_excel("matriks_jarak.xlsx")
+# Buang kolom label jika ada
+if (!is.numeric(df_dist[[1]])) df_dist <- df_dist[, -1]
+mat <- data.matrix(df_dist)
+
+# Validasi
+cat("Dimensi:", nrow(mat), "x", ncol(mat), "\n")
+cat("Persegi:", nrow(mat) == ncol(mat), "\n")
+cat("Diagonal 0:", all(diag(mat) == 0), "\n")
+cat("Simetris:", all(mat == t(mat)), "\n")
+```
+
+### Opsi B: Upload Koordinat Longitude & Latitude
+
+Lebih mudah — cukup sediakan koordinat, jarak dihitung otomatis
+menggunakan **Haversine Distance** (satuan: km).
+
+```
+| DISTRICTCODE | longitude | latitude |
+|--------------|-----------|----------|
+| 1101         | 96.012    | 2.689    |
+| 1102         | 97.842    | 2.487    |
+```
+
+**Syarat:**
+- ✅ Kolom longitude: nama `longitude`, `lon`, `long`, atau `x`
+- ✅ Kolom latitude: nama `latitude`, `lat`, atau `y`
+- ✅ Nilai dalam derajat desimal (WGS84)
+- ✅ Untuk Indonesia: lon ∈ [95, 141], lat ∈ [-11, 6]
+
+---
+
+## 4. Data Populasi
+
+File sederhana berisi satu kolom jumlah penduduk untuk n wilayah.
+
+```
+| DISTRICTCODE | POPULASI  |
+|--------------|-----------|
+| 1101         | 84.560    |
+| 1102         | 102.345   |
+```
+
+**Syarat:**
+- ✅ Satu kolom numerik berisi jumlah penduduk
+- ✅ Semua nilai positif (> 0)
+- ✅ Jumlah baris sama dengan jumlah wilayah
+
+---
+
+## Tips Umum
+
+### Ukuran Dataset
+
+| Dataset | Waktu Komputasi | RAM yang Dibutuhkan |
+|---------|----------------|---------------------|
+| < 100 wilayah | < 10 detik | 4 GB cukup |
+| 100–500 wilayah | 10–60 detik | 4–8 GB |
+| > 500 wilayah | > 1 menit | ≥ 8 GB |
+
+### Sumber Data Indonesia
+
+- **BPS** (bps.go.id) — data sosial-ekonomi kabupaten/kota
+- **Ina-Geoportal** (tanahair.indonesia.go.id) — shapefile administratif
+- **GADM** (gadm.org) — shapefile alternatif berbasis wilayah administrasi
+
+### Contoh Kode Persiapan Data Lengkap
+
+```{r full-prep}
+library(readxl)
+library(sf)
+library(dplyr)
+
+# 1. Baca data SoVI
+df_sovi <- read_excel("data_sovi.xlsx") |>
+  rename(id = KODE_WILAYAH, nama = NAMA_KABUPATEN) |>
+  filter(!is.na(id)) |>
+  distinct(id, .keep_all = TRUE)
+
+# 2. Baca shapefile
+shp <- st_read("batas_wilayah.shp", quiet = TRUE) |>
+  rename(id = KODE_WIL)
+
+# 3. Pastikan ID cocok
+stopifnot(
+  all(df_sovi$id %in% shp$id),
+  nrow(df_sovi) == nrow(shp)
+)
+
+# 4. Baca koordinat
+df_coord <- read_excel("koordinat.xlsx") |>
+  rename(id = KODE, lon = LONGITUDE, lat = LATITUDE)
+
+# 5. Baca populasi
+df_pop <- read_excel("populasi.xlsx") |>
+  select(id = KODE, pop = JUMLAH_PENDUDUK) |>
+  filter(pop > 0)
+
+cat("Data siap! Jumlah wilayah:", nrow(df_sovi), "\n")
+```
+
+---
+
+## Referensi
+
+- Cutter, S.L., et al. (2003). Social Vulnerability to Environmental Hazards.
+  *Social Science Quarterly*, 84(2), 242–261.
+- BPS Indonesia. (2023). *Statistik Daerah Kabupaten/Kota*. Jakarta: BPS.

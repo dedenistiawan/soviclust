@@ -11,6 +11,7 @@ src/*.o
 src/*.so
 src/*.dll
 inst/doc/
+doc/
 
 # devtools / roxygen
 # man/ — JANGAN diabaikan: diperlukan agar package bisa install dari GitHub
@@ -18,3 +19,5 @@ Meta/
 
 # Shinyapps deployment
 rsconnect/
+/doc/
+/Meta/

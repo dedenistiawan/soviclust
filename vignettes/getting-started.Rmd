@@ -1,0 +1,181 @@
+---
+title: "Getting Started with soviclust"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with soviclust}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+```
+
+## Apa itu soviclust?
+
+**soviclust** adalah R package berupa aplikasi Shiny interaktif untuk menghitung,
+memvisualisasikan, dan menganalisis **Social Vulnerability Index (SoVI)**
+di tingkat wilayah administratif Indonesia.
+
+Package ini mengimplementasikan metodologi Cutter et al. (2003) dan menyediakan
+empat metode *spatial clustering*:
+
+- 🌍 **ClustGeo** — Clustering hierarki spasial
+- 🤖 **FGWC** — Fuzzy Geographically Weighted Clustering  
+- 📍 **LFGWC** — Local FGWC
+- ⚡ **ALFGWC** — Adaptive LFGWC
+
+---
+
+## Instalasi
+
+### Dari GitHub (direkomendasikan)
+
+```{r install-github}
+# Install remotes jika belum ada
+install.packages("remotes")
+
+# Install soviclust — semua dependensi terinstall otomatis
+remotes::install_github("dedenistiawan/soviclust")
+```
+
+### Dari lokal (untuk pengembang)
+
+```{r install-local}
+install.packages("devtools")
+devtools::install("path/to/soviclust")
+```
+
+---
+
+## Menjalankan Aplikasi
+
+Setelah instalasi, muat package dan jalankan aplikasi:
+
+```{r run-app}
+library(soviclust)
+soviclust::run_app()
+```
+
+Aplikasi akan terbuka di browser default secara otomatis. Ketika `library(soviclust)`
+dipanggil, akan muncul pesan selamat datang:
+
+```
+┌─────────────────────────────────────────┐
+│   SoVI Interactive Mapper (soviclust)   │
+│   Social Vulnerability Index Analysis   │
+└─────────────────────────────────────────┘
+
+To start the app, please run:
+  soviclust::run_app()
+```
+
+### Opsi tambahan
+
+```{r run-app-options}
+# Jalankan di port tertentu
+soviclust::run_app(port = 3838)
+
+# Jalankan tanpa membuka browser otomatis
+soviclust::run_app(launch.browser = FALSE)
+```
+
+---
+
+## Menggunakan Data Sampel
+
+Cara termudah untuk memulai adalah menggunakan **data sampel bawaan** yang
+sudah disertakan dalam package.
+
+### Data sampel yang tersedia
+
+| File | Keterangan | Ukuran |
+|------|-----------|--------|
+| `sovi_data_kab_514_15.xlsx` | Data SoVI 514 Kab/Kota Indonesia 2015 | 514 × 17 |
+| `Koordinat.xlsx` | Koordinat centroid 514 wilayah | 514 × 3 |
+| `Distance_matrix_514.xlsx` | Matriks jarak 514 × 514 | 514 × 514 |
+| `sovi_data_pop_514.xlsx` | Data populasi 514 wilayah | 514 × 2 |
+
+### Mengakses data sampel langsung di R
+
+```{r access-sample}
+library(soviclust)
+library(readxl)
+
+# Data SoVI
+path_sovi <- system.file("extdata", "sovi_data_kab_514_15.xlsx",
+                          package = "soviclust")
+df_sovi <- read_excel(path_sovi)
+head(df_sovi[, 1:6])
+
+# Koordinat
+path_coord <- system.file("extdata", "Koordinat.xlsx",
+                           package = "soviclust")
+df_coord <- read_excel(path_coord)
+head(df_coord)
+
+# Data populasi
+path_pop <- system.file("extdata", "sovi_data_pop_514.xlsx",
+                         package = "soviclust")
+df_pop <- read_excel(path_pop)
+head(df_pop)
+```
+
+### Menggunakan data sampel di aplikasi Shiny
+
+Di dalam aplikasi, klik tombol **"▶ Muat Data Sampel"** pada tab 
+**Import / Load Data**. Aplikasi akan otomatis memuat semua data sampel
+termasuk shapefile 514 Kabupaten/Kota.
+
+---
+
+## Alur Penggunaan Singkat
+
+```
+1. Buka app          → soviclust::run_app()
+         ↓
+2. Load data         → Tab "Import / Load Data"
+   (sampel atau upload sendiri)
+         ↓
+3. Pilih variabel    → Tab "Variable Config"
+         ↓
+4. Hitung SoVI       → Tab "SoVI Computation"
+         ↓
+5. Analisis lanjut   → Tab "Extended Analysis"
+         ↓
+6. Clustering        → Tab "Cluster Analysis"
+   (ClustGeo / FGWC / LFGWC / ALFGWC)
+         ↓
+7. Download hasil    → Tab "Downloads"
+```
+
+---
+
+## Persyaratan Sistem
+
+- **R** ≥ 4.1.0
+- **RStudio** (direkomendasikan)  
+- **RAM** minimal 4 GB (8 GB untuk dataset besar)
+- **OS**: Windows 10/11, macOS, atau Linux
+
+---
+
+## Langkah Selanjutnya
+
+Setelah berhasil menjalankan aplikasi dengan data sampel, pelajari:
+
+- `vignette("data-preparation")` — cara menyiapkan data Anda sendiri
+- `vignette("sovi-methodology")` — teori dan formula SoVI
+- `vignette("clustering-methods")` — perbandingan metode clustering
+
+---
+
+## Referensi
+
+Cutter, S.L., Boruff, B.J., & Shirley, W.L. (2003). Social Vulnerability to
+Environmental Hazards. *Social Science Quarterly*, 84(2), 242–261.
+<https://doi.org/10.1111/1540-6237.8402002>

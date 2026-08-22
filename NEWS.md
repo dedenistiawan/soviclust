@@ -5,9 +5,8 @@ dan [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## soviclust 0.1.0 (2024-08-15)
+# soviclust 0.1.0
 
-Rilis pertama package **soviclust**.
 
 ### Added
 
