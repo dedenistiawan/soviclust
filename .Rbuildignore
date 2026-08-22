@@ -10,6 +10,7 @@
 ^docs$
 ^doc$
 ^Meta$
-^^_pkgdown\\.yml$$
-^^docs$$
-^^pkgdown$$
+^_pkgdown\.yml$
+^pkgdown$
+# Exclude large raw shapefile components (pakai .rds yang sudah dikompres)
+^inst/app/map/.*\.(shp|dbf|prj|qpj|shx|cpg)$

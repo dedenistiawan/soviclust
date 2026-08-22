@@ -132,13 +132,10 @@ server <- function(input, output, session) {
       data_path <- file.path(extdata, "sovi_data_kab_514_15.xlsx")
       df        <- as.data.frame(readxl::read_excel(data_path))
 
-      # 2. Load shapefile dari inst/app/map
+      # 2. Load shapefile dari inst/app/map (format RDS — lebih cepat & kecil)
       incProgress(0.4, detail = "Membaca shapefile...")
-      shp_path <- system.file("app", "map", "514_kabupaten.shp", package = "soviclust")
-      sf::sf_use_s2(FALSE)
-      shp <- sf::st_read(shp_path, quiet = TRUE)
-      shp <- sf::st_make_valid(shp)
-      sf::sf_use_s2(TRUE)
+      shp_path <- system.file("app", "map", "514_kabupaten.rds", package = "soviclust")
+      shp      <- readRDS(shp_path)
 
       # 3. Simpan ke reactive values
       incProgress(0.6, detail = "Menyimpan data...")
