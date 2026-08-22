@@ -292,14 +292,18 @@ ui <- shinydashboard::dashboardPage(
       # ── Cluster Analysis ────────────────────────────────────────────────────
       shinydashboard::menuItem(i18n$t("Cluster Analysis"),
                                icon = icon("object-group"), startExpanded = FALSE,
-                               shinydashboard::menuSubItem("ClustGeo", tabName = "tab_clustgeo_adv",
+                               shinydashboard::menuSubItem("ClustGeo",  tabName = "tab_clustgeo_adv",
                                                            icon = icon("globe-asia")),
-                               shinydashboard::menuSubItem("FGWC",     tabName = "tab_fgwc",
+                               shinydashboard::menuSubItem("FGWC",      tabName = "tab_fgwc",
                                                            icon = icon("hubspot")),
-                               shinydashboard::menuSubItem("LFGWC",    tabName = "tab_lfgwc",
+                               shinydashboard::menuSubItem("LFGWC",     tabName = "tab_lfgwc",
                                                            icon = icon("map-pin")),
-                               shinydashboard::menuSubItem("ALFGWC",   tabName = "tab_alfgwc",
-                                                           icon = icon("map-marked-alt"))
+                               shinydashboard::menuSubItem("ALFGWC",    tabName = "tab_alfgwc",
+                                                           icon = icon("map-marked-alt")),
+                               shinydashboard::menuSubItem("K-Means",   tabName = "tab_kmeans",
+                                                           icon = icon("circle-notch")),
+                               shinydashboard::menuSubItem("DBSCAN",    tabName = "tab_dbscan",
+                                                           icon = icon("project-diagram"))
       ),
 
       shinydashboard::menuItem(i18n$t("SoVI Analysis"),
@@ -708,6 +712,8 @@ ui <- shinydashboard::dashboardPage(
       fgwc_tab_ui(),
       lfgwc_tab_ui(),
       alfgwc_tab_ui(),
+      kmeans_tab_ui(),
+      dbscan_tab_ui(),
       
       # Analisis Tambahan
       sovi_analysis_tab_ui(),
