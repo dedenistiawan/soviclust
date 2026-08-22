@@ -266,17 +266,81 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$confirm_upload, {
+
+    # ── 1. Cek ketersediaan data dan shapefile ─────────────────────────────
     if (is.null(rv$data)) {
-      showNotification("Upload dataset terlebih dahulu!", type = "warning"); return()
+      showNotification(
+        "\u26a0\ufe0f Dataset belum diupload. Upload file Excel/CSV terlebih dahulu.",
+        type = "warning", duration = 6
+      )
+      return()
     }
     if (is.null(rv$shp)) {
-      showNotification("Upload shapefile terlebih dahulu!", type = "warning"); return()
+      showNotification(
+        "\u26a0\ufe0f Shapefile belum diupload. Upload file .shp dan file pendukungnya.",
+        type = "warning", duration = 6
+      )
+      return()
     }
+
+    # ── 2. Validasi struktur dataset ───────────────────────────────────────
+    v_data <- validate_data_file(rv$data, "data.xlsx")
+    if (!v_data$ok) {
+      showNotification(v_data$msg, type = "error", duration = 10)
+      return()
+    }
+
+    # ── 3. Validasi variabel SoVI yang dipilih ─────────────────────────────
+    sel_vars <- input$sovi_vars
+    if (!is.null(sel_vars) && length(sel_vars) > 0) {
+      v_vars <- validate_sovi_vars(sel_vars, rv$data)
+      if (!v_vars$ok) {
+        showNotification(v_vars$msg, type = "error", duration = 10)
+        return()
+      }
+    }
+
+    # ── 4. Validasi kecocokan ID data ↔ shapefile ──────────────────────────
+    id_col  <- input$id_col
+    shp_col <- input$join_shp
+
+    if (is.null(id_col) || id_col == "" || !id_col %in% names(rv$data)) {
+      showNotification(
+        "\u274c Kolom ID wilayah belum dipilih atau tidak ditemukan di dataset.",
+        type = "error", duration = 8
+      )
+      return()
+    }
+    if (is.null(shp_col) || shp_col == "" || !shp_col %in% names(rv$shp)) {
+      showNotification(
+        "\u274c Kolom ID shapefile belum dipilih atau tidak ditemukan.",
+        type = "error", duration = 8
+      )
+      return()
+    }
+
+    v_id <- validate_id_match(
+      data_ids = rv$data[[id_col]],
+      shp_ids  = rv$shp[[shp_col]],
+      data_col = id_col,
+      shp_col  = shp_col
+    )
+    if (!v_id$ok) {
+      showNotification(v_id$msg, type = "error", duration = 12)
+      return()
+    }
+
+    # ── 5. Semua validasi lulus → konfirmasi ──────────────────────────────
     rv$upload_ok <- TRUE
     unlock_tab("tab_varconfig")
     showNotification(
-      "\u2713 Data dikonfirmasi. Silakan lanjut ke Variable Config.",
-      type = "message", duration = 4
+      paste0(
+        "\u2713 Data dikonfirmasi!\n",
+        v_data$msg, "\n",
+        v_id$msg, "\n",
+        "Silakan lanjut ke Variable Config."
+      ),
+      type = "message", duration = 6
     )
     shinydashboard::updateTabItems(session, "sidebar_menu", "tab_varconfig")
   })
