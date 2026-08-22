@@ -1,0 +1,111 @@
+url: https://dedenistiawan.github.io/soviclust/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    primary:        "#1a73c1"
+    secondary:      "#546e7a"
+    success:        "#27ae60"
+    info:           "#17a2b8"
+    warning:        "#f39c12"
+    danger:         "#e74c3c"
+    base_font:      {google: "Inter"}
+    heading_font:   {google: "Inter"}
+    code_font:      {google: "JetBrains Mono"}
+  includes:
+    in_header: |
+      <meta name="description" content="soviclust: R package untuk analisis Social Vulnerability Index (SoVI) dan spatial clustering interaktif berbasis Shiny.">
+
+home:
+  title: "soviclust — Social Vulnerability Index Analysis"
+  description: >
+    R package berupa aplikasi Shiny interaktif untuk menghitung,
+    memvisualisasikan, dan menganalisis Social Vulnerability Index (SoVI)
+    dengan metode clustering spasial: ClustGeo, FGWC, LFGWC, dan ALFGWC.
+  links:
+    - text: Laporkan bug
+      href: https://github.com/dedenistiawan/soviclust/issues
+    - text: GitHub Repository
+      href: https://github.com/dedenistiawan/soviclust
+
+navbar:
+  bg: primary
+  type: dark
+  structure:
+    left:  [intro, articles, reference, news]
+    right: [search, github]
+  components:
+    intro:
+      text: "Mulai"
+      href: articles/getting-started.html
+    articles:
+      text: "Panduan"
+      menu:
+        - text: "── Penggunaan ──"
+        - text: "Memulai dengan soviclust"
+          href: articles/getting-started.html
+        - text: "Persiapan Data"
+          href: articles/data-preparation.html
+        - text: "── Metodologi ──"
+        - text: "Teori & Formula SoVI"
+          href: articles/sovi-methodology.html
+        - text: "Metode Clustering Spasial"
+          href: articles/clustering-methods.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/dedenistiawan/soviclust
+      aria-label: GitHub
+
+reference:
+  - title: "Fungsi Utama"
+    desc: "Fungsi untuk menjalankan aplikasi"
+    contents:
+      - run_app
+
+  - title: "Dataset Sampel"
+    desc: >
+      Dataset bawaan yang disertakan dalam package.
+      Akses via `system.file('extdata', 'nama_file.xlsx', package = 'soviclust')`.
+    contents:
+      - sovi_data_kab_514_15
+      - Koordinat
+      - Distance_matrix_514
+      - sovi_data_pop_514
+
+  - title: "Package"
+    desc: "Informasi package"
+    contents:
+      - soviclust-package
+
+articles:
+  - title: "Memulai"
+    navbar: "Mulai"
+    contents:
+      - getting-started
+  - title: "Persiapan Data"
+    navbar: "Data"
+    contents:
+      - data-preparation
+  - title: "Metodologi"
+    navbar: "Metodologi"
+    contents:
+      - sovi-methodology
+      - clustering-methods
+
+news:
+  releases:
+    - text: "soviclust 0.1.0"
+      href: https://github.com/dedenistiawan/soviclust/releases/tag/v0.1.0
+
+footer:
+  structure:
+    left: developed_by
+    right: built_with
+  components:
+    developed_by: >
+      Dikembangkan oleh [Deden Istiawan](mailto:dedenistiawan@gmail.com),
+      Tim Peneliti ITESA Muhammadiyah.
+    built_with: >
+      Dibangun dengan [pkgdown](https://pkgdown.r-lib.org/) &
+      [Bootstrap 5](https://getbootstrap.com/).

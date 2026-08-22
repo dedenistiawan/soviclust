@@ -52,5 +52,5 @@ Suggests:
     rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/dedenistiawan/soviclust
+URL: https://dedenistiawan.github.io/soviclust/, https://github.com/dedenistiawan/soviclust
 BugReports: https://github.com/dedenistiawan/soviclust/issues
