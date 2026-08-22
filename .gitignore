@@ -19,5 +19,9 @@ Meta/
 
 # Shinyapps deployment
 rsconnect/
+
+# pkgdown website build (dikelola GitHub Actions, tidak perlu di-commit)
+docs/
+pkgdown/
 /doc/
 /Meta/
