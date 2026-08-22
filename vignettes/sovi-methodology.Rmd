@@ -1,0 +1,226 @@
+---
+title: "Metodologi Social Vulnerability Index (SoVI)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Metodologi Social Vulnerability Index (SoVI)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+```
+
+## Apa itu Social Vulnerability Index?
+
+**Social Vulnerability Index (SoVI)** adalah indeks komposit yang mengukur
+tingkat kerentanan sosial suatu wilayah terhadap bahaya lingkungan dan bencana
+alam. SoVI dikembangkan oleh Cutter, Boruff, dan Shirley (2003) menggunakan
+analisis komponen utama (PCA).
+
+Nilai SoVI yang **tinggi** menunjukkan bahwa suatu wilayah memiliki kondisi
+sosial yang membuat penduduknya **lebih rentan** terhadap dampak bencana —
+seperti kemiskinan tinggi, akses layanan rendah, atau populasi yang lebih
+bergantung (lansia, anak-anak).
+
+---
+
+## Pipeline SoVI dalam soviclust
+
+Pipeline SoVI terdiri dari **5 fase** yang berjalan secara berurutan:
+
+```
+Data Input
+    │
+    ▼
+[Fase 1] Z-score Standardisasi
+    │      Normalisasi setiap variabel: mean=0, SD=1
+    ▼
+[Fase 2] PCA + Diagnostik
+    │      KMO, Bartlett, communality, Kaiser criterion, Varimax
+    ▼
+[Fase 3] Seleksi & Assignment Variabel
+    │      Setiap variabel → komponen dominan (|λ| ≥ threshold)
+    ▼
+[Fase 4] Agregasi Skor Berbobot
+    │      Bobot proporsional dari factor loading
+    ▼
+[Fase 5] Klasifikasi Jenks Natural Breaks
+           5 kelas kerentanan (Sangat Rendah → Sangat Tinggi)
+```
+
+---
+
+## Fase 1: Standardisasi Z-score
+
+Setiap variabel distandardisasi agar skala tidak mempengaruhi hasil PCA:
+
+$$z_i = \frac{x_i - \bar{x}}{\sigma_x}$$
+
+di mana $\bar{x}$ adalah rata-rata dan $\sigma_x$ adalah deviasi standar.
+
+```{r standardize}
+# Contoh standardisasi manual
+df_std <- scale(df_sovi[, -(1:2)])  # Kecuali kolom ID dan nama
+head(df_std)
+```
+
+---
+
+## Fase 2: PCA dan Diagnostik
+
+### Uji Kelayakan PCA
+
+Sebelum PCA, dilakukan dua uji kelayakan:
+
+**Kaiser-Meyer-Olkin (KMO) Test:**
+- Mengukur kecukupan sampling untuk PCA
+- Nilai > 0.6 diterima, > 0.8 sangat baik
+
+**Bartlett's Test of Sphericity:**
+- H₀: Matriks korelasi = matriks identitas (tidak cocok untuk PCA)
+- p-value < 0.05 → tolak H₀ → PCA layak dilakukan
+
+### Ekstraksi Komponen
+
+Komponen diekstrak dengan kriteria **Kaiser** (eigenvalue ≥ 1) dan
+dirotasi menggunakan **Varimax** untuk mempermudah interpretasi.
+
+```{r pca}
+library(psych)
+
+# PCA dengan Varimax rotation
+pca_result <- principal(df_std, nfactors = NULL,  # otomatis
+                         rotate = "varimax",
+                         scores = TRUE)
+
+# Diagnostik
+KMO(df_std)        # KMO test
+cortest.bartlett(df_std)  # Bartlett's test
+```
+
+---
+
+## Fase 3: Direction Method (Tanda Variabel)
+
+Setiap variabel harus diberi **direction** (+1 atau -1) yang menentukan
+apakah variabel tersebut **meningkatkan** (+) atau **mengurangi** (-) kerentanan.
+
+### Tiga Direction Method
+
+| Method | Deskripsi | Rekomendasi |
+|--------|-----------|-------------|
+| **Theory-Based (PM)** | Ditentukan berdasarkan teori kerentanan (a priori) | ✅ Utama |
+| **Loading Sign** | Menggunakan tanda factor loading PCA secara empiris | Eksplorasi |
+| **Cutter's Method** | Tanda dari variabel dengan loading terbesar per komponen | Replikasi |
+
+### Contoh Penentuan Direction (Theory-Based)
+
+| Variabel | Direction | Alasan |
+|----------|-----------|--------|
+| Persentase kemiskinan | **+** | Kemiskinan tinggi → lebih rentan |
+| Persentase berpendidikan tinggi | **−** | Pendidikan tinggi → lebih tangguh |
+| Jumlah tenaga kesehatan | **−** | Layanan baik → lebih tangguh |
+| Kepadatan penduduk | **+** | Padat → risiko dampak lebih besar |
+
+---
+
+## Fase 4: Agregasi Skor Berbobot
+
+### Formula
+
+Skor komponen ke-$k$ untuk wilayah $j$:
+
+$$RC_k^{(j)} = \sum_{i=1}^{p} w_{ik} \cdot d_i \cdot z_i^{(j)}$$
+
+di mana:
+- $w_{ik} = \dfrac{|\lambda_{ik}|}{\sum_j |\lambda_{jk}|}$ adalah bobot proporsional dari factor loading
+- $d_i \in \{-1, +1\}$ adalah direction variabel $i$
+- $z_i^{(j)}$ adalah Z-score variabel $i$ untuk wilayah $j$
+
+### SoVI Total
+
+$$SoVI_j = \sum_{k=1}^{K} RC_k^{(j)}$$
+
+### Normalisasi ke [0, 1]
+
+$$SoVI_j^* = \frac{SoVI_j - \min(SoVI)}{\max(SoVI) - \min(SoVI)}$$
+
+Nilai $SoVI^* \approx 1$ menunjukkan kerentanan **sangat tinggi**,
+nilai $SoVI^* \approx 0$ menunjukkan kerentanan **sangat rendah**.
+
+---
+
+## Fase 5: Klasifikasi Jenks Natural Breaks
+
+Nilai SoVI* diklasifikasikan ke dalam **5 kelas** menggunakan metode
+Jenks Natural Breaks, yang meminimalkan variansi dalam kelas dan
+memaksimalkan variansi antar kelas.
+
+| Kelas | Label | Interpretasi |
+|-------|-------|-------------|
+| 1 | Sangat Rendah | Wilayah dengan ketangguhan sosial tinggi |
+| 2 | Rendah | Kondisi sosial relatif baik |
+| 3 | Sedang | Perlu perhatian pada beberapa aspek |
+| 4 | Tinggi | Prioritas program penguatan sosial |
+| 5 | Sangat Tinggi | Intervensi mendesak diperlukan |
+
+**Goodness of Variance Fit (GVF):**
+
+$$GVF = 1 - \frac{SDCM}{SDAM}$$
+
+Nilai GVF > 0.8 menunjukkan klasifikasi yang sangat baik.
+
+---
+
+## Interpretasi Hasil
+
+### Nilai SoVI per Wilayah
+
+Wilayah dengan SoVI tinggi cenderung memiliki kombinasi dari:
+- Persentase penduduk miskin tinggi
+- Akses layanan dasar rendah (air, sanitasi, listrik)
+- Tingkat pendidikan rendah
+- Proporsi kelompok rentan tinggi (lansia, anak-anak, kepala keluarga perempuan)
+
+### Analisis Komponen Dominan
+
+Setiap wilayah dapat diidentifikasi komponen SoVI dominannya — yaitu komponen
+yang berkontribusi paling besar pada nilai SoVI totalnya. Informasi ini berguna
+untuk **kebijakan yang tertarget** (targeted policy).
+
+### Autokorelasi Spasial (Moran's I)
+
+$$I = \frac{n}{\sum_i \sum_j w_{ij}} \cdot \frac{\sum_i \sum_j w_{ij}(x_i - \bar{x})(x_j - \bar{x})}{\sum_i (x_i - \bar{x})^2}$$
+
+- $I > 0$: Klaster spasial (wilayah rentan berkumpul)
+- $I < 0$: Pola tersebar
+- $I \approx 0$: Acak
+
+---
+
+## Keterbatasan SoVI
+
+1. **Sensitivitas terhadap threshold**: Pemilihan nilai |λ| minimum memengaruhi
+   variabel yang masuk dan hasil akhir SoVI.
+2. **Ketergantungan data**: Kualitas SoVI sangat bergantung pada ketersediaan
+   dan kualitas data indikator.
+3. **Konteks lokal**: Variabel yang relevan dapat berbeda antar konteks/negara.
+4. **Statis**: SoVI adalah snapshot pada satu titik waktu; tidak menangkap
+   dinamika temporal.
+
+---
+
+## Referensi
+
+- Cutter, S.L., Boruff, B.J., & Shirley, W.L. (2003). Social Vulnerability to
+  Environmental Hazards. *Social Science Quarterly*, 84(2), 242–261.
+  <https://doi.org/10.1111/1540-6237.8402002>
+- Schmidtlein, M.C., et al. (2008). A Sensitivity Analysis of the Social
+  Vulnerability Index. *Risk Analysis*, 28(4), 1099–1114.
+- Jenks, G.F. (1967). The Data Model Concept in Statistical Mapping.
+  *International Yearbook of Cartography*, 7, 186–190.

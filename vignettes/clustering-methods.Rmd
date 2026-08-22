@@ -1,0 +1,210 @@
+---
+title: "Metode Clustering Spasial: ClustGeo, FGWC, LFGWC, dan ALFGWC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Metode Clustering Spasial: ClustGeo, FGWC, LFGWC, dan ALFGWC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+```
+
+## Mengapa Clustering Spasial?
+
+Setelah menghitung SoVI, langkah selanjutnya adalah mengelompokkan wilayah
+ke dalam **klaster** berdasarkan kemiripan karakteristik kerentanan.
+Clustering spasial mempertimbangkan **kedekatan geografis** selain kemiripan
+atribut — sehingga klaster yang terbentuk juga cenderung berdekatan secara
+lokasi, yang lebih relevan untuk perencanaan kebijakan.
+
+Package **soviclust** menyediakan 4 metode clustering spasial:
+
+---
+
+## 1. ClustGeo
+
+### Deskripsi
+
+ClustGeo (Chavent et al., 2018) adalah metode **hierarchical clustering**
+yang menggabungkan dua matriks dissimilaritas:
+
+- $D_0$ — dissimilaritas berdasarkan **atribut** (karakteristik SoVI)
+- $D_1$ — dissimilaritas berdasarkan **jarak geografis**
+
+### Formula
+
+Matriks gabungan:
+$$D(\alpha) = (1 - \alpha) \cdot D_0 + \alpha \cdot D_1, \quad \alpha \in [0, 1]$$
+
+- $\alpha = 0$ → hanya atribut (clustering biasa)
+- $\alpha = 1$ → hanya geografis (clustering berdasarkan jarak saja)
+- $\alpha^*$ → nilai optimal yang menyeimbangkan keduanya (dihitung otomatis)
+
+### Cara Penggunaan di Aplikasi
+
+1. Buka tab **Cluster Analysis → ClustGeo**
+2. Pilih jumlah cluster (k)
+3. Klik "Hitung Alpha Optimal" — alpha terbaik dihitung otomatis
+4. Klik "Jalankan ClustGeo"
+
+### Kelebihan dan Keterbatasan
+
+| | Kelebihan | Keterbatasan |
+|-|-----------|-------------|
+| | Tidak perlu inisialisasi | Tidak cocok untuk data sangat besar |
+| | Hasil deterministik | Hasil sensitif terhadap pilihan k |
+| | Alpha optimal otomatis | Tidak mempertimbangkan fuzzy membership |
+
+---
+
+## 2. FGWC — Fuzzy Geographically Weighted Clustering
+
+### Deskripsi
+
+FGWC (Wijayanto & Purwaningsih, 2020) adalah perluasan dari **Fuzzy C-Means**
+yang menambahkan bobot geografis pada proses clustering. Setiap wilayah
+memiliki **derajat keanggotaan** (fuzzy membership) terhadap setiap klaster,
+bukan anggota tunggal yang kaku.
+
+### Formula
+
+Fungsi objektif FGWC:
+
+$$J_m = \sum_{j=1}^{n} \sum_{k=1}^{c} u_{jk}^m \cdot w_j \cdot \|x_j - v_k\|^2$$
+
+di mana:
+- $u_{jk} \in [0,1]$ — derajat keanggotaan wilayah $j$ ke klaster $k$
+- $m > 1$ — fuzzifier (biasanya $m = 2$)
+- $w_j$ — bobot geografis wilayah $j$ (berdasarkan populasi dan jarak)
+- $v_k$ — centroid klaster $k$
+
+### Algoritma Optimasi
+
+Centroid awal FGWC dapat dioptimasi dengan 9 algoritma metaheuristik:
+
+| Algoritma | Kode | Inspirasi |
+|-----------|------|-----------|
+| Particle Swarm Optimization | PSO | Gerombolan burung/ikan |
+| Artificial Bee Colony | ABC | Lebah madu |
+| Grey Wolf Optimizer | GWO | Hierarki serigala abu-abu |
+| Whale Optimization Algorithm | WOA | Gelembung udara paus bungkuk |
+| Harris-Hawk Optimization | HHO | Perilaku berburu elang Harris |
+| Flower Pollination Algorithm | FPA | Penyerbukan bunga |
+| Gravitational Search Algorithm | GSA | Gravitasi Newton |
+| Teaching-Learning Based Optimization | TLBO | Proses belajar-mengajar |
+| Intelligent Firefly Algorithm | IFA | Cahaya kunang-kunang |
+
+### Cara Penggunaan di Aplikasi
+
+1. Buka tab **Cluster Analysis → FGWC**
+2. Upload matriks jarak atau koordinat (atau klik "Muat Data Sampel")
+3. Upload data populasi
+4. Pilih sumber data fitur (dari SoVI atau upload sendiri)
+5. Atur parameter: jumlah cluster (c), fuzzifier (m), iterasi maksimum
+6. Pilih algoritma optimasi
+7. Klik "Jalankan FGWC"
+
+---
+
+## 3. LFGWC — Local Fuzzy Geographically Weighted Clustering
+
+### Deskripsi
+
+LFGWC (Grekousis, 2020) adalah pengembangan FGWC yang menggunakan
+**bobot lokal berbasis radius tetangga** (*neighborhood radius*).
+Setiap wilayah hanya dipengaruhi oleh wilayah tetangga dalam radius tertentu,
+membuat clustering lebih sensitif terhadap pola lokal.
+
+### Perbedaan dengan FGWC
+
+| Aspek | FGWC | LFGWC |
+|-------|------|-------|
+| Bobot geografis | Global (seluruh wilayah) | Lokal (hanya tetangga) |
+| Radius pengaruh | Semua wilayah | Dibatasi threshold jarak |
+| Peka pola lokal | Sedang | Tinggi |
+| Kompleksitas | Lebih rendah | Lebih tinggi |
+
+### Cara Penggunaan di Aplikasi
+
+Sama dengan FGWC, tetapi ada parameter tambahan:
+- **Radius tetangga** — jarak maksimum wilayah yang dianggap tetangga
+
+---
+
+## 4. ALFGWC — Adaptive Local Fuzzy Geographically Weighted Clustering
+
+### Deskripsi
+
+ALFGWC adalah pengembangan lebih lanjut dari LFGWC dengan radius tetangga
+yang **adaptif** — radius disesuaikan secara otomatis berdasarkan kepadatan
+wilayah sekitar. Ini berguna ketika distribusi wilayah tidak merata
+(misalnya: wilayah padat di Jawa vs. wilayah jarang di Kalimantan).
+
+### Kelebihan
+
+- Lebih fleksibel untuk data dengan distribusi wilayah tidak merata
+- Tidak memerlukan penentuan radius secara manual
+- Lebih baik menangkap heterogenitas spasial
+
+---
+
+## Perbandingan Keempat Metode
+
+| Aspek | ClustGeo | FGWC | LFGWC | ALFGWC |
+|-------|----------|------|-------|--------|
+| **Tipe** | Hierarki | Fuzzy | Fuzzy Lokal | Fuzzy Adaptif |
+| **Membership** | Hard (0/1) | Soft (0-1) | Soft (0-1) | Soft (0-1) |
+| **Input tambahan** | — | Jarak + Populasi | Jarak + Populasi | Jarak + Populasi |
+| **Optimasi metaheuristik** | — | ✅ 9 pilihan | ✅ 9 pilihan | ✅ 9 pilihan |
+| **Peka pola lokal** | Sedang | Sedang | Tinggi | Sangat Tinggi |
+| **Kompleksitas komputasi** | Rendah | Sedang | Tinggi | Sangat Tinggi |
+| **Deterministik** | ✅ | ❌ (tergantung init) | ❌ | ❌ |
+
+### Panduan Pemilihan Metode
+
+```
+Apakah Anda punya data jarak/koordinat dan populasi?
+    │
+    ├── TIDAK → Gunakan ClustGeo
+    │
+    └── YA → Apakah distribusi wilayah merata?
+               │
+               ├── YA, merata → FGWC atau LFGWC
+               │
+               └── TIDAK, tidak merata → ALFGWC
+```
+
+---
+
+## Indeks Validasi Clustering
+
+Setelah clustering, kualitas hasil dievaluasi dengan indeks validasi:
+
+| Indeks | Nama Lengkap | Interpretasi |
+|--------|-------------|-------------|
+| **PC** | Partition Coefficient | Makin tinggi = lebih baik |
+| **CE** | Classification Entropy | Makin rendah = lebih baik |
+| **SC** | Separation Coefficient | Makin tinggi = lebih baik |
+| **SI** | Silhouette Index | Makin tinggi (→ 1) = lebih baik |
+| **XB** | Xie-Beni Index | Makin rendah = lebih baik |
+| **IFV** | Index Fukuyama-Vera | Makin rendah = lebih baik |
+| **Kwon** | Kwon Index | Makin rendah = lebih baik |
+
+---
+
+## Referensi
+
+- Chavent, M., et al. (2018). ClustGeo: an R package for hierarchical
+  clustering with spatial constraints. *Computational Statistics*, 33(4),
+  1799–1822. <https://doi.org/10.1007/s00180-018-0791-1>
+- Wijayanto, H., & Purwaningsih, T. (2020). Fuzzy Geographically Weighted
+  Clustering Using Artificial Bee Colony. *Journal of Physics: Conference
+  Series*.
+- Grekousis, G. (2020). *Spatial Analysis Methods and Practice*.
+  Cambridge University Press.
