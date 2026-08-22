@@ -13,8 +13,7 @@ src/*.dll
 inst/doc/
 
 # devtools / roxygen
-man/
-docs/
+# man/ — JANGAN diabaikan: diperlukan agar package bisa install dari GitHub
 Meta/
 
 # Shinyapps deployment
