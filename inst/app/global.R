@@ -126,6 +126,14 @@ source("R/ALFGWC/alfgwc_wrapper.R")
 source("R/ALFGWC/alfgwc_ui.R")
 source("R/ALFGWC/alfgwc_server.R")
 
+# ── K-Means ───────────────────────────────────────────────────────────────────
+source("R/kmeans/kmeans_ui.R")     # kmeans_tab_ui()
+source("R/kmeans/kmeans_server.R") # kmeans_server()
+
+# ── DBSCAN ────────────────────────────────────────────────────────────────────
+source("R/dbscan/dbscan_ui.R")     # dbscan_tab_ui()
+source("R/dbscan/dbscan_server.R") # dbscan_server()
+
 # =============================================================================
 # TAHAP 4: MODUL SoVI ANALYSIS
 # =============================================================================

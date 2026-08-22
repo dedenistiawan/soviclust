@@ -47,9 +47,11 @@ server <- function(input, output, session) {
     analysis_ok = FALSE,
     
     # ── Tab Cluster Analysis ──────────────────────────────────────────────
-    cga_result       = NULL,
-    cga_result_fgwc  = NULL,
-    cga_result_lfgwc = NULL
+    cga_result        = NULL,
+    cga_result_fgwc   = NULL,
+    cga_result_lfgwc  = NULL,
+    km_result         = NULL,   # K-Means
+    dbs_result        = NULL    # DBSCAN
   )
   
   # ============================================================================
@@ -80,6 +82,7 @@ server <- function(input, output, session) {
     shinyjs::runjs("
       ['tab_varconfig','tab_comparison','tab_sovi','tab_analysis',
        'tab_clustgeo_adv','tab_fgwc','tab_lfgwc','tab_alfgwc',
+       'tab_kmeans','tab_dbscan',
        'tab_sovi_analysis','tab_download']
         .forEach(function(t) {
           var el = document.querySelector(\"a[data-value='\" + t + \"']\");
@@ -366,6 +369,8 @@ server <- function(input, output, session) {
   fgwc_server(input, output, session, rv)
   lfgwc_server(input, output, session, rv)
   alfgwc_server(input, output, session, rv)
+  kmeans_server(input, output, session, rv)
+  dbscan_server(input, output, session, rv)
   
   # ── Analisis Lanjutan & Downloads ──────────────────────────────────────────
   sovi_analysis_server(input, output, session, rv)

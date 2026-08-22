@@ -85,6 +85,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       unlock_tab("tab_analysis"); unlock_tab("tab_clustgeo_adv")
       unlock_tab("tab_fgwc");    unlock_tab("tab_lfgwc")
       unlock_tab("tab_alfgwc");  unlock_tab("tab_sovi_analysis")
+      unlock_tab("tab_kmeans");  unlock_tab("tab_dbscan")
       unlock_tab("tab_download")
       return()
     }
@@ -139,6 +140,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       unlock_tab("tab_analysis");     unlock_tab("tab_clustgeo_adv")
       unlock_tab("tab_fgwc");         unlock_tab("tab_lfgwc")
       unlock_tab("tab_alfgwc");       unlock_tab("tab_sovi_analysis")
+      unlock_tab("tab_kmeans");       unlock_tab("tab_dbscan")
       unlock_tab("tab_download")
       showNotification(
         "\u2713 SoVI berhasil dihitung. Tab Extended Analysis, Cluster Analysis & Downloads sudah terbuka.",
