@@ -10,7 +10,150 @@
 # =============================================================================
 
 downloads_server <- function(input, output, session, rv) {
-  
+
+  # ==========================================================================
+  # LAPORAN OTOMATIS — HTML / PDF
+  # ==========================================================================
+
+  output$dl_report <- downloadHandler(
+
+    filename = function() {
+      ext <- if (isTRUE(input$report_format == "pdf")) "pdf" else "html"
+      paste0("sovi_report_", Sys.Date(), ".", ext)
+    },
+
+    content = function(file) {
+      req(rv$sovi_result)
+
+      # Validasi dependensi
+      if (!requireNamespace("rmarkdown",  quietly = TRUE)) {
+        showNotification("Package 'rmarkdown' diperlukan. Install dengan install.packages('rmarkdown').",
+                         type = "error", duration = 8)
+        return()
+      }
+      if (!requireNamespace("kableExtra", quietly = TRUE)) {
+        showNotification("Package 'kableExtra' diperlukan. Install dengan install.packages('kableExtra').",
+                         type = "error", duration = 8)
+        return()
+      }
+      if (isTRUE(input$report_format == "pdf") &&
+          !nzchar(Sys.which("pdflatex")) &&
+          !nzchar(Sys.which("xelatex"))) {
+        showNotification("LaTeX tidak ditemukan. Pilih format HTML atau install TinyTeX: tinytex::install_tinytex()",
+                         type = "error", duration = 10)
+        return()
+      }
+
+      withProgress(message = "Membuat laporan...", value = 0, {
+
+        # ── 1. Ekstrak sovi_df ────────────────────────────────────────────────
+        incProgress(0.15, detail = "Menyiapkan data SoVI...")
+        sovi_df <- tryCatch(rv$sovi_result$sovi_df, error = function(e) NULL)
+
+        # ── 2. Ekstrak info PCA ───────────────────────────────────────────────
+        incProgress(0.25, detail = "Mengumpulkan info PCA...")
+        pca_info <- tryCatch({
+          sel <- rv$sovi_result$selection_out
+          pca <- rv$sovi_result$pca_out
+
+          var_pct <- (pca$values / sum(pca$values)) * 100
+          n_comp  <- ncol(pca$loadings)
+          var_df  <- data.frame(
+            Component = paste0("PC", seq_len(n_comp)),
+            VarPct    = round(var_pct[seq_len(n_comp)], 2)
+          )
+          list(
+            kmo           = round(sel$kmo_val, 3),
+            bartlett_p    = sel$bartlett_p,
+            n_components  = n_comp,
+            total_variance = round(sum(var_pct[seq_len(n_comp)]), 1),
+            variance_df   = var_df
+          )
+        }, error = function(e) NULL)
+
+        # ── 3. Ekstrak info Moran ─────────────────────────────────────────────
+        incProgress(0.35, detail = "Mengumpulkan Moran's I...")
+        moran_info <- tryCatch({
+          if (!is.null(rv$moran_res)) {
+            list(
+              I       = rv$moran_res$global_I,
+              p_value = rv$moran_res$global_p
+            )
+          } else NULL
+        }, error = function(e) NULL)
+
+        # ── 4. Ekstrak info Clustering ────────────────────────────────────────
+        incProgress(0.45, detail = "Mengumpulkan hasil clustering...")
+        cluster_info <- tryCatch({
+          cr <- rv$cluster_res
+          if (!is.null(cr) && "cluster" %in% names(cr$sovi_df)) {
+            tbl <- as.data.frame(table(Klaster = paste0("Klaster ", cr$sovi_df$cluster)))
+            tbl$Persen <- round(tbl$Freq / nrow(cr$sovi_df) * 100, 1)
+            list(
+              method      = "ClustGeo (Extended Analysis)",
+              k           = cr$k,
+              cluster_tbl = tbl
+            )
+          } else NULL
+        }, error = function(e) NULL)
+
+        # ── 5. Info dataset ───────────────────────────────────────────────────
+        incProgress(0.5, detail = "Merangkum dataset...")
+        data_info <- list(
+          n_row  = nrow(sovi_df),
+          n_vars = length(rv$sovi_vars)
+        )
+
+        # ── 6. Render Rmd ─────────────────────────────────────────────────────
+        incProgress(0.6, detail = "Merender laporan (ini bisa makan 10-30 detik)...")
+
+        rmd_path <- system.file("app", "report", "sovi_report.Rmd",
+                                package = "soviclust")
+        if (!nzchar(rmd_path)) {
+          # fallback: pakai path relatif saat dijalankan dari inst/app/
+          rmd_path <- "report/sovi_report.Rmd"
+        }
+
+        out_format <- if (isTRUE(input$report_format == "pdf")) {
+          rmarkdown::pdf_document(toc = TRUE, number_sections = TRUE)
+        } else {
+          rmarkdown::html_document(
+            theme          = "flatly",
+            highlight      = "kate",
+            toc            = TRUE,
+            toc_float      = TRUE,
+            self_contained = TRUE
+          )
+        }
+
+        tryCatch({
+          rmarkdown::render(
+            input       = rmd_path,
+            output_file = file,
+            output_format = out_format,
+            params      = list(
+              sovi_df      = sovi_df,
+              pca_info     = pca_info,
+              moran_info   = moran_info,
+              cluster_info = cluster_info,
+              data_info    = data_info,
+              id_col       = input$id_col,
+              name_col     = input$name_col,
+              report_title = input$report_title,
+              institution  = input$report_institution
+            ),
+            envir = new.env(parent = globalenv()),
+            quiet = TRUE
+          )
+          incProgress(1.0)
+        }, error = function(e) {
+          showNotification(paste("Gagal membuat laporan:", e$message),
+                           type = "error", duration = 12)
+        })
+      }) # end withProgress
+    } # end content
+  ) # end downloadHandler
+
   # ==========================================================================
   # CSV DOWNLOADS — SoVI Core
   # ==========================================================================

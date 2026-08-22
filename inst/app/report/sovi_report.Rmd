@@ -1,0 +1,392 @@
+---
+title: "Laporan Social Vulnerability Index (SoVI)"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    self_contained: true
+    css: |
+      body { font-family: 'Segoe UI', sans-serif; font-size: 14px; }
+      h1, h2, h3 { color: #1a73c1; }
+      .sovi-badge { display:inline-block; padding:3px 10px; border-radius:12px;
+                    font-weight:700; font-size:12px; color:#fff; margin:2px; }
+      .badge-sr  { background:#1a9641; }
+      .badge-r   { background:#a6d96a; color:#333; }
+      .badge-s   { background:#f0e442; color:#333; }
+      .badge-t   { background:#fdae61; color:#333; }
+      .badge-st  { background:#d7191c; }
+      .info-box  { background:#f0f7ff; border-left:4px solid #1a73c1;
+                   padding:12px 16px; border-radius:4px; margin:12px 0; }
+      .warn-box  { background:#fff8e1; border-left:4px solid #f39c12;
+                   padding:12px 16px; border-radius:4px; margin:12px 0; }
+params:
+  sovi_df:       NULL
+  pca_info:      NULL
+  moran_info:    NULL
+  cluster_info:  NULL
+  data_info:     NULL
+  id_col:        "DISTRICTCODE"
+  name_col:      "KABUPATEN"
+  report_title:  "SoVI Analysis Report"
+  institution:   "soviclust"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  out.width = "100%"
+)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+
+# Data dari parameter
+sovi_df      <- params$sovi_df
+pca_info     <- params$pca_info
+moran_info   <- params$moran_info
+cluster_info <- params$cluster_info
+data_info    <- params$data_info
+id_col       <- params$id_col
+name_col     <- params$name_col
+
+# Palet warna kerentanan
+VULN_CLASSES <- c("Sangat Rendah","Rendah","Sedang","Tinggi","Sangat Tinggi")
+VULN_PAL     <- c("Sangat Rendah"="#1a9641","Rendah"="#a6d96a",
+                  "Sedang"="#ffffbf","Tinggi"="#fdae61","Sangat Tinggi"="#d7191c")
+```
+
+---
+
+::: {.info-box}
+**Dibuat oleh:** `r params$institution`  &nbsp;|&nbsp;
+**Tanggal:** `r format(Sys.time(), "%d %B %Y %H:%M")`  &nbsp;|&nbsp;
+**Package:** soviclust
+:::
+
+---
+
+## 1. Ringkasan Data {#ringkasan-data}
+
+```{r data-info}
+if (!is.null(data_info)) {
+  info_df <- data.frame(
+    Informasi = c("Jumlah Wilayah", "Jumlah Variabel SoVI",
+                  "Kolom ID", "Kolom Nama"),
+    Nilai     = c(data_info$n_row, data_info$n_vars,
+                  id_col, name_col)
+  )
+  kable(info_df, col.names = c("Informasi", "Nilai"),
+        caption = "Ringkasan Dataset") |>
+    kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                  full_width = FALSE)
+}
+```
+
+### Statistik Deskriptif Variabel SoVI
+
+```{r desc-stats}
+if (!is.null(sovi_df)) {
+  rc_cols <- grep("^RC", names(sovi_df), value = TRUE)
+  num_cols <- c("sovi_score", rc_cols)
+  num_cols <- num_cols[num_cols %in% names(sovi_df)]
+
+  if (length(num_cols) > 0) {
+    desc <- sovi_df[, num_cols, drop = FALSE]
+    stat_df <- data.frame(
+      Variabel = names(desc),
+      Min      = round(sapply(desc, min,  na.rm = TRUE), 4),
+      Mean     = round(sapply(desc, mean, na.rm = TRUE), 4),
+      Median   = round(sapply(desc, median, na.rm = TRUE), 4),
+      Max      = round(sapply(desc, max,  na.rm = TRUE), 4),
+      SD       = round(sapply(desc, sd,   na.rm = TRUE), 4)
+    )
+    kable(stat_df, caption = "Statistik Deskriptif Skor SoVI & Komponen") |>
+      kable_styling(bootstrap_options = c("striped","hover","condensed"))
+  }
+}
+```
+
+---
+
+## 2. Diagnostik PCA {#diagnostik-pca}
+
+```{r pca-summary}
+if (!is.null(pca_info)) {
+  cat(sprintf("**KMO Value:** %.3f\n\n", pca_info$kmo))
+  cat(sprintf("**Bartlett's Test p-value:** %s\n\n",
+              ifelse(pca_info$bartlett_p < 0.001, "< 0.001",
+                     round(pca_info$bartlett_p, 4))))
+  cat(sprintf("**Jumlah Komponen (Kaiser):** %d\n\n", pca_info$n_components))
+  cat(sprintf("**Total Variansi Dijelaskan:** %.1f%%\n\n",
+              pca_info$total_variance))
+}
+```
+
+```{r kmo-interp}
+if (!is.null(pca_info)) {
+  kmo_val <- pca_info$kmo
+  kmo_interp <- dplyr::case_when(
+    kmo_val >= 0.90 ~ "Sangat baik (Marvelous)",
+    kmo_val >= 0.80 ~ "Baik (Meritorious)",
+    kmo_val >= 0.70 ~ "Cukup (Middling)",
+    kmo_val >= 0.60 ~ "Dapat diterima (Mediocre)",
+    TRUE            ~ "Tidak layak untuk PCA"
+  )
+  cat(sprintf("::: {.info-box}\n**Interpretasi KMO (%.3f):** %s\n:::\n",
+              kmo_val, kmo_interp))
+}
+```
+
+### Variansi per Komponen
+
+```{r pca-variance-plot}
+if (!is.null(pca_info) && !is.null(pca_info$variance_df)) {
+  var_df <- pca_info$variance_df
+  ggplot(var_df, aes(x = reorder(Component, -VarPct),
+                     y = VarPct, fill = VarPct)) +
+    geom_bar(stat = "identity", width = 0.7) +
+    geom_text(aes(label = paste0(round(VarPct, 1), "%")),
+              vjust = -0.4, size = 3.5, fontface = "bold") +
+    scale_fill_gradient(low = "#90caf9", high = "#1a73c1") +
+    labs(title = "Variansi yang Dijelaskan per Komponen PCA",
+         x = "Komponen", y = "Variansi (%)") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", color = "#1a73c1"))
+}
+```
+
+---
+
+## 3. Hasil SoVI {#hasil-sovi}
+
+```{r sovi-distribution}
+if (!is.null(sovi_df) && "vuln_class" %in% names(sovi_df)) {
+  vuln_tbl <- as.data.frame(table(Kelas = sovi_df$vuln_class))
+  vuln_tbl$Persen <- round(vuln_tbl$Freq / nrow(sovi_df) * 100, 1)
+  vuln_tbl$Kelas  <- factor(vuln_tbl$Kelas, levels = VULN_CLASSES)
+  vuln_tbl <- vuln_tbl[order(vuln_tbl$Kelas), ]
+
+  kable(vuln_tbl,
+        col.names = c("Kelas Kerentanan", "Jumlah Wilayah", "Persentase (%)"),
+        caption   = "Distribusi Kelas Kerentanan SoVI") |>
+    kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                  full_width = FALSE)
+}
+```
+
+### Distribusi Skor SoVI
+
+```{r sovi-hist}
+if (!is.null(sovi_df) && "sovi_score" %in% names(sovi_df)) {
+  ggplot(sovi_df, aes(x = sovi_score)) +
+    geom_histogram(aes(fill = ..count..), bins = 30,
+                   color = "white", linewidth = 0.3) +
+    scale_fill_gradient(low = "#a6d96a", high = "#d7191c") +
+    labs(title = "Distribusi Skor SoVI",
+         x = "SoVI Score (0\u20131)",
+         y = "Frekuensi") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", color = "#1a73c1"))
+}
+```
+
+### Peta Kerentanan (Barchart per Kelas)
+
+```{r sovi-barchart}
+if (!is.null(sovi_df) && "vuln_class" %in% names(sovi_df)) {
+  vuln_tbl <- as.data.frame(table(Kelas = sovi_df$vuln_class))
+  vuln_tbl$Kelas <- factor(vuln_tbl$Kelas, levels = VULN_CLASSES)
+  vuln_tbl <- vuln_tbl[order(vuln_tbl$Kelas), ]
+
+  ggplot(vuln_tbl, aes(x = Kelas, y = Freq, fill = Kelas)) +
+    geom_bar(stat = "identity", width = 0.65) +
+    geom_text(aes(label = Freq), vjust = -0.4, fontface = "bold", size = 4) +
+    scale_fill_manual(values = VULN_PAL) +
+    labs(title = "Jumlah Wilayah per Kelas Kerentanan SoVI",
+         x = NULL, y = "Jumlah Wilayah") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", color = "#1a73c1"),
+          axis.text.x = element_text(angle = 15, hjust = 1))
+}
+```
+
+### 10 Wilayah dengan SoVI Tertinggi
+
+```{r top10-high}
+if (!is.null(sovi_df) && "sovi_score" %in% names(sovi_df)) {
+  top10 <- sovi_df |>
+    dplyr::arrange(dplyr::desc(sovi_score)) |>
+    dplyr::select(dplyr::any_of(c(id_col, name_col, "sovi_score", "vuln_class"))) |>
+    head(10)
+  kable(top10,
+        col.names = c("Kode", "Nama Wilayah", "SoVI Score", "Kelas")[seq_len(ncol(top10))],
+        caption   = "10 Wilayah dengan Skor SoVI Tertinggi",
+        digits    = 4) |>
+    kable_styling(bootstrap_options = c("striped","hover"), full_width = FALSE)
+}
+```
+
+### 10 Wilayah dengan SoVI Terendah
+
+```{r top10-low}
+if (!is.null(sovi_df) && "sovi_score" %in% names(sovi_df)) {
+  bot10 <- sovi_df |>
+    dplyr::arrange(sovi_score) |>
+    dplyr::select(dplyr::any_of(c(id_col, name_col, "sovi_score", "vuln_class"))) |>
+    head(10)
+  kable(bot10,
+        col.names = c("Kode", "Nama Wilayah", "SoVI Score", "Kelas")[seq_len(ncol(bot10))],
+        caption   = "10 Wilayah dengan Skor SoVI Terendah",
+        digits    = 4) |>
+    kable_styling(bootstrap_options = c("striped","hover"), full_width = FALSE)
+}
+```
+
+---
+
+## 4. Autokorelasi Spasial (Moran's I) {#moran}
+
+```{r moran-results}
+if (!is.null(moran_info)) {
+  moran_df <- data.frame(
+    Statistik = c("Moran's I", "p-value", "Interpretasi"),
+    Nilai     = c(
+      round(moran_info$I, 4),
+      ifelse(moran_info$p_value < 0.001, "< 0.001",
+             round(moran_info$p_value, 4)),
+      dplyr::case_when(
+        moran_info$I > 0.3  & moran_info$p_value < 0.05 ~ "Klaster spasial kuat (High-High / Low-Low)",
+        moran_info$I > 0    & moran_info$p_value < 0.05 ~ "Klaster spasial lemah",
+        moran_info$I < 0    & moran_info$p_value < 0.05 ~ "Pola tersebar (outlier spasial)",
+        TRUE                                              ~ "Pola acak (tidak signifikan)"
+      )
+    )
+  )
+  kable(moran_df, col.names = c("Statistik", "Nilai"),
+        caption = "Hasil Uji Autokorelasi Spasial Global (Moran's I)") |>
+    kable_styling(bootstrap_options = c("striped"), full_width = FALSE)
+} else {
+  cat("::: {.warn-box}\nAnalisis Moran's I belum dilakukan atau data tidak tersedia.\n:::")
+}
+```
+
+---
+
+## 5. Hasil Clustering {#clustering}
+
+```{r cluster-results}
+if (!is.null(cluster_info)) {
+  cat(sprintf("**Metode:** %s\n\n", cluster_info$method))
+  cat(sprintf("**Jumlah Klaster (k):** %d\n\n", cluster_info$k))
+
+  if (!is.null(cluster_info$cluster_tbl)) {
+    kable(cluster_info$cluster_tbl,
+          caption = "Distribusi Wilayah per Klaster") |>
+      kable_styling(bootstrap_options = c("striped","hover"), full_width = FALSE)
+  }
+} else {
+  cat("::: {.warn-box}\nAnalisis clustering belum dilakukan.\n:::")
+}
+```
+
+```{r cluster-boxplot}
+if (!is.null(sovi_df) && !is.null(cluster_info) &&
+    "cluster" %in% names(sovi_df) && "sovi_score" %in% names(sovi_df)) {
+  sovi_df$Klaster <- paste0("Klaster ", sovi_df$cluster)
+  ggplot(sovi_df, aes(x = Klaster, y = sovi_score, fill = Klaster)) +
+    geom_boxplot(alpha = 0.8, outlier.shape = 21, outlier.size = 2) +
+    scale_fill_brewer(palette = "Set2") +
+    labs(title = "Distribusi SoVI Score per Klaster",
+         x = NULL, y = "SoVI Score") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", color = "#1a73c1"))
+}
+```
+
+---
+
+## 6. Interpretasi Otomatis {#interpretasi}
+
+```{r interpretation}
+if (!is.null(sovi_df) && "vuln_class" %in% names(sovi_df)) {
+  n_total  <- nrow(sovi_df)
+  n_tinggi <- sum(sovi_df$vuln_class %in% c("Tinggi", "Sangat Tinggi"), na.rm = TRUE)
+  n_rendah <- sum(sovi_df$vuln_class %in% c("Rendah", "Sangat Rendah"), na.rm = TRUE)
+  pct_t    <- round(n_tinggi / n_total * 100, 1)
+  pct_r    <- round(n_rendah / n_total * 100, 1)
+  sovi_max <- round(max(sovi_df$sovi_score, na.rm = TRUE), 3)
+  sovi_min <- round(min(sovi_df$sovi_score, na.rm = TRUE), 3)
+  sovi_med <- round(median(sovi_df$sovi_score, na.rm = TRUE), 3)
+
+  nama_tertinggi <- if (name_col %in% names(sovi_df))
+    sovi_df[[name_col]][which.max(sovi_df$sovi_score)]
+  else "N/A"
+  nama_terendah <- if (name_col %in% names(sovi_df))
+    sovi_df[[name_col]][which.min(sovi_df$sovi_score)]
+  else "N/A"
+
+  cat(sprintf(
+    "Analisis SoVI terhadap **%d wilayah** menghasilkan temuan sebagai berikut:\n\n",
+    n_total
+  ))
+  cat(sprintf(
+    "- **%d wilayah** (%.1f%%) termasuk kategori **Tinggi** atau **Sangat Tinggi** — ",
+    n_tinggi, pct_t
+  ))
+  if (pct_t > 30) {
+    cat("proporsi yang cukup besar dan memerlukan perhatian kebijakan prioritas.\n")
+  } else {
+    cat("proporsi yang relatif terkendali.\n")
+  }
+  cat(sprintf(
+    "- **%d wilayah** (%.1f%%) memiliki kerentanan **Rendah** atau **Sangat Rendah**.\n",
+    n_rendah, pct_r
+  ))
+  cat(sprintf(
+    "- Skor SoVI berkisar antara **%.3f** hingga **%.3f** (median: %.3f).\n",
+    sovi_min, sovi_max, sovi_med
+  ))
+  cat(sprintf(
+    "- Wilayah dengan kerentanan **tertinggi**: *%s* (SoVI = %.3f)\n",
+    nama_tertinggi, sovi_max
+  ))
+  cat(sprintf(
+    "- Wilayah dengan kerentanan **terendah**: *%s* (SoVI = %.3f)\n",
+    nama_terendah, sovi_min
+  ))
+
+  if (!is.null(moran_info) && moran_info$I > 0.1 && moran_info$p_value < 0.05) {
+    cat(sprintf(
+      "- Uji Moran's I (I = %.3f, p < 0.05) menunjukkan adanya **klaster spasial** —",
+      moran_info$I
+    ))
+    cat(" wilayah dengan kerentanan tinggi cenderung berdekatan secara geografis.\n")
+  }
+}
+```
+
+---
+
+## 7. Referensi {#referensi}
+
+- Cutter, S.L., Boruff, B.J., & Shirley, W.L. (2003). Social Vulnerability to Environmental Hazards. *Social Science Quarterly*, 84(2), 242–261.
+- Schmidtlein, M.C., et al. (2008). A Sensitivity Analysis of the Social Vulnerability Index. *Risk Analysis*, 28(4), 1099–1114.
+- soviclust R Package. Retrieved from <https://github.com/dedenistiawan/soviclust>
+
+---
+
+*Laporan ini dibuat secara otomatis oleh package **soviclust** menggunakan R Markdown.*
