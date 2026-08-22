@@ -47,6 +47,9 @@ library(MASS)      # Sammon Mapping
 library(Rtsne)     # t-SNE
 library(uwot)      # UMAP
 library(shiny.i18n)
+library(digest)    # Cache key hashing untuk PCA caching
+library(future)
+library(promises)
 
 tmap::tmap_mode("view")
 

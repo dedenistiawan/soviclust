@@ -59,7 +59,9 @@ sovi_computation_tab_ui <- function() {
                                                   class = "btn-primary btn-lg btn-block",
                                                   icon  = icon("play")),
                                      tags$br(), tags$br(),
-                                     uiOutput("sovi_progress")
+                                     uiOutput("sovi_progress"),
+                                     tags$br(),
+                                     uiOutput("perf_advisor")
                                    )
                             ),
                             

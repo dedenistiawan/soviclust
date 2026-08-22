@@ -414,6 +414,7 @@ classify_sovi <- function(sovi_df, n_classes = 5) {
 #' @param pca_rotation      Rotasi PCA (default "varimax")
 #' @param id_col            Nama kolom ID wilayah
 #' @param name_col          Nama kolom nama wilayah
+#' @param progress_fn       Callback function(pct, msg) untuk status progress
 #'
 #' @return List berisi:
 #'   \item{sovi_df}       Hasil akhir dengan sovi_score dan vuln_class
@@ -429,12 +430,23 @@ run_sovi_core <- function(data,
                           comm_threshold    = 0.4,
                           pca_rotation      = "varimax",
                           id_col            = "DISTRICTCODE",
-                          name_col          = "KABUPATEN") {
-  
+                          name_col          = "KABUPATEN",
+                          progress_fn       = NULL) {
+
+  # Helper: panggil progress_fn hanya jika tersedia
+  # progress_fn(pct_absolut, pesan) — pct dalam skala 0..1
+  .rp <- function(pct, msg = "") {
+    if (is.function(progress_fn)) progress_fn(pct, msg)
+  }
+
   # ── Fase 2: Z-score standardisasi ─────────────────────────────────────────
+  .rp(0.05, "Fase 2: Standardisasi Z-score...")
   std_out <- standardize_data(data, sovi_vars, id_col, name_col)
-  
+
   # ── Fase 3: PCA + diagnostik ──────────────────────────────────────────────
+  .rp(0.20, "Fase 3a: Menghitung matriks korelasi & KMO...")
+  # (KMO & Bartlett terjadi di dalam run_pca)
+  .rp(0.35, "Fase 3b: Menjalankan PCA + rotasi varimax...")
   pca_out <- run_pca(
     std_out$Z,
     rotation       = pca_rotation,
