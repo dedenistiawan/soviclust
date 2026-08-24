@@ -60,7 +60,8 @@ tmap::tmap_mode("view")
 i18n <- shiny.i18n::Translator$new(
   translation_json_path = "i18n/translation.json"
 )
-i18n$set_translation_language("id")  # default: Bahasa Indonesia
+i18n$set_translation_language("en")  # default: English (single language)
+
 
 
 # =============================================================================

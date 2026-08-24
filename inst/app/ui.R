@@ -218,26 +218,6 @@ ui <- shinydashboard::dashboardPage(
       tags$span(" Vulnerability Mapping", style = "font-weight:700;")
     ),
     titleWidth = 260,
-    # ── Language Switcher ──────────────────────────────────────────────────────
-    tags$li(
-      class = "dropdown",
-      style = "padding: 6px 12px; display:flex; align-items:center;",
-      tags$span(
-        style = "color:rgba(255,255,255,0.7); font-size:12px; margin-right:6px;",
-        icon("language"), " Lang:"
-      ),
-      tags$div(
-        style = "display:inline-block;",
-        selectInput(
-          inputId  = "lang",
-          label    = NULL,
-          choices  = c("\U0001F1EE\U0001F1E9 Indonesia" = "id",
-                       "\U0001F1EC\U0001F1E7 English"   = "en"),
-          selected = "id",
-          width    = "140px"
-        )
-      )
-    )
   ),
   
   # ── Sidebar ─────────────────────────────────────────────────────────────────
@@ -333,7 +313,6 @@ ui <- shinydashboard::dashboardPage(
   # ── Body ────────────────────────────────────────────────────────────────────
   shinydashboard::dashboardBody(
     shinyjs::useShinyjs(),
-    shiny.i18n::usei18n(i18n),
     tags$head(
       tags$link(rel = "stylesheet", href = "custom.css"),
       tags$script(src   = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js",
