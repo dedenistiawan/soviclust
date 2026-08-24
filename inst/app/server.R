@@ -112,12 +112,6 @@ server <- function(input, output, session) {
     shinydashboard::updateTabItems(session, "sidebar_menu", "tab_upload")
   })
 
-  # ── Language Switcher ────────────────────────────────────────────────────────
-  # shiny.i18n >= 0.3.0: update_lang(language, session) — language dulu!
-  observeEvent(input$lang, {
-    req(input$lang)
-    shiny.i18n::update_lang(language = input$lang, session = session)
-  })
 
   # ============================================================================
   # TAB 1 — DATA UPLOAD
