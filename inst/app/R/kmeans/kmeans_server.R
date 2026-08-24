@@ -14,27 +14,72 @@ kmeans_server <- function(input, output, session, rv) {
   output$km_progress <- renderUI({ NULL })
 
   # ==========================================================================
-  # HELPER: Siapkan data input untuk K-Means
+  # OUTPUT: Variable selector (untuk raw/raw_norm/standardized)
+  # ==========================================================================
+  output$km_var_selector <- renderUI({
+    req(rv$data, rv$sovi_vars)
+    src      <- input$km_data_source %||% "rc"
+    num_cols <- names(rv$data)[sapply(rv$data, is.numeric)]
+    note <- switch(src,
+      "raw"          = div(class = "progress-box",
+                           style = "background:#fff8e1;border-left-color:#f39c12;font-size:11px;",
+                           icon("exclamation-triangle"), " Nilai mentah tanpa transformasi."),
+      "raw_norm"     = div(class = "progress-box",
+                           style = "background:#fff8e1;border-left-color:#f39c12;font-size:11px;",
+                           icon("info-circle"), " Akan dinormalisasi min-max 0\u20131."),
+      "standardized" = div(class = "progress-box",
+                           style = "background:#e3f2fd;border-left-color:#1a73c1;font-size:11px;",
+                           icon("info-circle"), " Z-score dari proses SoVI."),
+      NULL
+    )
+    tagList(note, checkboxGroupInput("km_selected_vars", NULL,
+                                     choices  = num_cols,
+                                     selected = rv$sovi_vars))
+  })
+
+  # ==========================================================================
+  # OUTPUT: Info sumber data (sovi/rc)
+  # ==========================================================================
+  output$km_datasource_info <- renderUI({
+    src <- input$km_data_source
+    if (is.null(src)) return(NULL)
+    info <- switch(src,
+      "sovi" = "Menggunakan SoVI Score tunggal (0\u20131) sebagai fitur clustering.",
+      "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
+      NULL
+    )
+    if (is.null(info)) return(NULL)
+    div(class = "progress-box",
+        style = "background:#e3f2fd;border-left-color:#1a73c1;font-size:12px;",
+        icon("info-circle"), " ", info)
+  })
+
+  # ==========================================================================
+  # HELPER: Siapkan data input untuk K-Means (pakai build_fgwc_feature_matrix)
   # ==========================================================================
   km_input_data <- reactive({
-    req(rv$sovi_result)
-    sovi_df <- rv$sovi_result$sovi_df
-    rc_cols  <- grep("^RC", names(sovi_df), value = TRUE)
+    src <- input$km_data_source %||% "rc"
 
-    X <- switch(input$km_input,
-      "sovi"    = sovi_df[, "sovi_score", drop = FALSE],
-      "rc"      = if (length(rc_cols) > 0) sovi_df[, rc_cols, drop = FALSE]
-                  else sovi_df[, "sovi_score", drop = FALSE],
-      "sovi_rc" = if (length(rc_cols) > 0)
-                    sovi_df[, c("sovi_score", rc_cols), drop = FALSE]
-                  else sovi_df[, "sovi_score", drop = FALSE]
+    if (src %in% c("sovi", "rc", "standardized")) req(rv$sovi_result)
+    else                                           req(rv$data)
+
+    sel_vars <- if (src %in% c("raw", "raw_norm", "standardized"))
+      input$km_selected_vars else NULL
+
+    X <- tryCatch(
+      build_fgwc_feature_matrix(
+        data_source   = src,
+        raw_data      = rv$data,
+        sovi_result   = rv$sovi_result,
+        selected_vars = sel_vars
+      ),
+      error = function(e) {
+        showNotification(paste("Error data:", e$message), type = "error")
+        NULL
+      }
     )
-    # Skala ke 0-1 untuk menyeragamkan skala antar komponen
-    X[] <- lapply(X, function(v) {
-      r <- range(v, na.rm = TRUE)
-      if (diff(r) == 0) v else (v - r[1]) / diff(r)
-    })
-    as.data.frame(X)
+    req(X)
+    as.matrix(X)
   })
 
   # ==========================================================================
