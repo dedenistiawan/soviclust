@@ -48,20 +48,37 @@ dbscan_tab_ui <- function() {
 
           tags$hr(),
 
-          # 3. Variabel Input
-          div(class = "step-header", "3. Variabel Input"),
-          radioButtons("dbs_input", NULL,
+          # 3. Sumber Data
+          div(class = "step-header", "3. Sumber Data"),
+          radioButtons("dbs_data_source", NULL,
                        choices = c(
-                         "SoVI Score saja"        = "sovi",
-                         "Skor RC (Komponen PCA)" = "rc",
-                         "SoVI + RC"              = "sovi_rc"
+                         "Data Asli (tanpa transformasi)"   = "raw",
+                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
+                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                         "SoVI Score"                       = "sovi",
+                         "Skor RC (komponen PCA)"           = "rc"
                        ),
-                       selected = "sovi_rc"),
+                       selected = "rc"
+          ),
+
+          conditionalPanel(
+            "input.dbs_data_source == 'raw' ||
+             input.dbs_data_source == 'raw_norm' ||
+             input.dbs_data_source == 'standardized'",
+            div(class = "step-header", "Pilih Variabel"),
+            uiOutput("dbs_var_selector")
+          ),
+
+          conditionalPanel(
+            "input.dbs_data_source == 'sovi' ||
+             input.dbs_data_source == 'rc'",
+            uiOutput("dbs_datasource_info")
+          ),
 
           tags$hr(),
 
           # 4. Skala data
-          checkboxInput("dbs_scale", "Standardisasi input (Z-score)", value = TRUE),
+          checkboxInput("dbs_scale", "Standardisasi tambahan (Z-score)", value = FALSE),
 
           tags$hr(),
 

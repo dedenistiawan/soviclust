@@ -43,15 +43,32 @@ kmeans_tab_ui <- function() {
 
           tags$hr(),
 
-          # 2. Variabel Input
-          div(class = "step-header", "2. Variabel Input"),
-          radioButtons("km_input", NULL,
+          # 2. Sumber Data
+          div(class = "step-header", "2. Sumber Data"),
+          radioButtons("km_data_source", NULL,
                        choices = c(
-                         "SoVI Score saja"        = "sovi",
-                         "Skor RC (Komponen PCA)" = "rc",
-                         "SoVI + RC"              = "sovi_rc"
+                         "Data Asli (tanpa transformasi)"   = "raw",
+                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
+                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                         "SoVI Score"                       = "sovi",
+                         "Skor RC (komponen PCA)"           = "rc"
                        ),
-                       selected = "rc"),
+                       selected = "rc"
+          ),
+
+          conditionalPanel(
+            "input.km_data_source == 'raw' ||
+             input.km_data_source == 'raw_norm' ||
+             input.km_data_source == 'standardized'",
+            div(class = "step-header", "Pilih Variabel"),
+            uiOutput("km_var_selector")
+          ),
+
+          conditionalPanel(
+            "input.km_data_source == 'sovi' ||
+             input.km_data_source == 'rc'",
+            uiOutput("km_datasource_info")
+          ),
 
           tags$hr(),
 
