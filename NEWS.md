@@ -5,6 +5,30 @@ dan [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+# soviclust 0.5.0
+
+### Fixed
+- Trailing comma pada `dashboardHeader()` di `inst/app/ui.R` yang menyebabkan
+  `run_app()` gagal dengan error "argument is missing, with no default".
+- Perbaikan shapefile 19MB -> 0.94MB (RDS) untuk mengatasi timeout
+  `install_github()`.
+- Perbaikan duplicate i18n keys yang menyebabkan error `row.names` saat
+  `run_app()`.
+- Perbaikan urutan argumen `update_lang()` untuk kompatibilitas shiny.i18n
+  v0.3.0.
+
+### Changed
+- Aplikasi kini English-only; language switcher dan opsi bahasa lain
+  dihapus, default i18n diset ke `en`.
+- Sumber data K-Means dan DBSCAN disatukan mengikuti pola 5 opsi FGWC
+  (raw/raw_norm/std/sovi/rc).
+
+### Removed
+- 4 file extdata yang tidak lagi digunakan (~2.1MB): `sovi_data_kab_514.RData`,
+  `Sovi_pop_514.RData`, `sovi_dist_514.RData`, `sovi_data_kab_514_19.xlsx`.
+
+---
+
 # soviclust 0.1.0
 
 
