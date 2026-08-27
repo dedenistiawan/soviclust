@@ -1,7 +1,7 @@
 Package: soviclust
 Type: Package
 Title: SoVI Interactive Mapper - Social Vulnerability Index Analysis
-Version: 0.1.0
+Version: 0.5.0
 Authors@R: person("Deden", "Istiawan", email = "deden@example.com",
     role = c("aut", "cre"))
 Description: Platform interaktif berbasis R Shiny untuk menghitung, memvisualisasikan,
