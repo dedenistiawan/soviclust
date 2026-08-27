@@ -17,6 +17,9 @@ Tidak mengembalikan nilai (dipanggil karena side-effect menjalankan app).
 Membuka aplikasi Shiny **SoVI Interactive Mapper** di browser default Anda.
 Aplikasi ini menyediakan platform interaktif untuk menghitung, memvisualisasikan,
 dan menganalisis Social Vulnerability Index (SoVI) di tingkat wilayah administratif.
+
+Secara default, aplikasi akan langsung terbuka di browser eksternal
+(bukan RStudio Viewer pane) melalui `http://127.0.0.1:<port>`.
 }
 \examples{
 \dontrun{
