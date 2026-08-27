@@ -5,6 +5,9 @@
 #' Aplikasi ini menyediakan platform interaktif untuk menghitung, memvisualisasikan,
 #' dan menganalisis Social Vulnerability Index (SoVI) di tingkat wilayah administratif.
 #'
+#' Secara default, aplikasi akan langsung terbuka di browser eksternal
+#' (bukan RStudio Viewer pane) melalui `http://127.0.0.1:<port>`.
+#'
 #' @param ... Argumen tambahan yang diteruskan ke \code{\link[shiny]{runApp}}.
 #'   Misalnya: \code{port = 3838}, \code{launch.browser = FALSE}.
 #'
@@ -59,5 +62,15 @@ run_app <- function(...) {
     )
   }
 
-  shiny::runApp(app_dir, ...)
+  # Secara default buka di browser eksternal (bukan RStudio Viewer pane).
+  # `launch.browser = TRUE` (logical) memaksa shiny memanggil
+  # utils::browseURL(), sehingga mem-bypass opsi shiny.launch.browser
+  # yang biasanya diarahkan RStudio ke Viewer pane. Pengguna tetap bisa
+  # override, mis. soviclust::run_app(launch.browser = FALSE).
+  dots <- list(...)
+  if (is.null(dots[["launch.browser"]])) {
+    dots[["launch.browser"]] <- TRUE
+  }
+
+  do.call(shiny::runApp, c(list(appDir = app_dir), dots))
 }
