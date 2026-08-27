@@ -217,7 +217,7 @@ ui <- shinydashboard::dashboardPage(
       icon("map-marked-alt", style = "color:#90caf9;"),
       tags$span(" Vulnerability Mapping", style = "font-weight:700;")
     ),
-    titleWidth = 260,
+    titleWidth = 260
   ),
   
   # ── Sidebar ─────────────────────────────────────────────────────────────────
