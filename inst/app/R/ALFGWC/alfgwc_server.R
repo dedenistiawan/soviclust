@@ -718,7 +718,7 @@ alfgwc_server <- function(input, output, session, rv) {
                                 values_to = "Mean_Score")
     long$cluster <- factor(long$cluster)
     
-    ggplot2::ggplot(long, ggplot2::aes(x = Fitur, y = cluster,
+    ggplot2::ggplot(long, ggplot2::aes(x = Feature, y = cluster,
                                        fill = Mean_Score)) +
       ggplot2::geom_tile(color = "white", linewidth = 0.6) +
       ggplot2::geom_text(ggplot2::aes(label = round(Mean_Score, 2)),
@@ -935,7 +935,7 @@ alfgwc_server <- function(input, output, session, rv) {
                                        names_to  = "Feature",
                                        values_to = "Mean_Score")
       long$cluster <- factor(long$cluster)
-      p <- ggplot2::ggplot(long, ggplot2::aes(x = Fitur, y = cluster,
+      p <- ggplot2::ggplot(long, ggplot2::aes(x = Feature, y = cluster,
                                                fill = Mean_Score)) +
         ggplot2::geom_tile(color = "white", linewidth = 0.6) +
         ggplot2::geom_text(ggplot2::aes(label = round(Mean_Score, 2)),
