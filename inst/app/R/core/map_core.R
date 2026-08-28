@@ -61,7 +61,7 @@ build_leaflet_sovi <- function(sovi_df, shp, join_shp, join_df,
   
   # ── Bangun peta ───────────────────────────────────────────────────────────
   leaflet::leaflet(peta) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal(vuln_class),
       fillOpacity      = 0.75,
@@ -128,7 +128,7 @@ build_leaflet_cluster <- function(sovi_df, shp, join_shp, join_df,
   
   # ── Bangun peta ───────────────────────────────────────────────────────────
   leaflet::leaflet(peta) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal_clust(as.character(cluster)),
       fillOpacity      = 0.75,
@@ -186,7 +186,7 @@ build_leaflet_lisa <- function(peta,
   
   # ── Bangun peta ───────────────────────────────────────────────────────────
   leaflet::leaflet(peta) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal_lisa(lisa_quad),
       fillOpacity      = 0.75,

@@ -952,7 +952,7 @@ build_leaflet_lfgwc <- function(result_df, shp, join_shp, join_df,
   )
   
   leaflet::leaflet(peta) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal_clust(as.character(get(cluster_col))),
       fillOpacity      = 0.75,
@@ -1012,7 +1012,7 @@ build_leaflet_lfgwc_membership <- function(result_df, shp, join_shp, join_df,
   )
   
   leaflet::leaflet(peta) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal_memb(max_membership),
       fillOpacity      = 0.8,

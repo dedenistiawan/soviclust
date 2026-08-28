@@ -271,7 +271,7 @@ build_leaflet_sovi_analysis <- function(shp,
   
   # ── Base map ─────────────────────────────────────────────────────────────
   m <- leaflet::leaflet(shp_work) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal_fn(sa_cls),
       fillOpacity      = 0.75,

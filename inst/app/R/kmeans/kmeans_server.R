@@ -341,7 +341,7 @@ kmeans_server <- function(input, output, session, rv) {
     )
 
     leaflet::leaflet(peta) |>
-      leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+      leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
       leaflet::addPolygons(
         fillColor   = ~pal(km_cluster),
         fillOpacity = 0.75,
