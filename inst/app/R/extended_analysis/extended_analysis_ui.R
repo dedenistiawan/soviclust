@@ -14,7 +14,7 @@ extended_analysis_tab_ui <- function() {
                             # ── Kolom Kiri: Pilih Analisis ────────────────────────────────────────
                             column(3,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("flask"), " Pilih Analisis"),
+                                     title       = tags$span(icon("flask"), " Select Analysis"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
@@ -43,7 +43,7 @@ extended_analysis_tab_ui <- function() {
                             # ── Kolom Kanan: Output ───────────────────────────────────────────────
                             column(9,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("poll"), " Hasil Extended Analysis"),
+                                     title       = tags$span(icon("poll"), " Extended Analysis Results"),
                                      status      = "info",
                                      solidHeader = TRUE,
                                      width       = 12,

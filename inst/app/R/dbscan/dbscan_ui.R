@@ -14,7 +14,7 @@ dbscan_tab_ui <- function() {
       # ── Kolom Kiri: Parameter ──────────────────────────────────────────────
       column(3,
         shinydashboard::box(
-          title       = tags$span(icon("cog"), " Konfigurasi DBSCAN"),
+          title       = tags$span(icon("cog"), " DBSCAN Configuration"),
           status      = "warning",
           solidHeader = TRUE,
           width       = 12,
@@ -139,7 +139,7 @@ dbscan_tab_ui <- function() {
 
             # Tab 3: Profil Klaster
             tabPanel(
-              title = tags$span(icon("chart-bar"), " Profil Klaster"),
+              title = tags$span(icon("chart-bar"), " Cluster Profile"),
               tags$br(),
               div(class = "step-header", "Distribusi SoVI per Klaster"),
               plotOutput("dbs_boxplot", height = "350px"),

@@ -92,7 +92,7 @@ clustgeo_server <- function(input, output, session, rv) {
     output$cga_progress <- renderUI({
       div(class = "progress-box", style = "background:#cce5ff;",
           icon("spinner", class = "fa-spin"),
-          " Menjalankan ClustGeo Advanced...")
+          " Running ClustGeo Advanced...")
     })
     
     # Ambil variabel yang dipilih (hanya untuk sumber raw/standardized)
@@ -101,7 +101,7 @@ clustgeo_server <- function(input, output, session, rv) {
     
     withProgress(message = "ClustGeo Advanced...", value = 0, {
       
-      incProgress(0.2, detail = "Membangun matriks jarak...")
+      incProgress(0.2, detail = "Building distance matrix...")
       
       result <- tryCatch({
         run_clustgeo_advanced(

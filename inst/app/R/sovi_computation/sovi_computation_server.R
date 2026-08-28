@@ -28,9 +28,9 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       n > 2000 ~ paste0("\u26a0\ufe0f Dataset besar (", n, " baris \u00d7 ", p, " var). ",
                         "Estimasi PCA: ~10-30 detik."),
       n > 500  ~ paste0("\u23f1 Dataset sedang (", n, " baris \u00d7 ", p, " var). ",
-                        "Estimasi PCA: ~3-8 detik."),
+                        "Estimated PCA: ~3-8 seconds."),
       TRUE     ~ paste0("\u26a1 Dataset kecil (", n, " baris \u00d7 ", p, " var). ",
-                        "Estimasi PCA: < 2 detik.")
+                        "Estimated PCA: < 2 seconds.")
     )
     tags$div(
       class = "info-card",
@@ -200,7 +200,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       DT::formatStyle(
         "Status",
         backgroundColor = DT::styleEqual(
-          c("Sangat Baik", "Cukup Baik", "Batas Minimum", "Rendah"),
+          c("Very Good", "Good Enough", "Minimum Threshold", "Low"),
           c("#d4edda",     "#fff3cd",    "#ffeeba",        "#f8d7da")
         )
       )
@@ -222,7 +222,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
     DT::datatable(df,
                   options  = list(dom = "t", scrollX = TRUE),
                   rownames = TRUE,
-                  caption  = paste0("Total Variansi Dijelaskan: ",
+                  caption  = paste0("Total Variance Explained: ",
                                     rv$sovi_result$pca_out$total_var, "%"))
   })
   
@@ -261,7 +261,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
     DT::datatable(df,
                   options  = list(pageLength = 20, dom = "t"),
                   rownames = FALSE,
-                  caption  = "Assignment Variabel ke Komponen")
+                  caption  = "Variable Assignment to Components")
   })
   
   # ==========================================================================
@@ -306,9 +306,9 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       ) +
       ggplot2::scale_fill_manual(values = unname(VULN_PAL)) +
       ggplot2::labs(
-        title = "Distribusi Kelas Kerentanan",
+        title = "Vulnerability Class Distribution",
         x     = NULL,
-        y     = "Jumlah Distrik"
+        y     = "Number of Districts"
       ) +
       ggplot2::theme_minimal(base_size = 12) +
       ggplot2::theme(

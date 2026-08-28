@@ -28,20 +28,20 @@ fgwc_tab_ui <- function() {
 
         # ── Box: Upload Data Pendukung ────────────────────────────────────────
         shinydashboard::box(
-          title       = tags$span(icon("upload"), " Data Pendukung FGWC"),
+          title       = tags$span(icon("upload"), " FGWC Supporting Data"),
           status      = "warning",
           solidHeader = TRUE,
           width       = 12,
 
           div(class = "sample-data-banner", style = "padding:10px 14px; margin-bottom:10px;",
             tags$p(style = "margin:0 0 6px 0; font-weight:700; color:#1a73c1; font-size:13px;",
-                   icon("database"), " Gunakan Data Sampel FGWC"),
+                   icon("database"), " Use FGWC Sample Data"),
             tags$p(style = "margin:0 0 8px 0; font-size:11.5px; color:#546e7a;",
-                   "Matriks jarak dan populasi 514 kabupaten/kota Indonesia."),
-            actionButton("fgwc_load_sample", tags$span(icon("play-circle"), " Muat Data Sampel"),
+                   "Distance matrix and population data for 514 Indonesian regencies/cities."),
+            actionButton("fgwc_load_sample", tags$span(icon("play-circle"), " Load Sample Data"),
               class = "btn-primary btn-sm btn-block")
           ),
-          div(class = "step-header", "1. Input Matriks Jarak"),
+          div(class = "step-header", "1. Distance Matrix Input"),
           radioButtons("fgwc_dist_mode", NULL,
                        choices  = c("Upload Matriks n\u00d7n Jarak" = "matrix",
                                     "Upload Longitude & Latitude"   = "lonlat"),
@@ -81,7 +81,7 @@ fgwc_tab_ui <- function() {
 
           tags$hr(),
 
-          div(class = "step-header", "2. Upload Data Populasi"),
+          div(class = "step-header", "2. Upload Population Data"),
           tags$p(style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                  icon("info-circle"),
                  " File Excel/CSV berisi 1 kolom populasi (n baris)."),
@@ -98,7 +98,7 @@ fgwc_tab_ui <- function() {
           solidHeader = TRUE,
           width       = 12,
 
-          div(class = "step-header", "3. Sumber Data Fitur"),
+          div(class = "step-header", "3. Feature Data Source"),
           radioButtons("fgwc_data_source", NULL,
                        choices = c(
                          "Data Asli (tanpa transformasi)"   = "raw",
@@ -131,13 +131,13 @@ fgwc_tab_ui <- function() {
 
         # ── Box: Parameter FGWC ───────────────────────────────────────────────
         shinydashboard::box(
-          title       = tags$span(icon("cog"), " Parameter FGWC"),
+          title       = tags$span(icon("cog"), " FGWC Parameters"),
           status      = "primary",
           solidHeader = TRUE,
           width       = 12,
           collapsible = TRUE,
 
-          div(class = "step-header", "4. Jumlah Cluster"),
+          div(class = "step-header", "4. Number of Clusters"),
           sliderInput("fgwc_ncluster", NULL,
                       min = 2, max = 10, value = 4, step = 1),
 
@@ -280,7 +280,7 @@ fgwc_tab_ui <- function() {
                 style = "background:#e8f5e9; border-left-color:#27ae60; font-size:12px;",
                 icon("info-circle"),
                 " GWO hanya menggunakan parameter universal.", tags$br(),
-                "Atur jumlah serigala via ", tags$strong("Jumlah Partikel / Agen"), " di atas.")
+                "Set the number of wolves via ", tags$strong("Jumlah Partikel / Agen"), " di atas.")
           ),
 
           # HHO
@@ -402,7 +402,7 @@ fgwc_tab_ui <- function() {
       column(12,
 
         shinydashboard::box(
-          title       = tags$span(icon("project-diagram"), " Hasil FGWC"),
+          title       = tags$span(icon("project-diagram"), " FGWC Results"),
           status      = "info",
           solidHeader = TRUE,
           width       = 12,

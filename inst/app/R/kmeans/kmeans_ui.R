@@ -14,7 +14,7 @@ kmeans_tab_ui <- function() {
       # ── Kolom Kiri: Parameter ──────────────────────────────────────────────
       column(3,
         shinydashboard::box(
-          title       = tags$span(icon("cog"), " Konfigurasi K-Means"),
+          title       = tags$span(icon("cog"), " K-Means Configuration"),
           status      = "primary",
           solidHeader = TRUE,
           width       = 12,
@@ -28,7 +28,7 @@ kmeans_tab_ui <- function() {
 
           conditionalPanel(
             "input.km_k_mode == 'manual'",
-            sliderInput("km_k", "Jumlah Cluster (k)",
+            sliderInput("km_k", "Number of Clusters (k)",
                         min = 2, max = 10, value = 4, step = 1)
           ),
           conditionalPanel(
@@ -139,7 +139,7 @@ kmeans_tab_ui <- function() {
 
             # Tab 3: Profil Klaster
             tabPanel(
-              title = tags$span(icon("chart-bar"), " Profil Klaster"),
+              title = tags$span(icon("chart-bar"), " Cluster Profile"),
               tags$br(),
               div(class = "step-header", "Distribusi SoVI Score per Klaster"),
               plotOutput("km_boxplot", height = "350px"),

@@ -14,7 +14,7 @@ sovi_computation_tab_ui <- function() {
                             # ── Kolom Kiri: Parameter ─────────────────────────────────────────────
                             column(3,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("cog"), " Parameter SoVI"),
+                                     title       = tags$span(icon("cog"), " SoVI Parameters"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
@@ -33,7 +33,7 @@ sovi_computation_tab_ui <- function() {
                                      tags$hr(),
                                      
                                      # Rotasi PCA
-                                     div(class = "step-header", "Rotasi PCA"),
+                                     div(class = "step-header", "PCA Rotation"),
                                      selectInput("pca_rotation", NULL,
                                                  choices = c(
                                                    "Varimax (default)"   = "varimax",
@@ -68,7 +68,7 @@ sovi_computation_tab_ui <- function() {
                             # ── Kolom Kanan: Output ───────────────────────────────────────────────
                             column(9,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("chart-area"), " Hasil SoVI"),
+                                     title       = tags$span(icon("chart-area"), " SoVI Results"),
                                      status      = "info",
                                      solidHeader = TRUE,
                                      width       = 12,
@@ -77,11 +77,11 @@ sovi_computation_tab_ui <- function() {
                                        
                                        # Tab 1: Diagnostik PCA
                                        tabPanel(
-                                         title = tags$span(icon("stethoscope"), " Diagnostik PCA"),
+                                         title = tags$span(icon("stethoscope"), " PCA Diagnostics"),
                                          tags$br(),
                                          fluidRow(
                                            column(6,
-                                                  div(class = "step-header", "KMO per Variabel"),
+                                                  div(class = "step-header", "KMO per Variable"),
                                                   DT::DTOutput("pca_kmo_df")
                                            ),
                                            column(6,
@@ -90,7 +90,7 @@ sovi_computation_tab_ui <- function() {
                                            )
                                          ),
                                          tags$br(),
-                                         div(class = "step-header", "Communality per Variabel"),
+                                         div(class = "step-header", "Communality per Variable"),
                                          DT::DTOutput("pca_communality")
                                        ),
                                        
@@ -98,7 +98,7 @@ sovi_computation_tab_ui <- function() {
                                        tabPanel(
                                          title = tags$span(icon("layer-group"), " Variansi & Loading"),
                                          tags$br(),
-                                         div(class = "step-header", "Variansi Dijelaskan"),
+                                         div(class = "step-header", "Variance Explained"),
                                          DT::DTOutput("pca_variance"),
                                          tags$br(),
                                          div(class = "step-header", "Loading Matrix"),
@@ -121,7 +121,7 @@ sovi_computation_tab_ui <- function() {
                                        
                                        # Tab 5: Distribusi Kelas
                                        tabPanel(
-                                         title = tags$span(icon("chart-pie"), " Distribusi Kelas"),
+                                         title = tags$span(icon("chart-pie"), " Class Distribution"),
                                          tags$br(),
                                          fluidRow(
                                            column(7, plotOutput("sovi_class_plot", height = "300px")),

@@ -97,7 +97,7 @@ kmeans_server <- function(input, output, session, rv) {
 
     withProgress(message = "K-Means Clustering...", value = 0, {
 
-      incProgress(0.2, detail = "Menyiapkan data...")
+      incProgress(0.2, detail = "Preparing data...")
 
       # ── Tentukan k ─────────────────────────────────────────────────────────
       incProgress(0.4, detail = "Menentukan k...")

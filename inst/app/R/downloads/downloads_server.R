@@ -27,19 +27,19 @@ downloads_server <- function(input, output, session, rv) {
 
       # Validasi dependensi
       if (!requireNamespace("rmarkdown",  quietly = TRUE)) {
-        showNotification("Package 'rmarkdown' diperlukan. Install dengan install.packages('rmarkdown').",
+        showNotification("Package 'rmarkdown' is required. Install with install.packages('rmarkdown').",
                          type = "error", duration = 8)
         return()
       }
       if (!requireNamespace("kableExtra", quietly = TRUE)) {
-        showNotification("Package 'kableExtra' diperlukan. Install dengan install.packages('kableExtra').",
+        showNotification("Package 'kableExtra' is required. Install with install.packages('kableExtra').",
                          type = "error", duration = 8)
         return()
       }
       if (isTRUE(input$report_format == "pdf") &&
           !nzchar(Sys.which("pdflatex")) &&
           !nzchar(Sys.which("xelatex"))) {
-        showNotification("LaTeX tidak ditemukan. Pilih format HTML atau install TinyTeX: tinytex::install_tinytex()",
+        showNotification("LaTeX not found. Choose HTML format or install TinyTeX: tinytex::install_tinytex()",
                          type = "error", duration = 10)
         return()
       }
@@ -47,11 +47,11 @@ downloads_server <- function(input, output, session, rv) {
       withProgress(message = "Membuat laporan...", value = 0, {
 
         # ── 1. Ekstrak sovi_df ────────────────────────────────────────────────
-        incProgress(0.15, detail = "Menyiapkan data SoVI...")
+        incProgress(0.15, detail = "Preparing SoVI data...")
         sovi_df <- tryCatch(rv$sovi_result$sovi_df, error = function(e) NULL)
 
         # ── 2. Ekstrak info PCA ───────────────────────────────────────────────
-        incProgress(0.25, detail = "Mengumpulkan info PCA...")
+        incProgress(0.25, detail = "Gathering PCA info...")
         pca_info <- tryCatch({
           sel <- rv$sovi_result$selection_out
           pca <- rv$sovi_result$pca_out
@@ -72,7 +72,7 @@ downloads_server <- function(input, output, session, rv) {
         }, error = function(e) NULL)
 
         # ── 3. Ekstrak info Moran ─────────────────────────────────────────────
-        incProgress(0.35, detail = "Mengumpulkan Moran's I...")
+        incProgress(0.35, detail = "Gathering Moran's I...")
         moran_info <- tryCatch({
           if (!is.null(rv$moran_res)) {
             list(
@@ -83,11 +83,11 @@ downloads_server <- function(input, output, session, rv) {
         }, error = function(e) NULL)
 
         # ── 4. Ekstrak info Clustering ────────────────────────────────────────
-        incProgress(0.45, detail = "Mengumpulkan hasil clustering...")
+        incProgress(0.45, detail = "Gathering clustering results...")
         cluster_info <- tryCatch({
           cr <- rv$cluster_res
           if (!is.null(cr) && "cluster" %in% names(cr$sovi_df)) {
-            tbl <- as.data.frame(table(Klaster = paste0("Klaster ", cr$sovi_df$cluster)))
+            tbl <- as.data.frame(table(Klaster = paste0("Cluster ", cr$sovi_df$cluster)))
             tbl$Persen <- round(tbl$Freq / nrow(cr$sovi_df) * 100, 1)
             list(
               method      = "ClustGeo (Extended Analysis)",
@@ -98,14 +98,14 @@ downloads_server <- function(input, output, session, rv) {
         }, error = function(e) NULL)
 
         # ── 5. Info dataset ───────────────────────────────────────────────────
-        incProgress(0.5, detail = "Merangkum dataset...")
+        incProgress(0.5, detail = "Summarizing dataset...")
         data_info <- list(
           n_row  = nrow(sovi_df),
           n_vars = length(rv$sovi_vars)
         )
 
         # ── 6. Render Rmd ─────────────────────────────────────────────────────
-        incProgress(0.6, detail = "Merender laporan (ini bisa makan 10-30 detik)...")
+        incProgress(0.6, detail = "Rendering report (this may take 10-30 seconds)...")
 
         rmd_path <- system.file("app", "report", "sovi_report.Rmd",
                                 package = "soviclust")

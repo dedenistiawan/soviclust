@@ -134,7 +134,7 @@ dbscan_server <- function(input, output, session, rv) {
     output$dbs_progress <- renderUI({
       div(class = "progress-box", style = "background:#fff3cd;",
           icon("spinner", class = "fa-spin"),
-          " Menjalankan DBSCAN (eps=", input$dbs_eps,
+          " Running DBSCAN (eps=", input$dbs_eps,
           ", minPts=", input$dbs_minpts, ")...")
     })
 
@@ -142,7 +142,7 @@ dbscan_server <- function(input, output, session, rv) {
 
     withProgress(message = "DBSCAN Clustering...", value = 0, {
 
-      incProgress(0.3, detail = "Menjalankan DBSCAN...")
+      incProgress(0.3, detail = "Running DBSCAN...")
       dbs_result <- tryCatch(
         dbscan::dbscan(X, eps = input$dbs_eps, minPts = input$dbs_minpts),
         error = function(e) {
@@ -178,8 +178,8 @@ dbscan_server <- function(input, output, session, rv) {
       if (!is.null(rv$dbs_result)) {
         div(class = "progress-box status-ok",
             icon("check"),
-            " DBSCAN selesai! Klaster: ", rv$dbs_result$n_cluster,
-            " | Noise: ", rv$dbs_result$n_noise, " wilayah")
+            " DBSCAN complete! Clusters: ", rv$dbs_result$n_cluster,
+            " | Noise: ", rv$dbs_result$n_noise, " regions")
       } else {
         div(class = "progress-box status-err",
             icon("times"), " Gagal. Coba sesuaikan eps atau minPts.")
@@ -195,7 +195,7 @@ dbscan_server <- function(input, output, session, rv) {
     sovi_df <- rv$dbs_result$sovi_df
     tbl <- as.data.frame(table(Klaster = ifelse(
       sovi_df$dbs_cluster == 0, "Noise (0)",
-      paste0("Klaster ", sovi_df$dbs_cluster)
+      paste0("Cluster ", sovi_df$dbs_cluster)
     )))
     tbl$Persen <- round(tbl$Freq / nrow(sovi_df) * 100, 1)
     DT::datatable(tbl,
@@ -209,10 +209,10 @@ dbscan_server <- function(input, output, session, rv) {
     div(class = "info-card", style = "padding:10px 14px;",
         tags$p(icon("ruler"), tags$strong(" Epsilon (\u03b5): "), res$eps),
         tags$p(icon("users"), tags$strong(" MinPts: "),           res$minpts),
-        tags$p(icon("object-group"), tags$strong(" Jumlah Klaster: "),
+        tags$p(icon("object-group"), tags$strong(" Number of Clusters: "),
                res$n_cluster, " (tidak termasuk noise)"),
         tags$p(icon("times-circle"), tags$strong(" Noise Points: "),
-               res$n_noise, " wilayah",
+               res$n_noise, " regions",
                tags$span(style = "color:#78909c; font-size:12px;",
                          " (", round(res$n_noise / nrow(res$sovi_df) * 100, 1), "%)"))
     )
@@ -227,7 +227,7 @@ dbscan_server <- function(input, output, session, rv) {
     sel_cols <- sel_cols[sel_cols %in% names(sovi_df)]
     show_df  <- sovi_df[, sel_cols, drop = FALSE]
     show_df$dbs_cluster <- ifelse(show_df$dbs_cluster == 0, "Noise",
-                                  paste0("Klaster ", show_df$dbs_cluster))
+                                  paste0("Cluster ", show_df$dbs_cluster))
     DT::datatable(show_df,
                   filter   = "top",
                   options  = list(pageLength = 15, scrollX = TRUE),
@@ -241,7 +241,7 @@ dbscan_server <- function(input, output, session, rv) {
     req(rv$dbs_result)
     sovi_df <- rv$dbs_result$sovi_df
     sovi_df$Klaster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
-                              paste0("Klaster ", sovi_df$dbs_cluster))
+                              paste0("Cluster ", sovi_df$dbs_cluster))
     n_cls <- length(unique(sovi_df$Klaster))
     pal   <- if (n_cls <= 8) {
       RColorBrewer::brewer.pal(max(3, n_cls), "Set2")[seq_len(n_cls)]
@@ -253,7 +253,7 @@ dbscan_server <- function(input, output, session, rv) {
                     ggplot2::aes(x = Klaster, y = sovi_score, fill = Klaster)) +
       ggplot2::geom_boxplot(alpha = 0.75, outlier.shape = 21) +
       ggplot2::scale_fill_manual(values = pal) +
-      ggplot2::labs(title = "Distribusi SoVI Score per Klaster DBSCAN",
+      ggplot2::labs(title = "SoVI Score Distribution per DBSCAN Cluster",
                     x = NULL, y = "SoVI Score") +
       ggplot2::theme_minimal(base_size = 13) +
       ggplot2::theme(legend.position = "none",
@@ -269,7 +269,7 @@ dbscan_server <- function(input, output, session, rv) {
     y_var    <- if (length(rc_cols) > 1) rc_cols[2] else "sovi_score"
 
     sovi_df$Klaster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
-                              paste0("Klaster ", sovi_df$dbs_cluster))
+                              paste0("Cluster ", sovi_df$dbs_cluster))
 
     ggplot2::ggplot(sovi_df,
                     ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]],
@@ -279,10 +279,10 @@ dbscan_server <- function(input, output, session, rv) {
       ggplot2::scale_color_brewer(palette = "Set2") +
       ggplot2::scale_shape_identity() +
       ggplot2::labs(
-        title = "Scatter Plot — Klaster DBSCAN",
+        title = "Scatter Plot — DBSCAN Clusters",
         x     = x_var,
         y     = y_var,
-        color = "Klaster"
+        color = "Cluster"
       ) +
       ggplot2::theme_minimal(base_size = 13) +
       ggplot2::theme(plot.title = ggplot2::element_text(face = "bold",
@@ -306,7 +306,7 @@ dbscan_server <- function(input, output, session, rv) {
     peta <- dplyr::left_join(shp, sovi_df,
                              by = setNames(id_col, join_shp))
     peta$klaster_label <- ifelse(peta$dbs_cluster == 0, "Noise",
-                                 paste0("Klaster ", peta$dbs_cluster))
+                                 paste0("Cluster ", peta$dbs_cluster))
     peta$klaster_label <- as.factor(peta$klaster_label)
 
     n_cls  <- length(levels(peta$klaster_label))
@@ -326,7 +326,7 @@ dbscan_server <- function(input, output, session, rv) {
     nm <- if (name_col %in% names(peta)) peta[[name_col]] else ""
     popup <- paste0(
       "<b>", nm, "</b><br>",
-      "Klaster: <b>", peta$klaster_label, "</b><br>",
+      "Cluster: <b>", peta$klaster_label, "</b><br>",
       "SoVI Score: ", round(peta$sovi_score, 4), "<br>",
       "Kelas: ", peta$vuln_class
     )

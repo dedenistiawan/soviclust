@@ -114,7 +114,7 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
               
               # Keterangan singkat
               tags$td(style = "padding:5px 8px; font-size:12px; color:#888;",
-                      "+ = meningkatkan kerentanan | - = menurunkan kerentanan")
+                      "+ = increases vulnerability | - = decreases vulnerability")
             )
           })
         )
@@ -200,7 +200,7 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
     
     # Validasi: minimal 2 variabel dipilih
     if (is.null(input$sovi_vars) || length(input$sovi_vars) < 2) {
-      showNotification("Pilih minimal 2 variabel!", type = "warning")
+      showNotification("Please select at least 2 variables!", type = "warning")
       return()
     }
     
@@ -225,9 +225,9 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
     unlock_tab("tab_sovi")
     
     showNotification(
-      paste0("\u2713 ", length(vars), " variabel dikonfigurasi (",
-             length(neg_vars), " negatif). ",
-             "Lanjut ke SoVI Computation."),
+      paste0("\u2713 ", length(vars), " variables configured (",
+             length(neg_vars), " negative). ",
+             "Proceed to SoVI Computation."),
       type     = "message",
       duration = 5
     )

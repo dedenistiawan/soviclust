@@ -266,7 +266,7 @@ fgwc_server <- function(input, output, session, rv) {
     output$fgwc_progress <- renderUI({
       div(class = "progress-box", style = "background:#cce5ff;",
           icon("spinner", class = "fa-spin"),
-          paste0(" Menjalankan FGWC (", toupper(input$fgwc_algorithm), ")..."))
+          paste0(" Running FGWC (", toupper(input$fgwc_algorithm), ")..."))
     })
     
     # â”€â”€ Kumpulkan variabel yang dipilih â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -420,7 +420,7 @@ fgwc_server <- function(input, output, session, rv) {
                              "Iterasi: ", res$iteration)
         )),
         column(4, div(class = "info-card",
-                      tags$h4(icon("object-group"), " Hasil Clustering"),
+                      tags$h4(icon("object-group"), " Clustering Results"),
                       tags$p(style = "font-size:13px;",
                              tags$strong("k = "), res$k),
                       tags$p(style = "font-size:13px;",
@@ -569,7 +569,7 @@ fgwc_server <- function(input, output, session, rv) {
     df[, num_cols] <- round(df[, num_cols, drop = FALSE], 3)
     DT::datatable(df, options = list(dom = "t", scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = "Profil Cluster: Mean Fitur per Cluster")
+                  caption  = "Cluster Profile: Mean Feature per Cluster")
   })
   
   output$fgwc_heatmap <- renderPlot({
@@ -589,8 +589,8 @@ fgwc_server <- function(input, output, session, rv) {
       ggplot2::scale_fill_distiller(palette = "RdYlBu", direction = -1,
                                     name = "Mean\nScore") +
       ggplot2::labs(
-        title = paste("Heatmap Profil Cluster \u2014", toupper(res$algorithm)),
-        x = "Fitur / Dimensi", y = "Cluster"
+        title = paste("Cluster Profile Heatmap \u2014", toupper(res$algorithm)),
+        x = "Feature / Dimension", y = "Cluster"
       ) +
       ggplot2::theme_minimal(base_size = 11) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 35, hjust = 1, size = 9))
@@ -719,7 +719,7 @@ fgwc_server <- function(input, output, session, rv) {
         ggplot2::geom_tile(color = "white", linewidth = 0.6) +
         ggplot2::geom_text(ggplot2::aes(label = round(Mean_Score, 2)), size = 3.0, color = "black") +
         ggplot2::scale_fill_distiller(palette = "RdYlBu", direction = -1, name = "Mean\nScore") +
-        ggplot2::labs(title = paste("Heatmap Profil Cluster \u2014", toupper(res$algorithm)), x = "Fitur / Dimensi", y = "Cluster") +
+        ggplot2::labs(title = paste("Cluster Profile Heatmap \u2014", toupper(res$algorithm)), x = "Feature / Dimension", y = "Cluster") +
         ggplot2::theme_minimal(base_size = 11) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 35, hjust = 1, size = 9))
       ggplot2::ggsave(file, plot = p, width = 10, height = 5, dpi = 300, bg = "white")

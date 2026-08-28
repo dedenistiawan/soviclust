@@ -25,7 +25,7 @@ method_comparison_tab_ui <- function() {
                                          tags$p(style = "font-size:12.5px; margin:0;",
                                                 icon("star", style = "color:#f39c12;"),
                                                 tags$strong(" Tab ini opsional. "),
-                                                "Bisa skip ke SoVI Computation.")),
+                                                "You can skip to SoVI Computation.")),
                                      tags$br(),
                                      
                                      sliderInput("comp_threshold", "Loading Threshold (\u03c4)",
@@ -43,7 +43,7 @@ method_comparison_tab_ui <- function() {
                             # ── Kolom Kanan: Output ───────────────────────────────────────────────
                             column(9,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("chart-line"), " Hasil 3-Way Comparison"),
+                                     title       = tags$span(icon("chart-line"), " 3-Way Comparison Results"),
                                      status      = "info",
                                      solidHeader = TRUE,
                                      width       = 12,
@@ -52,7 +52,7 @@ method_comparison_tab_ui <- function() {
                                        
                                        # Tab 1: Semua Metrik Evaluasi (BARU — tampil pertama)
                                        tabPanel(
-                                         title = tags$span(icon("ruler-combined"), " Metrik Evaluasi"),
+                                         title = tags$span(icon("ruler-combined"), " Evaluation Metrics"),
                                          tags$br(),
                                          uiOutput("comp_metrics_ui")
                                        ),
@@ -74,7 +74,7 @@ method_comparison_tab_ui <- function() {
                                        
                                        # Tab 4: Distribusi Kelas
                                        tabPanel(
-                                         title = tags$span(icon("chart-bar"), " Distribusi Kelas"),
+                                         title = tags$span(icon("chart-bar"), " Class Distribution"),
                                          plotOutput("comp_class_dist", height = "360px")
                                        ),
                                        
@@ -86,7 +86,7 @@ method_comparison_tab_ui <- function() {
                                        
                                        # Tab 6: Rekomendasi
                                        tabPanel(
-                                         title = tags$span(icon("lightbulb"), " Rekomendasi"),
+                                         title = tags$span(icon("lightbulb"), " Recommendation"),
                                          tags$br(),
                                          uiOutput("comp_recommendation")
                                        )

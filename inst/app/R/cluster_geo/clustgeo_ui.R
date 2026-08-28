@@ -17,13 +17,13 @@ clustgeo_tab_ui <- function() {
                             # ════════════════════════════════════════════════════════════════════════
                             column(3,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("sliders-h"), " Konfigurasi ClustGeo"),
+                                     title       = tags$span(icon("sliders-h"), " ClustGeo Configuration"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
                                      
                                      # ── 1. Sumber Data ────────────────────────────────────────────────
-                                     div(class = "step-header", "1. Sumber Data"),
+                                     div(class = "step-header", "1. Data Source"),
                                      radioButtons("cga_data_source", NULL,
                                                   choices = c(
                                                     "Data Asli (tanpa transformasi)"   = "raw",
@@ -54,7 +54,7 @@ clustgeo_tab_ui <- function() {
                                      tags$hr(),
                                      
                                      # ── 2. Jumlah Cluster (k) ─────────────────────────────────────────
-                                     div(class = "step-header", "2. Jumlah Cluster (k)"),
+                                     div(class = "step-header", "2. Number of Clusters (k)"),
                                      radioButtons("cga_k_mode", NULL,
                                                   choices  = c("Manual" = "manual",
                                                                "Otomatis (Silhouette)" = "auto"),
@@ -64,13 +64,13 @@ clustgeo_tab_ui <- function() {
                                      
                                      conditionalPanel(
                                        "input.cga_k_mode == 'manual'",
-                                       sliderInput("cga_k", "Jumlah Cluster (k)",
+                                       sliderInput("cga_k", "Number of Clusters (k)",
                                                    min = 2, max = 10, value = 4, step = 1)
                                      ),
                                      
                                      conditionalPanel(
                                        "input.cga_k_mode == 'auto'",
-                                       sliderInput("cga_k_max", "k Maksimum untuk Pencarian",
+                                       sliderInput("cga_k_max", "Maximum k for Search",
                                                    min = 3, max = 10, value = 8, step = 1),
                                        div(class = "progress-box",
                                            style = "background:#e3f2fd; border-left-color:#1a73c1;
@@ -122,7 +122,7 @@ clustgeo_tab_ui <- function() {
                                      tags$hr(),
                                      
                                      # ── Download ──────────────────────────────────────────────────────
-                                     div(class = "step-header", "Download Hasil"),
+                                     div(class = "step-header", "Download Results"),
                                      downloadButton("dl_cga_csv",
                                                     tags$span(icon("download"), " Hasil Cluster (.csv)"),
                                                     class = "btn-info btn-block"),
@@ -138,7 +138,7 @@ clustgeo_tab_ui <- function() {
                             # ════════════════════════════════════════════════════════════════════════
                             column(9,
                                    shinydashboard::box(
-                                     title       = tags$span(icon("globe-asia"), " Hasil ClustGeo"),
+                                     title       = tags$span(icon("globe-asia"), " ClustGeo Results"),
                                      status      = "info",
                                      solidHeader = TRUE,
                                      width       = 12,

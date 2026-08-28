@@ -19,11 +19,11 @@ alfgwc_tab_ui <- function() {
             tags$p(style = "margin:0 0 6px 0; font-weight:700; color:#1a73c1; font-size:13px;",
                    icon("database"), " Gunakan Data Sampel ALFGWC"),
             tags$p(style = "margin:0 0 8px 0; font-size:11.5px; color:#546e7a;",
-                   "Matriks jarak dan populasi 514 kabupaten/kota Indonesia."),
-            actionButton("alfgwc_load_sample", tags$span(icon("play-circle"), " Muat Data Sampel"),
+                   "Distance matrix and population data for 514 Indonesian regencies/cities."),
+            actionButton("alfgwc_load_sample", tags$span(icon("play-circle"), " Load Sample Data"),
               class = "btn-primary btn-sm btn-block")
           ),
-          div(class = "step-header", "1. Input Matriks Jarak"),
+          div(class = "step-header", "1. Distance Matrix Input"),
           radioButtons("alfgwc_dist_mode", NULL,
                        choices  = c("Upload Matriks n\u00d7n Jarak" = "matrix",
                                     "Upload Longitude & Latitude"   = "lonlat"),
@@ -41,7 +41,7 @@ alfgwc_tab_ui <- function() {
           uiOutput("alfgwc_dist_status"),
           tags$hr(),
           
-          div(class = "step-header", "2. Upload Data Populasi"),
+          div(class = "step-header", "2. Upload Population Data"),
           fileInput("alfgwc_file_pop", NULL, accept = c(".xlsx", ".csv")),
           uiOutput("alfgwc_pop_status")
         ),
@@ -52,7 +52,7 @@ alfgwc_tab_ui <- function() {
           solidHeader = TRUE,
           width  = 12,
           
-          div(class = "step-header", "3. Sumber Data Fitur"),
+          div(class = "step-header", "3. Feature Data Source"),
           radioButtons("alfgwc_data_source", NULL,
                        choices = c(
                          "Data Asli (tanpa transformasi)"   = "raw",
@@ -155,7 +155,7 @@ alfgwc_tab_ui <- function() {
           tags$hr(),
           
           div(class = "step-header", "Aturan Nilai Alpha (\u03b1)"),
-          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "Bobot membership lama, disesuaikan dinamis:"),
+          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "Old membership weights, dynamically adjusted:"),
           
           div(class = "step-header", "Alpha High"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Wilayah Hotspot I>0, p<0.05)"),
@@ -386,7 +386,7 @@ alfgwc_tab_ui <- function() {
                       selected = "Dark2"),
           tags$hr(),
           
-          div(class = "step-header", "Download Hasil"),
+          div(class = "step-header", "Download Results"),
           downloadButton("dl_alfgwc_csv",
                          tags$span(icon("download"), " Hasil Cluster (.csv)"),
                          class = "btn-info btn-block"),
@@ -406,7 +406,7 @@ alfgwc_tab_ui <- function() {
     fluidRow(
       column(12,
         shinydashboard::box(
-          title       = tags$span(icon("project-diagram"), " Hasil ALFGWC"),
+          title       = tags$span(icon("project-diagram"), " ALFGWC Results"),
           status      = "info",
           solidHeader = TRUE,
           width       = 12,

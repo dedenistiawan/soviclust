@@ -17,15 +17,15 @@
 # =============================================================================
 
 # Label kelas kerentanan (urutan dari rendah ke tinggi)
-VULN_CLASSES <- c("Sangat Rendah", "Rendah", "Sedang", "Tinggi", "Sangat Tinggi")
+VULN_CLASSES <- c("Very Low", "Low", "Moderate", "High", "Very High")
 
 # Palet warna kelas kerentanan (hijau → merah)
 VULN_PAL <- c(
-  "Sangat Rendah" = "#1a9641",
-  "Rendah"        = "#a6d96a",
-  "Sedang"        = "#ffffbf",
-  "Tinggi"        = "#fdae61",
-  "Sangat Tinggi" = "#d7191c"
+  "Very Low" = "#1a9641",
+  "Low"        = "#a6d96a",
+  "Moderate"        = "#ffffbf",
+  "High"        = "#fdae61",
+  "Very High" = "#d7191c"
 )
 
 
@@ -119,7 +119,7 @@ validate_data_file <- function(df, filename) {
   if (!ext %in% c("xlsx", "csv")) {
     return(list(ok = FALSE, msg = paste0(
       "\u274c Format file tidak didukung: '.", ext, "'.\n",
-      "Gunakan file Excel (.xlsx) atau CSV (.csv)."
+      "Use an Excel (.xlsx) or CSV (.csv) file."
     )))
   }
 
@@ -127,7 +127,7 @@ validate_data_file <- function(df, filename) {
   if (nrow(df) < 2) {
     return(list(ok = FALSE, msg = paste0(
       "\u274c Dataset terlalu kecil: hanya ", nrow(df), " baris.\n",
-      "Diperlukan minimal 2 wilayah untuk analisis."
+      "At least 2 regions are required for analysis."
     )))
   }
 
@@ -151,7 +151,7 @@ validate_data_file <- function(df, filename) {
 
   list(ok = TRUE, msg = paste0(
     "\u2713 Dataset valid: ", nrow(df), " baris, ",
-    num_cols, " variabel numerik."
+    num_cols, " numeric variables."
   ))
 }
 
@@ -194,7 +194,7 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
       "\u274c Jumlah baris tidak cocok:\n",
       "  - Dataset: ", n_data, " baris\n",
       "  - Shapefile: ", n_shp, " fitur\n",
-      "Pastikan kedua file memiliki jumlah wilayah yang sama."
+      "Ensure both files have the same number of regions."
     )))
   }
 
@@ -222,7 +222,7 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
   }
 
   list(ok = TRUE, msg = paste0(
-    "\u2713 ID cocok: ", matched, " wilayah terdeteksi."
+    "\u2713 ID cocok: ", matched, " regions detected."
   ))
 }
 
@@ -241,7 +241,7 @@ validate_sovi_vars <- function(selected_vars, df) {
   non_numeric <- selected_vars[!sapply(df[, selected_vars, drop = FALSE], is.numeric)]
   if (length(non_numeric) > 0) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Variabel berikut bukan numerik: ",
+      "\u274c The following variables are not numeric: ",
       paste(non_numeric, collapse = ", "), ".\n",
       "Hanya pilih variabel numerik sebagai indikator SoVI."
     )))

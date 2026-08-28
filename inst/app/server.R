@@ -120,27 +120,27 @@ server <- function(input, output, session) {
   # ── Tombol: Muat Data Sampel ──────────────────────────────────────────────
   observeEvent(input$load_sample, {
 
-    withProgress(message = "Memuat data sampel...", value = 0, {
+    withProgress(message = "Loading sample data...", value = 0, {
 
       # 1. Load dataset dari inst/extdata (sovi_data_kab_514_15.xlsx)
-      incProgress(0.2, detail = "Membaca dataset...")
+      incProgress(0.2, detail = "Reading dataset...")
       extdata   <- system.file("extdata", package = "soviclust")
       data_path <- file.path(extdata, "sovi_data_kab_514_15.xlsx")
       df        <- as.data.frame(readxl::read_excel(data_path))
 
       # 2. Load shapefile dari inst/app/map (format RDS — lebih cepat & kecil)
-      incProgress(0.4, detail = "Membaca shapefile...")
+      incProgress(0.4, detail = "Reading shapefile...")
       shp_path <- system.file("app", "map", "514_kabupaten.rds", package = "soviclust")
       shp      <- readRDS(shp_path)
 
       # 3. Simpan ke reactive values
-      incProgress(0.6, detail = "Menyimpan data...")
+      incProgress(0.6, detail = "Saving data...")
       rv$data      <- df
       rv$shp       <- shp
       rv$upload_ok <- FALSE
 
       # 4. Update UI inputs
-      incProgress(0.8, detail = "Mengisi konfigurasi...")
+      incProgress(0.8, detail = "Filling configuration...")
       cols     <- names(df)
       num_cols <- cols[sapply(df, is.numeric)]
 
@@ -164,8 +164,8 @@ server <- function(input, output, session) {
     }) # end withProgress
 
     showNotification(
-      paste0("\u2713 Data sampel dimuat: ", nrow(rv$data), " kabupaten/kota, ",
-             sum(sapply(rv$data, is.numeric)), " variabel SoVI."),
+      paste0("\u2713 Data sampel dimuat: ", nrow(rv$data), " regencies/cities, ",
+             sum(sapply(rv$data, is.numeric)), " SoVI variables."),
       type = "message", duration = 5
     )
   })
@@ -215,7 +215,7 @@ server <- function(input, output, session) {
       rv$upload_ok <- FALSE
 
     }, error = function(e) {
-      showNotification(paste("Error membaca dataset:", e$message),
+      showNotification(paste("Error reading dataset:", e$message),
                        type = "error", duration = 8)
     })
   })
@@ -238,13 +238,13 @@ server <- function(input, output, session) {
       rv$upload_ok <- FALSE
       
     }, error = function(e) {
-      showNotification(paste("Error membaca shapefile:", e$message),
+      showNotification(paste("Error reading shapefile:", e$message),
                        type = "error", duration = 8)
     })
   })
   
   output$data_status <- renderPrint({
-    if (is.null(rv$data)) { cat("Belum ada dataset yang diupload."); return() }
+    if (is.null(rv$data)) { cat("No dataset uploaded yet."); return() }
     num_cols <- names(rv$data)[sapply(rv$data, is.numeric)]
     cat("\u2713 Dataset dimuat:", nrow(rv$data), "baris x", ncol(rv$data), "kolom\n")
     cat("Kolom numerik  :", length(num_cols), "kolom\n")
@@ -252,7 +252,7 @@ server <- function(input, output, session) {
   })
   
   output$shp_status <- renderPrint({
-    if (is.null(rv$shp)) { cat("Belum ada shapefile yang diupload."); return() }
+    if (is.null(rv$shp)) { cat("No shapefile uploaded yet."); return() }
     cat("\u2713 Shapefile dimuat:", nrow(rv$shp), "unit spasial\n")
     cat("CRS            :", sf::st_crs(rv$shp)$input, "\n")
     geom_col <- attr(rv$shp, "sf_column")

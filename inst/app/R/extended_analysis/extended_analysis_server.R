@@ -147,9 +147,9 @@ extended_analysis_server <- function(input, output, session, rv) {
       ) +
       ggplot2::scale_fill_brewer(palette = "Set2") +
       ggplot2::labs(
-        title = "Distribusi Komponen Dominan per Distrik",
-        x     = "Komponen",
-        y     = "Jumlah Distrik"
+        title = "Dominant Component Distribution per District",
+        x     = "Component",
+        y     = "Number of Districts"
       ) +
       ggplot2::theme_minimal(base_size = 12) +
       ggplot2::theme(legend.position = "none")
@@ -196,7 +196,7 @@ extended_analysis_server <- function(input, output, session, rv) {
                                     limits    = c(0, 1),
                                     name      = "Mean Score") +
       ggplot2::labs(
-        title    = "Profil Komponen per Kelas Kerentanan",
+        title    = "Component Profile per Vulnerability Class",
         subtitle = "Rata-rata skor RC ternormalisasi (0=rendah, 1=tinggi)",
         x        = "Dimensi RC",
         y        = "Kelas Kerentanan"
