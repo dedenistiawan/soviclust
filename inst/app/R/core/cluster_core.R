@@ -441,7 +441,7 @@ build_leaflet_clustgeo_adv <- function(result_df, shp, join_shp, join_df,
   )
   
   leaflet::leaflet(peta) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldGrayCanvas) |>
     leaflet::addPolygons(
       fillColor        = ~pal_clust(as.character(cluster)),
       fillOpacity      = 0.75,
