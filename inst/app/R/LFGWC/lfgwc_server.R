@@ -80,7 +80,7 @@ lfgwc_server <- function(input, output, session, rv) {
         lon_col  <- names(df)[which(cols %in% c("longitude", "lon", "long", "x"))[1]]
         lat_col  <- names(df)[which(cols %in% c("latitude",  "lat", "y"))[1]]
         id_col   <- names(df)[which(cols %in% c("districtcode", "id", "kode",
-                                                "code", "wilayah"))[1]]
+                                                "code", "regions"))[1]]
         
         if (is.na(lon_col)) stop("Kolom longitude tidak ditemukan.")
         if (is.na(lat_col)) stop("Kolom latitude tidak ditemukan.")
@@ -307,7 +307,7 @@ lfgwc_server <- function(input, output, session, rv) {
     output$lfgwc_progress <- renderUI({
       div(class = "progress-box", style = "background:#cce5ff;",
           icon("spinner", class = "fa-spin"),
-          paste0(" Menjalankan LFGWC (",
+          paste0(" Running LFGWC (",
                  toupper(input$lfgwc_algorithm), ")..."))
     })
     
@@ -461,7 +461,7 @@ lfgwc_server <- function(input, output, session, rv) {
       fluidRow(
         column(4,
                div(class = "info-card",
-                   tags$h4(icon("microchip"), " Konfigurasi"),
+                   tags$h4(icon("microchip"), " Configuration"),
                    tags$p(style = "font-size:13px; font-weight:700; color:#1a73c1;",
                           algo_labels[res$algorithm]),
                    tags$p(style = "font-size:12px; color:#78909c;",
@@ -493,7 +493,7 @@ lfgwc_server <- function(input, output, session, rv) {
         ),
         column(4,
                div(class = "info-card",
-                   tags$h4(icon("object-group"), " Hasil Clustering"),
+                   tags$h4(icon("object-group"), " Clustering Results"),
                    tags$p(style = "font-size:13px;",
                           tags$strong("k = "), res$k),
                    tags$p(style = "font-size:13px;",
@@ -669,7 +669,7 @@ lfgwc_server <- function(input, output, session, rv) {
     DT::datatable(df,
                   options  = list(dom = "t", scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = "Profil Cluster: Mean Fitur per Cluster")
+                  caption  = "Cluster Profile: Mean Feature per Cluster")
   })
   
   output$lfgwc_heatmap <- renderPlot({
@@ -691,9 +691,9 @@ lfgwc_server <- function(input, output, session, rv) {
       ggplot2::scale_fill_distiller(palette = "RdYlBu", direction = -1,
                                     name = "Mean\nScore") +
       ggplot2::labs(
-        title = paste("Heatmap Profil Cluster — LFGWC",
+        title = paste("Cluster Profile Heatmap — LFGWC",
                       toupper(res$algorithm)),
-        x = "Fitur / Dimensi", y = "Cluster"
+        x = "Feature / Dimension", y = "Cluster"
       ) +
       ggplot2::theme_minimal(base_size = 11) +
       ggplot2::theme(
@@ -908,8 +908,8 @@ lfgwc_server <- function(input, output, session, rv) {
         ggplot2::scale_fill_distiller(palette = "RdYlBu", direction = -1,
                                       name = "Mean\nScore") +
         ggplot2::labs(
-          title = paste("Heatmap Profil Cluster \u2014 LFGWC", toupper(res$algorithm)),
-          x = "Fitur / Dimensi", y = "Cluster"
+          title = paste("Cluster Profile Heatmap \u2014 LFGWC", toupper(res$algorithm)),
+          x = "Feature / Dimension", y = "Cluster"
         ) +
         ggplot2::theme_minimal(base_size = 11) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 35, hjust = 1, size = 9))

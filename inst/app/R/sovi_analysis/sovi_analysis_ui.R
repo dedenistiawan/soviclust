@@ -16,12 +16,12 @@ sovi_analysis_tab_ui <- function() {
                                    
                                    # ── Sumber Data ──────────────────────────────────────────────────
                                    shinydashboard::box(
-                                     title       = tags$span(icon("database"), " Sumber Data"),
+                                     title       = tags$span(icon("database"), " Data Source"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
                                      
-                                     div(class = "step-header", "1. Pilih Sumber Data"),
+                                     div(class = "step-header", "1. Select Data Source"),
                                      radioButtons(
                                        inputId  = "sa_data_source",
                                        label    = NULL,
@@ -46,7 +46,7 @@ sovi_analysis_tab_ui <- function() {
                                      solidHeader = TRUE,
                                      width       = 12,
                                      
-                                     div(class = "step-header", "2. Variabel Utama (Peta Tunggal)"),
+                                     div(class = "step-header", "2. Main Variable (Single Map)"),
                                      selectInput(
                                        inputId  = "sa_var1",
                                        label    = NULL,
@@ -56,7 +56,7 @@ sovi_analysis_tab_ui <- function() {
                                      
                                      tags$hr(),
                                      
-                                     div(class = "step-header", "3. Variabel Pembanding (Side-by-Side)"),
+                                     div(class = "step-header", "3. Comparison Variable (Side-by-Side)"),
                                      tags$p(
                                        style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                                        icon("info-circle"),
@@ -72,12 +72,12 @@ sovi_analysis_tab_ui <- function() {
                                    
                                    # ── Klasifikasi ──────────────────────────────────────────────────
                                    shinydashboard::box(
-                                     title       = tags$span(icon("sliders-h"), " Klasifikasi Jenks"),
+                                     title       = tags$span(icon("sliders-h"), " Jenks Classification"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
                                      
-                                     div(class = "step-header", "4. Jumlah Kelas"),
+                                     div(class = "step-header", "4. Number of Classes"),
                                      sliderInput(
                                        inputId = "sa_n_classes",
                                        label   = NULL,
@@ -98,7 +98,7 @@ sovi_analysis_tab_ui <- function() {
                                        column(6,
                                               numericInput(
                                                 inputId = "sa_gvf_threshold",
-                                                label   = "Threshold GVF",
+                                                label   = "GVF Threshold",
                                                 value   = 0.85,
                                                 min     = 0.50,
                                                 max     = 0.99,
@@ -119,12 +119,12 @@ sovi_analysis_tab_ui <- function() {
                                    
                                    # ── Overlay & Tampilkan ───────────────────────────────────────────
                                    shinydashboard::box(
-                                     title       = tags$span(icon("layer-group"), " Opsi Overlay"),
+                                     title       = tags$span(icon("layer-group"), " Overlay Options"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
                                      
-                                     div(class = "step-header", "6. Overlay Peta Tunggal"),
+                                     div(class = "step-header", "6. Single Map Overlay"),
                                      checkboxInput(
                                        inputId = "sa_show_centroid",
                                        label   = tags$span(
@@ -136,7 +136,7 @@ sovi_analysis_tab_ui <- function() {
                                      
                                      tags$hr(),
                                      
-                                     div(class = "step-header", "7. Overlay Side-by-Side"),
+                                     div(class = "step-header", "7. Side-by-Side Overlay"),
                                      fluidRow(
                                        column(6,
                                               checkboxInput(

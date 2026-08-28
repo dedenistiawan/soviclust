@@ -97,7 +97,7 @@ run_pca <- function(Z,
     kmo_overall >= 0.90 ~ "Sangat Baik (Marvelous)",
     kmo_overall >= 0.80 ~ "Baik (Meritorious)",
     kmo_overall >= 0.70 ~ "Cukup (Middling)",
-    kmo_overall >= 0.60 ~ "Sedang (Mediocre)",
+    kmo_overall >= 0.60 ~ "Moderate (Mediocre)",
     kmo_overall >= 0.50 ~ "Buruk (Miserable)",
     TRUE                ~ "Tidak Dapat Diterima"
   )
@@ -131,7 +131,7 @@ run_pca <- function(Z,
       communalities >= 0.70 ~ "Sangat Baik",
       communalities >= 0.50 ~ "Cukup Baik",
       communalities >= 0.40 ~ "Batas Minimum",
-      TRUE                  ~ "Rendah"
+      TRUE                  ~ "Low"
     ),
     stringsAsFactors = FALSE
   )
@@ -140,7 +140,7 @@ run_pca <- function(Z,
   kmo_df <- data.frame(
     Variabel = names(kmo_per_var),
     KMO      = kmo_per_var,
-    Status   = ifelse(kmo_per_var >= 0.5, "OK", "Rendah"),
+    Status   = ifelse(kmo_per_var >= 0.5, "OK", "Low"),
     stringsAsFactors = FALSE
   )
   
@@ -440,13 +440,13 @@ run_sovi_core <- function(data,
   }
 
   # ── Fase 2: Z-score standardisasi ─────────────────────────────────────────
-  .rp(0.05, "Fase 2: Standardisasi Z-score...")
+  .rp(0.05, "Phase 2: Z-score standardization...")
   std_out <- standardize_data(data, sovi_vars, id_col, name_col)
 
   # ── Fase 3: PCA + diagnostik ──────────────────────────────────────────────
-  .rp(0.20, "Fase 3a: Menghitung matriks korelasi & KMO...")
+  .rp(0.20, "Phase 3a: Computing correlation matrix & KMO...")
   # (KMO & Bartlett terjadi di dalam run_pca)
-  .rp(0.35, "Fase 3b: Menjalankan PCA + rotasi varimax...")
+  .rp(0.35, "Phase 3b: Running PCA + varimax rotation...")
   pca_out <- run_pca(
     std_out$Z,
     rotation       = pca_rotation,

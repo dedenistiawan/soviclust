@@ -20,20 +20,20 @@ downloads_tab_ui <- function() {
 
         fluidRow(
           column(3,
-            selectInput("report_format", "Format Laporan:",
+            selectInput("report_format", "Report Format:",
                         choices  = c("HTML (Direkomendasikan)" = "html",
                                      "PDF (Perlu LaTeX)"       = "pdf"),
                         selected = "html")
           ),
           column(4,
             textInput("report_title",
-                      "Judul Laporan:",
-                      value = "Laporan Social Vulnerability Index (SoVI)",
+                      "Report Title:",
+                      value = "Social Vulnerability Index (SoVI) Report",
                       placeholder = "Judul laporan...")
           ),
           column(3,
             textInput("report_institution",
-                      "Institusi:",
+                      "Institution:",
                       value = "soviclust",
                       placeholder = "Nama institusi...")
           ),
@@ -50,9 +50,9 @@ downloads_tab_ui <- function() {
             style = "margin-top:8px; padding:10px 14px;",
             icon("info-circle"), tags$strong(" Konten laporan:"),
             tags$span(style = "font-size:13px; color:#546e7a;",
-                      " Ringkasan data \u2022 Diagnostik PCA \u2022 Distribusi SoVI \u2022 ",
-                      "10 wilayah tertinggi/terendah \u2022 Moran's I \u2022 ",
-                      "Hasil clustering \u2022 Interpretasi otomatis"),
+                      " Data summary \u2022 PCA diagnostics \u2022 SoVI distribution \u2022 ",
+                      "Top/bottom 10 regions \u2022 Moran's I \u2022 ",
+                      "Clustering results \u2022 Automatic interpretation"),
             tags$br(),
             tags$small(style = "color:#78909c;",
                        icon("exclamation-circle"),

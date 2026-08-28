@@ -32,7 +32,7 @@ method_comparison_server <- function(input, output, session, rv) {
     })
     
     withProgress(message = "Running 3-Way Comparison...", value = 0, {
-      incProgress(0.2, detail = "Menyiapkan data...")
+      incProgress(0.2, detail = "Preparing data...")
       
       result <- tryCatch({
         run_3way_comparison(
@@ -122,7 +122,7 @@ method_comparison_server <- function(input, output, session, rv) {
           tags$p(style = "font-size:12.5px; color:#78909c; margin:0;",
                  "n = ", n, " unit wilayah  |  ",
                  "Threshold loading = ", input$comp_threshold, "  |  ",
-                 "Hijau = konsisten  |  Kuning = moderat  |  Merah = berbeda signifikan")
+                 "Green = consistent  |  Yellow = moderate  |  Red = significantly different")
       ),
       
       # ── Tabel utama semua metrik ──────────────────────────────────────────
@@ -134,7 +134,7 @@ method_comparison_server <- function(input, output, session, rv) {
             tags$thead(
               tags$tr(style = "background:#1a73c1; color:#fff;",
                       tags$th(style = "padding:10px 8px; text-align:left; font-size:13px;
-                               border-radius:6px 0 0 0;", "Metrik"),
+                               border-radius:6px 0 0 0;", "Metric"),
                       tags$th(style = "padding:10px 8px; text-align:center; font-size:13px;",
                               "Theory vs Loading"),
                       tags$th(style = "padding:10px 8px; text-align:center; font-size:13px;",
@@ -226,7 +226,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$loading_vs_cutter$top_agree,
                 color_agree,
                 fmt_fn = function(v) paste0(v, "%"),
-                note   = paste0("Distrik paling rentan yang sama (n=",
+                note   = paste0("Most vulnerable districts in common (n=",
                                 m$theory_vs_loading$k_top, ") | \u2265 80% konsisten")
               ),
               
@@ -237,7 +237,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$loading_vs_cutter$bot_agree,
                 color_agree,
                 fmt_fn = function(v) paste0(v, "%"),
-                note   = paste0("Distrik paling tidak rentan yang sama (n=",
+                note   = paste0("Least vulnerable districts in common (n=",
                                 m$theory_vs_loading$k_top, ") | \u2265 80% konsisten")
               )
             ) # end tbody
@@ -259,28 +259,28 @@ method_comparison_server <- function(input, output, session, rv) {
           style = "width:100%; font-size:12.5px; border-collapse:collapse;",
           tags$thead(tags$tr(
             tags$th(style="padding:6px;background:#f8f9fa;border-bottom:2px solid #dee2e6;",
-                    "Metrik"),
+                    "Metric"),
             tags$th(style="padding:6px;background:#f8f9fa;border-bottom:2px solid #dee2e6;",
-                    "Yang Diukur"),
+                    "What is Measured"),
             tags$th(style="padding:6px;background:#f8f9fa;border-bottom:2px solid #dee2e6;",
-                    "Threshold Hijau"),
+                    "Green Threshold"),
             tags$th(style="padding:6px;background:#f8f9fa;border-bottom:2px solid #dee2e6;",
-                    "Keunggulan")
+                    "Advantages")
           )),
           tags$tbody(
             lapply(list(
-              list("Spearman \u03c1", "Konsistensi ranking global",
-                   "\u2265 0.90", "Standar, mudah dibandingkan antar studi"),
-              list("Kendall \u03c4", "Konsistensi ranking lokal",
-                   "\u2265 0.80", "Lebih robust untuk dataset kecil, konfirmasi Spearman"),
-              list("MARD", "Rata-rata pergeseran ranking (posisi)",
-                   "\u2264 5% dari n", "Sangat intuitif untuk pelaporan"),
+              list("Spearman \u03c1", "Global ranking consistency",
+                   "\u2265 0.90", "Standard, easy to compare across studies"),
+              list("Kendall \u03c4", "Local ranking consistency",
+                   "\u2265 0.80", "More robust for small datasets, confirms Spearman"),
+              list("MARD", "Average ranking shift (positions)",
+                   "\u2264 5% dari n", "Very intuitive for reporting"),
               list("RMSD", "Magnitude perbedaan skor [0\u20131]",
-                   "\u2264 0.05", "Sensitif terhadap outlier skor"),
-              list("Cohen's \u03ba", "Kesepakatan kelas kerentanan",
-                   "\u2265 0.80", "Koreksi kesepakatan kebetulan"),
-              list("Top/Bottom-20%", "Distrik prioritas yang sama",
-                   "\u2265 80%", "Paling relevan untuk pengambilan keputusan kebijakan")
+                   "\u2264 0.05", "Sensitive to score outliers"),
+              list("Cohen's \u03ba", "Vulnerability class agreement",
+                   "\u2265 0.80", "Correction for chance agreement"),
+              list("Top/Bottom-20%", "Same priority districts",
+                   "\u2265 80%", "Most relevant for policy decision-making")
             ), function(row) {
               tags$tr(style = "border-bottom:1px solid #f0f0f0;",
                       tags$td(style="padding:6px;font-weight:600;", row[[1]]),
@@ -403,9 +403,9 @@ method_comparison_server <- function(input, output, session, rv) {
       ggplot2::scale_fill_manual(values = unname(VULN_PAL)) +
       ggplot2::facet_wrap(~Method, ncol = 3) +
       ggplot2::labs(
-        title = "Distribusi Kelas Kerentanan per Method",
+        title = "Vulnerability Class Distribution per Method",
         x     = NULL,
-        y     = "Jumlah Distrik"
+        y     = "Number of Districts"
       ) +
       ggplot2::theme_minimal(base_size = 10) +
       ggplot2::theme(
@@ -545,14 +545,14 @@ method_comparison_server <- function(input, output, session, rv) {
     
     if (pct_score >= 75) {
       conf_status <- "success"
-      conf_label  <- "Sangat Dikonfirmasi oleh Data"
+      conf_label  <- "Strongly Confirmed by Data"
       conf_color  <- "#27ae60"
       conf_icon   <- icon("check-circle")
       warning_box <- NULL
       
     } else if (pct_score >= 50) {
       conf_status <- "primary"
-      conf_label  <- "Dikonfirmasi oleh Data"
+      conf_label  <- "Confirmed by Data"
       conf_color  <- "#1a73c1"
       conf_icon   <- icon("check-circle")
       warning_box <- div(
@@ -567,7 +567,7 @@ method_comparison_server <- function(input, output, session, rv) {
       
     } else if (pct_score >= 30) {
       conf_status <- "warning"
-      conf_label  <- "Dikonfirmasi dengan Catatan"
+      conf_label  <- "Confirmed with Notes"
       conf_color  <- "#f39c12"
       conf_icon   <- icon("exclamation-circle")
       warning_box <- div(
@@ -654,7 +654,7 @@ method_comparison_server <- function(input, output, session, rv) {
         # CATATAN: score_icon() mengembalikan tags$span (HTML object).
         # Tidak boleh di-paste0() karena akan muncul sebagai teks mentah.
         # Solusi: pisahkan nilai dan ikon menjadi elemen terpisah dalam td.
-        tags$p(tags$strong("Detail Skor per Metrik (Theory-Based sebagai referensi):")),
+        tags$p(tags$strong("Detail Score per Metric (Theory-Based as reference):")),
         tags$p(style = "font-size:12px; color:#78909c; margin-bottom:10px;",
                "\u2713\u2713 = kuat (skor 2)  |  \u2713 = moderat (skor 1)  |",
                "  \u2717 = lemah (skor 0)"),
@@ -665,7 +665,7 @@ method_comparison_server <- function(input, output, session, rv) {
           tags$thead(tags$tr(
             tags$th(style = "padding:6px; background:#f8f9fa;
                              border-bottom:2px solid #dee2e6;",
-                    "Metrik"),
+                    "Metric"),
             tags$th(style = "padding:6px; background:#f8f9fa;
                              border-bottom:2px solid #dee2e6; text-align:center;",
                     "Theory vs Loading"),
@@ -789,7 +789,7 @@ method_comparison_server <- function(input, output, session, rv) {
                                             conf_color, ";"),
                              paste0(sum(scores_tl), "/12")),
                          div(style = "font-size:12px; color:#78909c;",
-                             "Skor Theory vs Loading")
+                             "Theory vs Loading Score")
                      )
               ),
               column(4,
@@ -798,7 +798,7 @@ method_comparison_server <- function(input, output, session, rv) {
                                             conf_color, ";"),
                              paste0(sum(scores_tc), "/12")),
                          div(style = "font-size:12px; color:#78909c;",
-                             "Skor Theory vs Cutter")
+                             "Theory vs Cutter Score")
                      )
               ),
               column(4,

@@ -37,11 +37,11 @@ lfgwc_tab_ui <- function() {
             tags$p(style = "margin:0 0 6px 0; font-weight:700; color:#1a73c1; font-size:13px;",
                    icon("database"), " Gunakan Data Sampel LFGWC"),
             tags$p(style = "margin:0 0 8px 0; font-size:11.5px; color:#546e7a;",
-                   "Matriks jarak dan populasi 514 kabupaten/kota Indonesia."),
-            actionButton("lfgwc_load_sample", tags$span(icon("play-circle"), " Muat Data Sampel"),
+                   "Distance matrix and population data for 514 Indonesian regencies/cities."),
+            actionButton("lfgwc_load_sample", tags$span(icon("play-circle"), " Load Sample Data"),
               class = "btn-primary btn-sm btn-block")
           ),
-          div(class = "step-header", "1. Input Matriks Jarak"),
+          div(class = "step-header", "1. Distance Matrix Input"),
           radioButtons("lfgwc_dist_mode", NULL,
                        choices  = c("Upload Matriks n\u00d7n Jarak" = "matrix",
                                     "Upload Longitude & Latitude"   = "lonlat"),
@@ -78,7 +78,7 @@ lfgwc_tab_ui <- function() {
           uiOutput("lfgwc_dist_status"),
           tags$hr(),
 
-          div(class = "step-header", "2. Upload Data Populasi"),
+          div(class = "step-header", "2. Upload Population Data"),
           tags$p(style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                  icon("info-circle"),
                  " File Excel/CSV: 1 kolom populasi (n baris)."),
@@ -95,7 +95,7 @@ lfgwc_tab_ui <- function() {
           solidHeader = TRUE,
           width  = 12,
 
-          div(class = "step-header", "3. Sumber Data Fitur"),
+          div(class = "step-header", "3. Feature Data Source"),
           radioButtons("lfgwc_data_source", NULL,
                        choices = c(
                          "Data Asli (tanpa transformasi)"   = "raw",
@@ -430,7 +430,7 @@ lfgwc_tab_ui <- function() {
                       selected = "Dark2"),
           tags$hr(),
 
-          div(class = "step-header", "Download Hasil"),
+          div(class = "step-header", "Download Results"),
           downloadButton("dl_lfgwc_csv",
                          tags$span(icon("download"), " Hasil Cluster (.csv)"),
                          class = "btn-info btn-block"),
@@ -453,7 +453,7 @@ lfgwc_tab_ui <- function() {
       column(12,
 
         shinydashboard::box(
-          title       = tags$span(icon("project-diagram"), " Hasil LFGWC"),
+          title       = tags$span(icon("project-diagram"), " LFGWC Results"),
           status      = "info",
           solidHeader = TRUE,
           width       = 12,

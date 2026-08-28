@@ -80,7 +80,7 @@ build_leaflet_sovi <- function(sovi_df, shp, join_shp, join_df,
       position = "bottomright",
       colors   = unname(VULN_PAL),
       labels   = VULN_CLASSES,
-      title    = "Kelas SoVI",
+      title    = "SoVI Class",
       opacity  = 0.9
     )
 }
