@@ -24,10 +24,10 @@ dbscan_tab_ui <- function() {
               style  = "background:#fff8e1; border-left-color:#f39c12;
                         font-size:12px; margin-bottom:10px;",
               icon("info-circle"),
-              tags$strong(" DBSCAN"), " mengelompokkan wilayah berdasarkan",
+              tags$strong(" DBSCAN"), " groups regions based on",
               tags$strong(" densitas"), " — tidak perlu menentukan k.",
-              " Titik yang terlalu jauh dari klaster mana pun diklasifikasi",
-              " sebagai ", tags$strong("noise (klaster 0)"), "."),
+              " Points too far from any cluster are classified",
+              " sebagai ", tags$strong("noise (cluster 0)"), "."),
 
           # 1. Epsilon (radius tetangga)
           div(class = "step-header", "1. Epsilon (\u03b5) — Radius Tetangga"),
@@ -49,7 +49,7 @@ dbscan_tab_ui <- function() {
           tags$hr(),
 
           # 3. Sumber Data
-          div(class = "step-header", "3. Sumber Data"),
+          div(class = "step-header", "3. Data Source"),
           radioButtons("dbs_data_source", NULL,
                        choices = c(
                          "Data Asli (tanpa transformasi)"   = "raw",
@@ -106,7 +106,7 @@ dbscan_tab_ui <- function() {
               tags$br(),
               fluidRow(
                 column(6,
-                  div(class = "step-header", "Distribusi Klaster (termasuk Noise)"),
+                  div(class = "step-header", "Cluster Distribution (including Noise)"),
                   DT::DTOutput("dbs_summary_table")
                 ),
                 column(6,
@@ -141,21 +141,21 @@ dbscan_tab_ui <- function() {
             tabPanel(
               title = tags$span(icon("chart-bar"), " Cluster Profile"),
               tags$br(),
-              div(class = "step-header", "Distribusi SoVI per Klaster"),
+              div(class = "step-header", "SoVI Distribution per Cluster"),
               plotOutput("dbs_boxplot", height = "350px"),
               tags$br(),
-              div(class = "step-header", "Scatter: SoVI Score vs Klaster"),
+              div(class = "step-header", "Scatter: SoVI Score vs Cluster"),
               plotOutput("dbs_scatter", height = "300px")
             ),
 
             # Tab 4: Peta
             tabPanel(
-              title = tags$span(icon("map"), " Peta Klaster"),
+              title = tags$span(icon("map"), " Cluster Map"),
               tags$br(),
               div(style = "font-size:13px; color:#78909c; margin-bottom:8px;",
                   icon("exclamation-circle"),
-                  " Klaster 0 = ", tags$strong("Noise"),
-                  " (wilayah yang tidak masuk klaster manapun)"),
+                  " Cluster 0 = ", tags$strong("Noise"),
+                  " (regions that do not belong to any cluster)"),
               leaflet::leafletOutput("dbs_map", height = "500px")
             )
           )

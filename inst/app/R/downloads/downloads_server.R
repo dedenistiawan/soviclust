@@ -87,7 +87,7 @@ downloads_server <- function(input, output, session, rv) {
         cluster_info <- tryCatch({
           cr <- rv$cluster_res
           if (!is.null(cr) && "cluster" %in% names(cr$sovi_df)) {
-            tbl <- as.data.frame(table(Klaster = paste0("Cluster ", cr$sovi_df$cluster)))
+            tbl <- as.data.frame(table(Cluster = paste0("Cluster ", cr$sovi_df$cluster)))
             tbl$Persen <- round(tbl$Freq / nrow(cr$sovi_df) * 100, 1)
             list(
               method      = "ClustGeo (Extended Analysis)",
@@ -147,7 +147,7 @@ downloads_server <- function(input, output, session, rv) {
           )
           incProgress(1.0)
         }, error = function(e) {
-          showNotification(paste("Gagal membuat laporan:", e$message),
+          showNotification(paste("Failed to generate report:", e$message),
                            type = "error", duration = 12)
         })
       }) # end withProgress

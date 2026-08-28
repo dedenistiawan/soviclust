@@ -154,7 +154,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
             icon("check"), " SoVI berhasil dihitung!")
       else
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Periksa data & konfigurasi.")
+            icon("times"), " Failed. Check data & configuration.")
     })
   })
 

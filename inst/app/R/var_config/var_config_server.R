@@ -136,7 +136,7 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
         class = "progress-box",
         style = "background:#f8f9fa; border-left-color:#adb5bd; font-size:13px;",
         icon("info-circle", style = "color:#6c757d;"),
-        tags$span(style = "color:#6c757d;", " Pilih variabel terlebih dahulu.")
+        tags$span(style = "color:#6c757d;", " Please select variables first.")
       ))
     }
     

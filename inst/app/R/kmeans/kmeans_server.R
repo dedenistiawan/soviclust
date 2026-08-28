@@ -44,7 +44,7 @@ kmeans_server <- function(input, output, session, rv) {
     src <- input$km_data_source
     if (is.null(src)) return(NULL)
     info <- switch(src,
-      "sovi" = "Menggunakan SoVI Score tunggal (0\u20131) sebagai fitur clustering.",
+      "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
       "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
       NULL
     )
@@ -90,7 +90,7 @@ kmeans_server <- function(input, output, session, rv) {
 
     output$km_progress <- renderUI({
       div(class = "progress-box", style = "background:#cce5ff;",
-          icon("spinner", class = "fa-spin"), " Menjalankan K-Means...")
+          icon("spinner", class = "fa-spin"), " Running K-Means...")
     })
 
     X <- km_input_data()
@@ -157,7 +157,7 @@ kmeans_server <- function(input, output, session, rv) {
             " | Silhouette =", rv$km_result$avg_sil)
       else
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Periksa data.")
+            icon("times"), " Failed. Check data.")
     })
   })
 
@@ -167,7 +167,7 @@ kmeans_server <- function(input, output, session, rv) {
   output$km_summary_table <- DT::renderDT({
     req(rv$km_result)
     sovi_df <- rv$km_result$sovi_df
-    tbl <- as.data.frame(table(Klaster = paste0("Klaster ", sovi_df$km_cluster)))
+    tbl <- as.data.frame(table(Cluster = paste0("Cluster ", sovi_df$km_cluster)))
     tbl$Persen <- round(tbl$Freq / nrow(sovi_df) * 100, 1)
     DT::datatable(tbl,
                   options  = list(dom = "t"),
@@ -179,7 +179,7 @@ kmeans_server <- function(input, output, session, rv) {
     req(rv$km_result)
     km <- rv$km_result$km
     df <- data.frame(
-      Klaster    = paste0("Klaster ", seq_len(rv$km_result$k)),
+      Cluster    = paste0("Cluster ", seq_len(rv$km_result$k)),
       Size       = km$size,
       WithinSS   = round(km$withinss, 3),
       Pct_TotWSS = round(km$withinss / km$tot.withinss * 100, 1)
@@ -230,7 +230,7 @@ kmeans_server <- function(input, output, session, rv) {
                         color = "#e74c3c", hjust = 0) +
       ggplot2::scale_x_continuous(breaks = 2:k_max) +
       ggplot2::labs(title = "Elbow Method — Within-Cluster SS",
-                    x = "Jumlah Klaster (k)", y = "Total Within-SS") +
+                    x = "Number of Clusters (k)", y = "Total Within-SS") +
       ggplot2::theme_minimal(base_size = 13) +
       ggplot2::theme(plot.title = ggplot2::element_text(face = "bold",
                                                         color = "#1a73c1"))
@@ -255,7 +255,7 @@ kmeans_server <- function(input, output, session, rv) {
                           linetype = "dashed", color = "#e74c3c") +
       ggplot2::scale_x_continuous(breaks = 2:k_max) +
       ggplot2::labs(title = "Silhouette Score per k",
-                    x = "Jumlah Klaster (k)", y = "Avg. Silhouette") +
+                    x = "Number of Clusters (k)", y = "Avg. Silhouette") +
       ggplot2::theme_minimal(base_size = 13) +
       ggplot2::theme(plot.title = ggplot2::element_text(face = "bold",
                                                         color = "#27ae60"))
@@ -267,12 +267,12 @@ kmeans_server <- function(input, output, session, rv) {
   output$km_boxplot <- renderPlot({
     req(rv$km_result)
     sovi_df <- rv$km_result$sovi_df
-    sovi_df$Klaster <- paste0("Klaster ", sovi_df$km_cluster)
+    sovi_df$Cluster <- paste0("Cluster ", sovi_df$km_cluster)
     ggplot2::ggplot(sovi_df,
                     ggplot2::aes(x = Klaster, y = sovi_score, fill = Klaster)) +
       ggplot2::geom_boxplot(alpha = 0.8, outlier.shape = 21, outlier.size = 2) +
       ggplot2::scale_fill_brewer(palette = "Set2") +
-      ggplot2::labs(title = "Distribusi SoVI Score per Klaster K-Means",
+      ggplot2::labs(title = "SoVI Score Distribution per K-Means Cluster",
                     x = NULL, y = "SoVI Score") +
       ggplot2::theme_minimal(base_size = 13) +
       ggplot2::theme(legend.position = "none",
@@ -289,10 +289,10 @@ kmeans_server <- function(input, output, session, rv) {
 
     # Rata-rata per klaster
     means_df <- sovi_df |>
-      dplyr::group_by(Klaster = paste0("Klaster ", km_cluster)) |>
+      dplyr::group_by(Cluster = paste0("Cluster ", km_cluster)) |>
       dplyr::summarise(dplyr::across(dplyr::all_of(show_vars), mean, na.rm = TRUE),
                        .groups = "drop") |>
-      tidyr::pivot_longer(-Klaster, names_to = "Variabel", values_to = "Nilai")
+      tidyr::pivot_longer(-Cluster, names_to = "Variable", values_to = "Value")
 
     ggplot2::ggplot(means_df,
                     ggplot2::aes(x = Variabel, y = Klaster, fill = Nilai)) +
@@ -301,7 +301,7 @@ kmeans_server <- function(input, output, session, rv) {
                          size = 3.5, color = "grey10") +
       ggplot2::scale_fill_gradient2(low = "#1a9641", mid = "#ffffbf",
                                     high = "#d7191c", midpoint = 0.5) +
-      ggplot2::labs(title = "Rata-rata Nilai Variabel per Klaster",
+      ggplot2::labs(title = "Mean Variable Values per Cluster",
                     x = NULL, y = NULL, fill = "Nilai") +
       ggplot2::theme_minimal(base_size = 12) +
       ggplot2::theme(plot.title     = ggplot2::element_text(face = "bold",
@@ -335,7 +335,7 @@ kmeans_server <- function(input, output, session, rv) {
     nm <- if (name_col %in% names(peta)) peta[[name_col]] else ""
     popup <- paste0(
       "<b>", nm, "</b><br>",
-      "Klaster: <b>Klaster ", peta$km_cluster, "</b><br>",
+      "Cluster: <b>Cluster ", peta$km_cluster, "</b><br>",
       "SoVI Score: ", round(peta$sovi_score, 4), "<br>",
       "Kelas: ", peta$vuln_class
     )
@@ -348,7 +348,7 @@ kmeans_server <- function(input, output, session, rv) {
         color       = "#fff",
         weight      = 0.5,
         popup       = popup,
-        label       = ~paste0("Klaster ", km_cluster, ": ", nm)
+        label       = ~paste0("Cluster ", km_cluster, ": ", nm)
       ) |>
       leaflet::addLegend(
         position = "bottomright",

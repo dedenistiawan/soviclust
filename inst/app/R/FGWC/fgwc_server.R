@@ -16,7 +16,7 @@ fgwc_server <- function(input, output, session, rv) {
   rv_fgwc_sample_pop  <- reactiveVal(NULL)
 
   observeEvent(input$fgwc_load_sample, {
-    withProgress(message = "Memuat data sampel FGWC...", value = 0, {
+    withProgress(message = "Loading FGWC sample data...", value = 0, {
       extdata <- system.file("extdata", package = "soviclust")
       mode <- input$fgwc_dist_mode %||% "matrix"
       incProgress(0.3)
@@ -40,7 +40,7 @@ fgwc_server <- function(input, output, session, rv) {
       rv_fgwc_sample_pop(parse_population(rv_pop))
       incProgress(1.0)
     })
-    showNotification(paste0("✓ Data sampel FGWC dimuat: ", nrow(rv_fgwc_sample_dist()), "x", ncol(rv_fgwc_sample_dist()), " | pop ", length(rv_fgwc_sample_pop())), type = "message", duration = 5)
+    showNotification(paste0("✓ FGWC sample data loaded: ", nrow(rv_fgwc_sample_dist()), "x", ncol(rv_fgwc_sample_dist()), " | pop ", length(rv_fgwc_sample_pop())), type = "message", duration = 5)
   })
 
   
@@ -221,7 +221,7 @@ fgwc_server <- function(input, output, session, rv) {
     src  <- input$fgwc_data_source
     if (is.null(src)) return(NULL)
     info <- switch(src,
-                   "sovi" = "Menggunakan SoVI Score tunggal (0\u20131) sebagai fitur clustering.",
+                   "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
                    "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
                    NULL
     )
@@ -322,7 +322,7 @@ fgwc_server <- function(input, output, session, rv) {
     )
     
     withProgress(message = paste("Running FGWC", toupper(algo), "..."), value = 0, {
-      incProgress(0.2, detail = "Membangun matriks fitur...")
+      incProgress(0.2, detail = "Building feature matrix...")
       
       result <- tryCatch({
         run_fgwc_shiny(
@@ -345,7 +345,7 @@ fgwc_server <- function(input, output, session, rv) {
         NULL
       })
       
-      incProgress(0.8, detail = "Selesai.")
+      incProgress(0.8, detail = "Done.")
       rv$cga_result_fgwc <- result
     })
     
@@ -353,14 +353,14 @@ fgwc_server <- function(input, output, session, rv) {
       res <- rv$cga_result_fgwc
       if (!is.null(res))
         div(class = "progress-box status-ok", icon("check"),
-            paste0(" Selesai! k=", res$k,
+            paste0(" Complete! k=", res$k,
                    ", Algo=", toupper(res$algorithm),
                    ", Silhouette=", res$sil_mean,
                    ", f_obj=", round(res$f_obj, 4),
                    ", Iter=", res$iteration))
       else
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Periksa data & parameter.")
+            icon("times"), " Failed. Check data & parameters.")
     })
   })
   
@@ -415,7 +415,7 @@ fgwc_server <- function(input, output, session, rv) {
                       tags$p(style = "font-size:12px; color:#78909c;",
                              "Sumber data: ", src_label),
                       tags$p(style = "font-size:12px; color:#78909c;",
-                             "Fitur: ", length(res$feat_cols), " dimensi"),
+                             "Features: ", length(res$feat_cols), " dimensi"),
                       tags$p(style = "font-size:12px; color:#78909c;",
                              "Iterasi: ", res$iteration)
         )),
@@ -433,7 +433,7 @@ fgwc_server <- function(input, output, session, rv) {
                                        if (is.na(res$sil_mean)) "N/A" else res$sil_mean))
         )),
         column(4, div(class = "info-card",
-                      tags$h4(icon("chart-bar"), " Distribusi Cluster"),
+                      tags$h4(icon("chart-bar"), " Cluster Distribution"),
                       tags$table(style = "width:100%; font-size:12.5px;",
                                  tags$thead(tags$tr(
                                    tags$th("Cluster"), tags$th("n"), tags$th("Sil. Width")
@@ -477,7 +477,7 @@ fgwc_server <- function(input, output, session, rv) {
     DT::datatable(rv$cga_result_fgwc$val_df,
                   options  = list(dom = "t", pageLength = 10),
                   rownames = FALSE,
-                  caption  = "Indeks Validasi Cluster FGWC")
+                  caption  = "FGWC Cluster Validation Index")
   })
   
   output$fgwc_conv_plot <- renderPlot({
@@ -578,7 +578,7 @@ fgwc_server <- function(input, output, session, rv) {
     feat_cols <- res$feat_cols
     long      <- tidyr::pivot_longer(res$profile,
                                      cols      = dplyr::all_of(feat_cols),
-                                     names_to  = "Fitur",
+                                     names_to  = "Feature",
                                      values_to = "Mean_Score")
     long$cluster <- factor(long$cluster)
     ggplot2::ggplot(long, ggplot2::aes(x = Fitur, y = cluster,
@@ -603,7 +603,7 @@ fgwc_server <- function(input, output, session, rv) {
     k         <- res$k
     if (length(feat_cols) < 3) {
       plot.new()
-      text(0.5, 0.5, "Radar chart membutuhkan minimal 3 fitur.",
+      text(0.5, 0.5, "Radar chart requires at least 3 features.",
            cex = 1.1, col = "grey50")
       return()
     }
@@ -713,7 +713,7 @@ fgwc_server <- function(input, output, session, rv) {
       req(rv$cga_result_fgwc)
       res       <- rv$cga_result_fgwc
       feat_cols <- res$feat_cols
-      long      <- tidyr::pivot_longer(res$profile, cols = dplyr::all_of(feat_cols), names_to = "Fitur", values_to = "Mean_Score")
+      long      <- tidyr::pivot_longer(res$profile, cols = dplyr::all_of(feat_cols), names_to = "Feature", values_to = "Mean_Score")
       long$cluster <- factor(long$cluster)
       p <- ggplot2::ggplot(long, ggplot2::aes(x = Fitur, y = cluster, fill = Mean_Score)) +
         ggplot2::geom_tile(color = "white", linewidth = 0.6) +

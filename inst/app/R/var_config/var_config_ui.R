@@ -49,8 +49,8 @@ var_config_tab_ui <- function() {
                                      div(class = "step-header", "Step 2: Set direction (+/-)"),
                                      tags$p(style = "color:#546e7a; font-size:13px; margin-bottom:10px;",
                                             icon("info-circle"),
-                                            tags$strong(" (+)"), " = MENINGKATKAN kerentanan  |  ",
-                                            tags$strong(" (-)"), " = MENURUNKAN kerentanan"),
+                                            tags$strong(" (+)"), " = INCREASES vulnerability  |  ",
+                                            tags$strong(" (-)"), " = DECREASES vulnerability"),
                                      
                                      # Tabel direction variabel (dirender secara dinamis)
                                      div(class = "direction-scroll", uiOutput("direction_ui")),

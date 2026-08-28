@@ -28,7 +28,7 @@ method_comparison_server <- function(input, output, session, rv) {
     output$comparison_progress <- renderUI({
       div(class = "progress-box", style = "background:#fff3cd;",
           icon("spinner", class = "fa-spin"),
-          " Menjalankan 3-way comparison...")
+          " Running 3-way comparison...")
     })
     
     withProgress(message = "Running 3-Way Comparison...", value = 0, {
@@ -49,7 +49,7 @@ method_comparison_server <- function(input, output, session, rv) {
         NULL
       })
       
-      incProgress(0.8, detail = "Selesai.")
+      incProgress(0.8, detail = "Done.")
       rv$comp_results <- result
     })
     
@@ -59,7 +59,7 @@ method_comparison_server <- function(input, output, session, rv) {
             icon("check"), " Comparison selesai!")
       else
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Periksa data.")
+            icon("times"), " Failed. Check data.")
     })
   })
   
@@ -120,7 +120,7 @@ method_comparison_server <- function(input, output, session, rv) {
           tags$h4(style = "color:#1a73c1; font-weight:700; margin-bottom:4px;",
                   icon("ruler-combined"), " Ringkasan Metrik Evaluasi"),
           tags$p(style = "font-size:12.5px; color:#78909c; margin:0;",
-                 "n = ", n, " unit wilayah  |  ",
+                 "n = ", n, " area units  |  ",
                  "Threshold loading = ", input$comp_threshold, "  |  ",
                  "Green = consistent  |  Yellow = moderate  |  Red = significantly different")
       ),
@@ -576,8 +576,8 @@ method_comparison_server <- function(input, output, session, rv) {
                  font-size:12.5px; margin-top:10px;",
         icon("exclamation-triangle"),
         tags$strong(" Saran:"),
-        " Verifikasi ulang arah (+/-) variabel di tab Variable Config.",
-        " Pastikan setiap variabel sudah sesuai literatur kerentanan sosial.",
+        " Double-check variable direction (+/-) in the Variable Config tab.",
+        " Ensure each variable aligns with social vulnerability literature.",
         " Perbedaan ini tidak mengubah rekomendasi — cukup didokumentasikan dalam laporan."
       )
       
@@ -592,8 +592,8 @@ method_comparison_server <- function(input, output, session, rv) {
                  font-size:12.5px; margin-top:10px;",
         icon("exclamation-triangle", style = "color:#e74c3c;"),
         tags$strong(" Tindakan Diperlukan:"),
-        " Kembali ke tab Variable Config dan periksa ulang arah (+/-) setiap variabel.",
-        " Pastikan variabel protektif sudah ditandai negatif (-).",
+        " Return to Variable Config tab and re-check the direction (+/-) of each variable.",
+        " Ensure protective variables are marked negative (-).",
         " Ketidakkonsistenan ini BUKAN alasan beralih ke method lain."
       )
     }
@@ -640,7 +640,7 @@ method_comparison_server <- function(input, output, session, rv) {
         # ── Level konfirmasi dari semua metrik ────────────────────────────
         div(style = paste0("font-size:14px; font-weight:700; color:", conf_color,
                            "; margin-bottom:10px;"),
-            conf_icon, " Level Konfirmasi: ", conf_label,
+            conf_icon, " Confirmation Level: ", conf_label,
             tags$span(style = "font-size:12px; font-weight:400; color:#78909c;
                                margin-left:10px;",
                       paste0("(Skor: ", total_score, "/", max_score, " = ",
