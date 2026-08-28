@@ -136,7 +136,7 @@ validate_data_file <- function(df, filename) {
   if (num_cols < 3) {
     return(list(ok = FALSE, msg = paste0(
       "\u274c Dataset hanya memiliki ", num_cols, " kolom numerik.\n",
-      "Diperlukan minimal 3 variabel numerik untuk PCA/SoVI."
+      "At least 3 numeric variables required for PCA/SoVI."
     )))
   }
 
@@ -234,7 +234,7 @@ validate_sovi_vars <- function(selected_vars, df) {
   if (length(selected_vars) < 3) {
     return(list(ok = FALSE, msg = paste0(
       "\u274c Pilih minimal 3 variabel SoVI.\n",
-      "Saat ini hanya ", length(selected_vars), " variabel dipilih."
+      "Currently only ", length(selected_vars), " variables selected."
     )))
   }
 
@@ -243,7 +243,7 @@ validate_sovi_vars <- function(selected_vars, df) {
     return(list(ok = FALSE, msg = paste0(
       "\u274c The following variables are not numeric: ",
       paste(non_numeric, collapse = ", "), ".\n",
-      "Hanya pilih variabel numerik sebagai indikator SoVI."
+      "Select only numeric variables as SoVI indicators."
     )))
   }
 
@@ -259,7 +259,7 @@ validate_sovi_vars <- function(selected_vars, df) {
   }
 
   list(ok = TRUE, msg = paste0(
-    "\u2713 ", length(selected_vars), " variabel SoVI valid."
+    "\u2713 ", length(selected_vars), " SoVI variables valid."
   ))
 }
 

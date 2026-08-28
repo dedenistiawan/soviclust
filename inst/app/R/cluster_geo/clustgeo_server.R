@@ -63,7 +63,7 @@ clustgeo_server <- function(input, output, session, rv) {
     if (is.null(src)) return(NULL)
     
     info <- switch(src,
-                   "sovi" = "Menggunakan SoVI Score tunggal (nilai 0\u20131) sebagai fitur clustering.",
+                   "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
                    "rc"   = "Menggunakan skor komponen RC (hasil PCA Varimax, ternormalisasi 0\u20131).",
                    NULL
     )
@@ -124,7 +124,7 @@ clustgeo_server <- function(input, output, session, rv) {
         NULL
       })
       
-      incProgress(0.8, detail = "Selesai.")
+      incProgress(0.8, detail = "Done.")
       rv$cga_result <- result
     })
     
@@ -133,12 +133,12 @@ clustgeo_server <- function(input, output, session, rv) {
       if (!is.null(rv$cga_result))
         div(class = "progress-box status-ok",
             icon("check"),
-            paste0(" Selesai! k=", rv$cga_result$k,
+            paste0(" Complete! k=", rv$cga_result$k,
                    ", \u03b1=", round(rv$cga_result$alpha, 3),
                    ", Silhouette=", rv$cga_result$sil_mean))
       else
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Periksa data & konfigurasi.")
+            icon("times"), " Failed. Check data & configuration.")
     })
   })
   
@@ -184,10 +184,10 @@ clustgeo_server <- function(input, output, session, rv) {
       fluidRow(
         # Card: Sumber Data
         column(4, div(class = "info-card",
-                      tags$h4(icon("database"), " Sumber Data"),
+                      tags$h4(icon("database"), " Data Source"),
                       tags$p(style = "font-size:13px;", src_label),
                       tags$p(style = "font-size:12px; color:#78909c;",
-                             "Fitur: ", length(res$feat_cols), " dimensi")
+                             "Features: ", length(res$feat_cols), " dimensi")
         )),
         
         # Card: Hasil Clustering
@@ -204,7 +204,7 @@ clustgeo_server <- function(input, output, session, rv) {
         
         # Card: Distribusi Cluster
         column(4, div(class = "info-card",
-                      tags$h4(icon("chart-bar"), " Distribusi Cluster"),
+                      tags$h4(icon("chart-bar"), " Cluster Distribution"),
                       tags$table(
                         style = "width:100%; font-size:12.5px;",
                         tags$thead(tags$tr(
@@ -407,7 +407,7 @@ clustgeo_server <- function(input, output, session, rv) {
     DT::datatable(df,
                   options  = list(dom = "t", scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = "Profil Cluster: Mean Fitur per Cluster")
+                  caption  = "Cluster Profile: Mean Feature per Cluster")
   })
   
   output$cga_plot_heatmap <- renderPlot({
@@ -417,7 +417,7 @@ clustgeo_server <- function(input, output, session, rv) {
     
     long <- tidyr::pivot_longer(profile,
                                 cols      = dplyr::all_of(feat_cols),
-                                names_to  = "Fitur",
+                                names_to  = "Feature",
                                 values_to = "Mean_Score")
     long$cluster <- factor(long$cluster)
     
@@ -431,8 +431,8 @@ clustgeo_server <- function(input, output, session, rv) {
                                     name      = "Mean\nScore") +
       ggplot2::labs(
         title    = "Heatmap Profil Cluster",
-        subtitle = "Rata-rata nilai fitur per cluster",
-        x        = "Fitur / Dimensi",
+        subtitle = "Mean feature values per cluster",
+        x        = "Feature / Dimension",
         y        = "Cluster"
       ) +
       ggplot2::theme_minimal(base_size = 11) +
@@ -449,7 +449,7 @@ clustgeo_server <- function(input, output, session, rv) {
     
     if (length(feat_cols) < 3) {
       plot.new()
-      text(0.5, 0.5, "Radar chart membutuhkan minimal 3 fitur/dimensi.",
+      text(0.5, 0.5, "Radar chart requires at least 3 features/dimensions.",
            cex = 1.1, col = "grey50")
       return()
     }

@@ -36,7 +36,7 @@ extended_analysis_server <- function(input, output, session, rv) {
     
     output$analysis_progress <- renderUI({
       div(class = "progress-box", style = "background:#d4edda;",
-          icon("spinner", class = "fa-spin"), " Menjalankan analisis...")
+          icon("spinner", class = "fa-spin"), " Running analysis...")
     })
     
     withProgress(message = "Running Extended Analysis...", value = 0, {

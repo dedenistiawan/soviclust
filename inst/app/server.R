@@ -307,14 +307,14 @@ server <- function(input, output, session) {
 
     if (is.null(id_col) || id_col == "" || !id_col %in% names(rv$data)) {
       showNotification(
-        "\u274c Kolom ID wilayah belum dipilih atau tidak ditemukan di dataset.",
+        "\u274c Region ID column not selected or not found in dataset.",
         type = "error", duration = 8
       )
       return()
     }
     if (is.null(shp_col) || shp_col == "" || !shp_col %in% names(rv$shp)) {
       showNotification(
-        "\u274c Kolom ID shapefile belum dipilih atau tidak ditemukan.",
+        "\u274c Shapefile ID column not selected or not found.",
         type = "error", duration = 8
       )
       return()

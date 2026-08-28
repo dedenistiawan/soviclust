@@ -53,7 +53,7 @@ fgwc_tab_ui <- function() {
             "input.fgwc_dist_mode == 'matrix'",
             tags$p(style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                    icon("info-circle"),
-                   " File Excel/CSV berisi matriks n\u00d7n jarak antar wilayah."),
+                   " File Excel/CSV with distance matrix n\u00d7n regions."),
             fileInput("fgwc_file_dist", NULL,
                       accept = c(".xlsx", ".csv"),
                       placeholder = "Belum ada file")
@@ -93,7 +93,7 @@ fgwc_tab_ui <- function() {
 
         # ── Box: Sumber Data Fitur ─────────────────────────────────────────────
         shinydashboard::box(
-          title       = tags$span(icon("database"), " Sumber Data"),
+          title       = tags$span(icon("database"), " Data Source"),
           status      = "primary",
           solidHeader = TRUE,
           width       = 12,
@@ -213,13 +213,13 @@ fgwc_tab_ui <- function() {
           # Universal — semua algoritma selain classic
           conditionalPanel(
             "input.fgwc_algorithm != 'classic'",
-            div(class = "step-header", "Jumlah Partikel / Agen"),
+            div(class = "step-header", "Number of Particles / Agents"),
             sliderInput("fgwc_npar", NULL,
                         min = 3, max = 30, value = 10, step = 1),
             div(class = "step-header", "Konvergensi (same)"),
             sliderInput("fgwc_same", NULL,
                         min = 5, max = 30, value = 10, step = 1),
-            div(class = "step-header", "Distribusi Inisialisasi"),
+            div(class = "step-header", "Initialization Distribution"),
             selectInput("fgwc_vi_dist", NULL,
                         choices  = c("Uniform" = "uniform", "Normal" = "normal"),
                         selected = "uniform")
@@ -235,7 +235,7 @@ fgwc_tab_ui <- function() {
 
           # ABC
           conditionalPanel("input.fgwc_algorithm == 'abc'",
-            div(class = "step-header", "Jumlah Onlooker Bee"),
+            div(class = "step-header", "Number of Onlooker Bees"),
             sliderInput("fgwc_abc_onlooker", NULL,
                         min = 2, max = 20, value = 5, step = 1),
             div(class = "step-header", "Limit (Scout)"),
@@ -254,7 +254,7 @@ fgwc_tab_ui <- function() {
             div(class = "step-header", "Lambda (Levy)"),
             numericInput("fgwc_fpa_lambda", NULL,
                          value = 1.5, min = 0.1, step = 0.1),
-            div(class = "step-header", "Distribusi EI"),
+            div(class = "step-header", "EI Distribution"),
             selectInput("fgwc_fpa_ei", NULL,
                         choices  = c("logchaotic","normal","uniform",
                                      "kentchaotic","levy"),
@@ -280,7 +280,7 @@ fgwc_tab_ui <- function() {
                 style = "background:#e8f5e9; border-left-color:#27ae60; font-size:12px;",
                 icon("info-circle"),
                 " GWO hanya menggunakan parameter universal.", tags$br(),
-                "Set the number of wolves via ", tags$strong("Jumlah Partikel / Agen"), " di atas.")
+                "Set the number of wolves via ", tags$strong("Number of Particles / Agents"), " above.")
           ),
 
           # HHO
@@ -305,7 +305,7 @@ fgwc_tab_ui <- function() {
 
           # IFA
           conditionalPanel("input.fgwc_algorithm == 'ifa'",
-            div(class = "step-header", "Jumlah Firefly Terpilih"),
+            div(class = "step-header", "Number of Selected Fireflies"),
             sliderInput("fgwc_ifa_parno", NULL,
                         min = 1, max = 10, value = 3, step = 1),
             div(class = "step-header", "Gamma"),
@@ -314,7 +314,7 @@ fgwc_tab_ui <- function() {
             div(class = "step-header", "Beta (Attractiveness)"),
             numericInput("fgwc_ifa_beta", NULL,
                          value = 1, min = 0.1, step = 0.1),
-            div(class = "step-header", "Distribusi EI"),
+            div(class = "step-header", "EI Distribution"),
             selectInput("fgwc_ifa_ei", NULL,
                         choices  = c("logchaotic","normal","uniform",
                                      "kentchaotic","levy"),
@@ -351,12 +351,12 @@ fgwc_tab_ui <- function() {
 
           # TLBO
           conditionalPanel("input.fgwc_algorithm == 'tlbo'",
-            div(class = "step-header", "Jumlah Seleksi"),
+            div(class = "step-header", "Number of Selections"),
             sliderInput("fgwc_tlbo_nselect", NULL,
                         min = 2, max = 20, value = 10, step = 1),
             checkboxInput("fgwc_tlbo_elitism", "Gunakan Elitisme",
                           value = FALSE),
-            div(class = "step-header", "Jumlah Elite"),
+            div(class = "step-header", "Number of Elites"),
             numericInput("fgwc_tlbo_nelite", NULL,
                          value = 2, min = 1, step = 1)
           ),
@@ -417,7 +417,7 @@ fgwc_tab_ui <- function() {
             # Tab 2: Validasi + Konvergensi
             tabPanel(tags$span(icon("chart-bar"), " Validasi"),
                      tags$br(),
-                     div(class = "step-header", "Indeks Validasi Cluster"),
+                     div(class = "step-header", "Cluster Validation Index"),
                      tags$p(style = "font-size:12px; color:#78909c;",
                             "PC & IFV: nilai besar lebih baik.",
                             " CE, SC, SI, XB, Kwon: nilai kecil lebih baik."),

@@ -44,7 +44,7 @@ kmeans_tab_ui <- function() {
           tags$hr(),
 
           # 2. Sumber Data
-          div(class = "step-header", "2. Sumber Data"),
+          div(class = "step-header", "2. Data Source"),
           radioButtons("km_data_source", NULL,
                        choices = c(
                          "Data Asli (tanpa transformasi)"   = "raw",
@@ -108,7 +108,7 @@ kmeans_tab_ui <- function() {
               tags$br(),
               fluidRow(
                 column(6,
-                  div(class = "step-header", "Distribusi Anggota Klaster"),
+                  div(class = "step-header", "Cluster Member Distribution"),
                   DT::DTOutput("km_summary_table")
                 ),
                 column(6,
@@ -117,7 +117,7 @@ kmeans_tab_ui <- function() {
                 )
               ),
               tags$br(),
-              div(class = "step-header", "10 Wilayah Tiap Klaster (SoVI Tertinggi)"),
+              div(class = "step-header", "Top 10 Regions per Cluster (Highest SoVI)"),
               DT::DTOutput("km_detail_table")
             ),
 
@@ -141,16 +141,16 @@ kmeans_tab_ui <- function() {
             tabPanel(
               title = tags$span(icon("chart-bar"), " Cluster Profile"),
               tags$br(),
-              div(class = "step-header", "Distribusi SoVI Score per Klaster"),
+              div(class = "step-header", "SoVI Score Distribution per Cluster"),
               plotOutput("km_boxplot", height = "350px"),
               tags$br(),
-              div(class = "step-header", "Rata-rata Variabel per Klaster"),
+              div(class = "step-header", "Mean Variable Values per Cluster"),
               plotOutput("km_heatmap", height = "350px")
             ),
 
             # Tab 4: Peta
             tabPanel(
-              title = tags$span(icon("map"), " Peta Klaster"),
+              title = tags$span(icon("map"), " Cluster Map"),
               tags$br(),
               leaflet::leafletOutput("km_map", height = "520px")
             )

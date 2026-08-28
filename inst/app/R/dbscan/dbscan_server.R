@@ -44,7 +44,7 @@ dbscan_server <- function(input, output, session, rv) {
     src <- input$dbs_data_source
     if (is.null(src)) return(NULL)
     info <- switch(src,
-      "sovi" = "Menggunakan SoVI Score tunggal (0\u20131) sebagai fitur clustering.",
+      "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
       "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
       NULL
     )
@@ -182,7 +182,7 @@ dbscan_server <- function(input, output, session, rv) {
             " | Noise: ", rv$dbs_result$n_noise, " regions")
       } else {
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Coba sesuaikan eps atau minPts.")
+            icon("times"), " Failed. Try adjusting eps or minPts.")
       }
     })
   })
@@ -240,7 +240,7 @@ dbscan_server <- function(input, output, session, rv) {
   output$dbs_boxplot <- renderPlot({
     req(rv$dbs_result)
     sovi_df <- rv$dbs_result$sovi_df
-    sovi_df$Klaster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
+    sovi_df$Cluster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
                               paste0("Cluster ", sovi_df$dbs_cluster))
     n_cls <- length(unique(sovi_df$Klaster))
     pal   <- if (n_cls <= 8) {
@@ -268,13 +268,13 @@ dbscan_server <- function(input, output, session, rv) {
     x_var    <- if (length(rc_cols) > 0) rc_cols[1] else "sovi_score"
     y_var    <- if (length(rc_cols) > 1) rc_cols[2] else "sovi_score"
 
-    sovi_df$Klaster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
+    sovi_df$Cluster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
                               paste0("Cluster ", sovi_df$dbs_cluster))
 
     ggplot2::ggplot(sovi_df,
                     ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]],
                                  color = Klaster,
-                                 shape = ifelse(Klaster == "Noise", 4, 16))) +
+                                 shape = ifelse(Cluster == "Noise", 4, 16))) +
       ggplot2::geom_point(alpha = 0.6, size = 2) +
       ggplot2::scale_color_brewer(palette = "Set2") +
       ggplot2::scale_shape_identity() +
@@ -339,7 +339,7 @@ dbscan_server <- function(input, output, session, rv) {
         color       = "#fff",
         weight      = 0.5,
         popup       = popup,
-        label       = ~paste0(klaster_label, ": ", nm)
+        label       = ~paste0(cluster_label, ": ", nm)
       ) |>
       leaflet::addLegend(
         position = "bottomright",

@@ -35,7 +35,7 @@ lfgwc_tab_ui <- function() {
 
           div(class = "sample-data-banner", style = "padding:10px 14px; margin-bottom:10px;",
             tags$p(style = "margin:0 0 6px 0; font-weight:700; color:#1a73c1; font-size:13px;",
-                   icon("database"), " Gunakan Data Sampel LFGWC"),
+                   icon("database"), " Use LFGWC Sample Data"),
             tags$p(style = "margin:0 0 8px 0; font-size:11.5px; color:#546e7a;",
                    "Distance matrix and population data for 514 Indonesian regencies/cities."),
             actionButton("lfgwc_load_sample", tags$span(icon("play-circle"), " Load Sample Data"),
@@ -52,7 +52,7 @@ lfgwc_tab_ui <- function() {
             "input.lfgwc_dist_mode == 'matrix'",
             tags$p(style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                    icon("info-circle"),
-                   " File Excel/CSV: matriks n\u00d7n jarak antar wilayah."),
+                   " Excel/CSV file: n×n distance matrix between n\u00d7n regions."),
             fileInput("lfgwc_file_dist", NULL,
                       accept      = c(".xlsx", ".csv"),
                       placeholder = "Belum ada file")
@@ -90,7 +90,7 @@ lfgwc_tab_ui <- function() {
 
         # ── Box: Sumber Data Fitur ──────────────────────────────────────────
         shinydashboard::box(
-          title  = tags$span(icon("database"), " Sumber Data"),
+          title  = tags$span(icon("database"), " Data Source"),
           status = "primary",
           solidHeader = TRUE,
           width  = 12,
@@ -132,7 +132,7 @@ lfgwc_tab_ui <- function() {
           width       = 12,
           collapsible = TRUE,
 
-          div(class = "step-header", "4. Jumlah Cluster (c)"),
+          div(class = "step-header", "4. Number of Clusters (c)"),
           sliderInput("lfgwc_ncluster", NULL,
                       min = 2, max = 10, value = 4, step = 1),
 
@@ -250,13 +250,13 @@ lfgwc_tab_ui <- function() {
           # Universal
           conditionalPanel(
             "input.lfgwc_algorithm != 'classic'",
-            div(class = "step-header", "Jumlah Partikel / Agen"),
+            div(class = "step-header", "Number of Particles / Agents"),
             sliderInput("lfgwc_npar", NULL,
                         min = 3, max = 30, value = 10, step = 1),
             div(class = "step-header", "Konvergensi (same)"),
             sliderInput("lfgwc_same", NULL,
                         min = 5, max = 30, value = 10, step = 1),
-            div(class = "step-header", "Distribusi Inisialisasi"),
+            div(class = "step-header", "Initialization Distribution"),
             selectInput("lfgwc_vi_dist", NULL,
                         choices  = c("Uniform" = "uniform", "Normal"  = "normal"),
                         selected = "uniform")
@@ -273,7 +273,7 @@ lfgwc_tab_ui <- function() {
           # ABC
           conditionalPanel(
             "input.lfgwc_algorithm == 'abc'",
-            div(class = "step-header", "Jumlah Onlooker Bee"),
+            div(class = "step-header", "Number of Onlooker Bees"),
             sliderInput("lfgwc_abc_onlooker", NULL,
                         min = 2, max = 20, value = 5, step = 1),
             div(class = "step-header", "Limit (Scout)"),
@@ -293,7 +293,7 @@ lfgwc_tab_ui <- function() {
             div(class = "step-header", "Lambda (Levy)"),
             numericInput("lfgwc_fpa_lambda", NULL,
                          value = 1.5, min = 0.1, step = 0.1),
-            div(class = "step-header", "Distribusi EI"),
+            div(class = "step-header", "EI Distribution"),
             selectInput("lfgwc_fpa_ei", NULL,
                         choices  = c("logchaotic","normal","uniform","kentchaotic","levy"),
                         selected = "logchaotic")
@@ -337,7 +337,7 @@ lfgwc_tab_ui <- function() {
           # IFA
           conditionalPanel(
             "input.lfgwc_algorithm == 'ifa'",
-            div(class = "step-header", "Jumlah Firefly Terpilih"),
+            div(class = "step-header", "Number of Selected Fireflies"),
             sliderInput("lfgwc_ifa_parno", NULL,
                         min = 1, max = 10, value = 3, step = 1),
             div(class = "step-header", "Gamma"),
@@ -346,7 +346,7 @@ lfgwc_tab_ui <- function() {
             div(class = "step-header", "Beta (Attractiveness)"),
             numericInput("lfgwc_ifa_beta", NULL,
                          value = 1, min = 0.1, step = 0.1),
-            div(class = "step-header", "Distribusi EI"),
+            div(class = "step-header", "EI Distribution"),
             selectInput("lfgwc_ifa_ei", NULL,
                         choices  = c("logchaotic","normal","uniform","kentchaotic","levy"),
                         selected = "logchaotic")
@@ -389,12 +389,12 @@ lfgwc_tab_ui <- function() {
           # TLBO
           conditionalPanel(
             "input.lfgwc_algorithm == 'tlbo'",
-            div(class = "step-header", "Jumlah Seleksi"),
+            div(class = "step-header", "Number of Selections"),
             sliderInput("lfgwc_tlbo_nselect", NULL,
                         min = 2, max = 20, value = 10, step = 1),
             checkboxInput("lfgwc_tlbo_elitism",
                           "Gunakan Elitisme", value = FALSE),
-            div(class = "step-header", "Jumlah Elite"),
+            div(class = "step-header", "Number of Elites"),
             numericInput("lfgwc_tlbo_nelite", NULL,
                          value = 2, min = 1, step = 1)
           ),
@@ -468,7 +468,7 @@ lfgwc_tab_ui <- function() {
             # Tab 2: Validasi + Konvergensi
             tabPanel(tags$span(icon("chart-bar"), " Validasi"),
                      tags$br(),
-                     div(class = "step-header", "Indeks Validasi LFGWC"),
+                     div(class = "step-header", "LFGWC Validation Index"),
                      tags$p(style = "font-size:12px; color:#78909c;",
                             "PC & IFV: nilai besar lebih baik.",
                             " CE & SC: nilai kecil lebih baik."),

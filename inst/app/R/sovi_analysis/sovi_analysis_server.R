@@ -188,7 +188,7 @@ sovi_analysis_server <- function(input, output, session, rv) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12; font-size:13px;",
                  icon("exclamation-triangle"),
-                 " Pilih sumber data, variabel, jumlah kelas, lalu klik ",
+                 " Select data source, variable, number of classes, then click ",
                  tags$strong("Tampilkan Peta.")))
     }
     div(class = "progress-box status-ok",

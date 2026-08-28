@@ -10,7 +10,7 @@ lfgwc_server <- function(input, output, session, rv) {
   rv_lfgwc_sample_pop  <- reactiveVal(NULL)
 
   observeEvent(input$lfgwc_load_sample, {
-    withProgress(message = "Memuat data sampel LFGWC...", value = 0, {
+    withProgress(message = "Loading LFGWC sample data...", value = 0, {
       extdata <- system.file("extdata", package = "soviclust")
       mode <- input$lfgwc_dist_mode %||% "matrix"
       incProgress(0.3)
@@ -34,7 +34,7 @@ lfgwc_server <- function(input, output, session, rv) {
       rv_lfgwc_sample_pop(parse_population(rv_pop))
       incProgress(1.0)
     })
-    showNotification(paste0("✓ Data sampel LFGWC dimuat: ", nrow(rv_lfgwc_sample_dist()), "x", ncol(rv_lfgwc_sample_dist()), " | pop ", length(rv_lfgwc_sample_pop())), type = "message", duration = 5)
+    showNotification(paste0("✓ LFGWC sample data loaded: ", nrow(rv_lfgwc_sample_dist()), "x", ncol(rv_lfgwc_sample_dist()), " | pop ", length(rv_lfgwc_sample_pop())), type = "message", duration = 5)
   })
 
   
@@ -260,7 +260,7 @@ lfgwc_server <- function(input, output, session, rv) {
     if (is.null(src)) return(NULL)
     
     info <- switch(src,
-                   "sovi" = "SoVI Score tunggal (0–1) sebagai fitur clustering.",
+                   "sovi" = "Single SoVI Score (0–1) as clustering feature.",
                    "rc"   = "Skor RC (komponen PCA Varimax, ternormalisasi 0–1).",
                    NULL
     )
@@ -402,7 +402,7 @@ lfgwc_server <- function(input, output, session, rv) {
                      NULL
                    })
                    
-                   incProgress(0.8, detail = "Selesai.")
+                   incProgress(0.8, detail = "Done.")
                    rv$cga_result_lfgwc <- result
                  })
     
@@ -412,14 +412,14 @@ lfgwc_server <- function(input, output, session, rv) {
       if (!is.null(res))
         div(class = "progress-box status-ok",
             icon("check"),
-            paste0(" Selesai! k=", res$k,
+            paste0(" Complete! k=", res$k,
                    " | Mode: ", res$mode_label,
                    " | Sil=", res$sil_mean,
                    " | J=", round(res$f_obj, 4),
                    " | Iter=", res$iteration))
       else
         div(class = "progress-box status-err",
-            icon("times"), " Gagal. Periksa data & parameter.")
+            icon("times"), " Failed. Check data & parameters.")
     })
   })
   
@@ -467,7 +467,7 @@ lfgwc_server <- function(input, output, session, rv) {
                    tags$p(style = "font-size:12px; color:#78909c;",
                           "Sumber data: ", src_label),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Fitur: ", length(res$feat_cols), " dimensi"),
+                          "Features: ", length(res$feat_cols), " dimensi"),
                    tags$p(style = "font-size:12px; color:#78909c;",
                           "Iterasi: ", res$iteration)
                )
@@ -540,7 +540,7 @@ lfgwc_server <- function(input, output, session, rv) {
     DT::datatable(df,
                   options  = list(dom = "t", pageLength = 10),
                   rownames = FALSE,
-                  caption  = "Indeks Validasi Cluster LFGWC (Grekousis 2020)")
+                  caption  = "LFGWC Cluster Validation Index (Grekousis 2020)")
   })
   
   output$lfgwc_conv_plot <- renderPlot({
@@ -679,7 +679,7 @@ lfgwc_server <- function(input, output, session, rv) {
     feat_cols <- res$feat_cols
     
     long <- tidyr::pivot_longer(profile, cols = dplyr::all_of(feat_cols),
-                                names_to  = "Fitur",
+                                names_to  = "Feature",
                                 values_to = "Mean_Score")
     long$cluster <- factor(long$cluster)
     
@@ -710,7 +710,7 @@ lfgwc_server <- function(input, output, session, rv) {
     
     if (length(feat_cols) < 3) {
       plot.new()
-      text(0.5, 0.5, "Radar chart membutuhkan minimal 3 fitur.",
+      text(0.5, 0.5, "Radar chart requires at least 3 features.",
            cex = 1.1, col = "grey50")
       return()
     }
@@ -897,7 +897,7 @@ lfgwc_server <- function(input, output, session, rv) {
       feat_cols <- res$feat_cols
       long      <- tidyr::pivot_longer(res$profile,
                                        cols      = dplyr::all_of(feat_cols),
-                                       names_to  = "Fitur",
+                                       names_to  = "Feature",
                                        values_to = "Mean_Score")
       long$cluster <- factor(long$cluster)
       p <- ggplot2::ggplot(long, ggplot2::aes(x = Fitur, y = cluster,

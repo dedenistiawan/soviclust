@@ -17,7 +17,7 @@ alfgwc_tab_ui <- function() {
           
           div(class = "sample-data-banner", style = "padding:10px 14px; margin-bottom:10px;",
             tags$p(style = "margin:0 0 6px 0; font-weight:700; color:#1a73c1; font-size:13px;",
-                   icon("database"), " Gunakan Data Sampel ALFGWC"),
+                   icon("database"), " Use ALFGWC Sample Data"),
             tags$p(style = "margin:0 0 8px 0; font-size:11.5px; color:#546e7a;",
                    "Distance matrix and population data for 514 Indonesian regencies/cities."),
             actionButton("alfgwc_load_sample", tags$span(icon("play-circle"), " Load Sample Data"),
@@ -47,7 +47,7 @@ alfgwc_tab_ui <- function() {
         ),
         
         shinydashboard::box(
-          title  = tags$span(icon("database"), " Sumber Data"),
+          title  = tags$span(icon("database"), " Data Source"),
           status = "primary",
           solidHeader = TRUE,
           width  = 12,
@@ -86,7 +86,7 @@ alfgwc_tab_ui <- function() {
           width       = 12,
           collapsible = TRUE,
           
-          div(class = "step-header", "4. Jumlah Cluster (c)"),
+          div(class = "step-header", "4. Number of Clusters (c)"),
           sliderInput("alfgwc_ncluster", NULL, min = 2, max = 10, value = 4, step = 1),
           
           div(class = "step-header", "Fuzzifier (m)"),
@@ -210,13 +210,13 @@ alfgwc_tab_ui <- function() {
           # Universal
           conditionalPanel(
             "input.alfgwc_algorithm != 'classic'",
-            div(class = "step-header", "Jumlah Partikel / Agen"),
+            div(class = "step-header", "Number of Particles / Agents"),
             sliderInput("alfgwc_npar", NULL,
                         min = 3, max = 30, value = 10, step = 1),
             div(class = "step-header", "Konvergensi (same)"),
             sliderInput("alfgwc_same", NULL,
                         min = 5, max = 30, value = 10, step = 1),
-            div(class = "step-header", "Distribusi Inisialisasi"),
+            div(class = "step-header", "Initialization Distribution"),
             selectInput("alfgwc_vi_dist", NULL,
                         choices  = c("Uniform" = "uniform", "Normal"  = "normal"),
                         selected = "uniform")
@@ -233,7 +233,7 @@ alfgwc_tab_ui <- function() {
           # ABC
           conditionalPanel(
             "input.alfgwc_algorithm == 'abc'",
-            div(class = "step-header", "Jumlah Onlooker Bee"),
+            div(class = "step-header", "Number of Onlooker Bees"),
             sliderInput("alfgwc_abc_onlooker", NULL,
                         min = 2, max = 20, value = 5, step = 1),
             div(class = "step-header", "Limit (Scout)"),
@@ -253,7 +253,7 @@ alfgwc_tab_ui <- function() {
             div(class = "step-header", "Lambda (Levy)"),
             numericInput("alfgwc_fpa_lambda", NULL,
                          value = 1.5, min = 0.1, step = 0.1),
-            div(class = "step-header", "Distribusi EI"),
+            div(class = "step-header", "EI Distribution"),
             selectInput("alfgwc_fpa_ei", NULL,
                         choices  = c("logchaotic","normal","uniform","kentchaotic","levy"),
                         selected = "logchaotic")
@@ -297,7 +297,7 @@ alfgwc_tab_ui <- function() {
           # IFA
           conditionalPanel(
             "input.alfgwc_algorithm == 'ifa'",
-            div(class = "step-header", "Jumlah Firefly Terpilih"),
+            div(class = "step-header", "Number of Selected Fireflies"),
             sliderInput("alfgwc_ifa_parno", NULL,
                         min = 1, max = 10, value = 3, step = 1),
             div(class = "step-header", "Gamma"),
@@ -306,7 +306,7 @@ alfgwc_tab_ui <- function() {
             div(class = "step-header", "Beta (Attractiveness)"),
             numericInput("alfgwc_ifa_beta", NULL,
                          value = 1, min = 0.1, step = 0.1),
-            div(class = "step-header", "Distribusi EI"),
+            div(class = "step-header", "EI Distribution"),
             selectInput("alfgwc_ifa_ei", NULL,
                         choices  = c("logchaotic","normal","uniform","kentchaotic","levy"),
                         selected = "logchaotic")
@@ -344,12 +344,12 @@ alfgwc_tab_ui <- function() {
           # TLBO
           conditionalPanel(
             "input.alfgwc_algorithm == 'tlbo'",
-            div(class = "step-header", "Jumlah Seleksi"),
+            div(class = "step-header", "Number of Selections"),
             sliderInput("alfgwc_tlbo_nselect", NULL,
                         min = 2, max = 20, value = 10, step = 1),
             checkboxInput("alfgwc_tlbo_elitism",
                           "Gunakan Elitisme", value = FALSE),
-            div(class = "step-header", "Jumlah Elite"),
+            div(class = "step-header", "Number of Elites"),
             numericInput("alfgwc_tlbo_nelite", NULL,
                          value = 2, min = 1, step = 1)
           ),
@@ -420,7 +420,7 @@ alfgwc_tab_ui <- function() {
             # Tab 2: Validasi + Konvergensi
             tabPanel(tags$span(icon("chart-bar"), " Validasi"),
                      tags$br(),
-                     div(class = "step-header", "Indeks Validasi ALFGWC"),
+                     div(class = "step-header", "ALFGWC Validation Index"),
                      tags$p(style = "font-size:12px; color:#78909c;",
                             "PC & IFV: nilai besar lebih baik.",
                             " CE & SC: nilai kecil lebih baik."),
