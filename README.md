@@ -1,10 +1,10 @@
-﻿# soviclust <img src="man/figures/logo.png" align="right" height="139" alt="soviclust logo" />
+# soviclust <img src="man/figures/logo.png" align="right" height="139" alt="soviclust logo" />
 
 > **An Interactive R Shiny Package for Social Vulnerability Index (SoVI) Analysis and Spatial Clustering**
 
 [![R version](https://img.shields.io/badge/R-%3E%3D4.1.0-blue)](https://cran.r-project.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/dedenistiawan/soviclust)](https://github.com/dedenistiawan/soviclust/releases)
+[![GitHub tag](https://img.shields.io/github/v/tag/dedenistiawan/soviclust?label=version)](https://github.com/dedenistiawan/soviclust/tags)
 [![R-CMD-check](https://github.com/dedenistiawan/soviclust/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dedenistiawan/soviclust/actions/workflows/R-CMD-check.yaml)
 [![lifecycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 
