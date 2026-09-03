@@ -160,6 +160,8 @@ If you use **soviclust** in your research, please cite:
 - Cutter, S.L., Boruff, B.J., & Shirley, W.L. (2003). Social Vulnerability to Environmental Hazards. *Social Science Quarterly*, 84(2), 242–261. https://doi.org/10.1111/1540-6237.8402002
 - Wijayanto, H., & Purwaningsih, T. (2020). Fuzzy Geographically Weighted Clustering using Particle Swarm Optimization. *Journal of Physics: Conference Series*.
 - Grekousis, G. (2020). *Spatial Analysis Methods and Practice*. Cambridge University Press. https://doi.org/10.1017/9781108614528
+- Kurniawan, R., Nasution, B.I., Agustina, N., & Yuniarto, B. (2022). Revisiting social vulnerability analysis in Indonesia data. *Data in Brief*, 40, 107743. https://doi.org/10.1016/j.dib.2021.107743
+- Gio, P.U., et al. naspaclust: Nature-Inspired Spatial Clustering. *R package version 0.2.2*. https://rdrr.io/cran/naspaclust/
 
 ---
 
