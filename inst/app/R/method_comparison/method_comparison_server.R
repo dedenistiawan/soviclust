@@ -151,7 +151,7 @@ method_comparison_server <- function(input, output, session, rv) {
                       tags$td(colspan = "4",
                               style = "padding:5px 8px; font-size:11.5px; font-weight:700;
                                color:#1565c0; letter-spacing:0.5px;",
-                              "\u25B6 KONSISTENSI RANKING")
+                              "\u25B6 RANKING CONSISTENCY")
               ),
               
               metric_row(
@@ -160,7 +160,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$theory_vs_cutter$spearman_r,
                 m$loading_vs_cutter$spearman_r,
                 color_rho,
-                note = "\u2265 0.90 kuat | 0.80\u20130.89 moderat | < 0.80 lemah"
+                note = "\u2265 0.90 strong | 0.80\u20130.89 moderate | < 0.80 weak"
               ),
               
               metric_row(
@@ -169,7 +169,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$theory_vs_cutter$kendall_r,
                 m$loading_vs_cutter$kendall_r,
                 color_tau,
-                note = "\u2265 0.80 kuat | 0.70\u20130.79 moderat | < 0.70 lemah"
+                note = "\u2265 0.80 strong | 0.70\u20130.79 moderate | < 0.70 weak"
               ),
               
               metric_row(
@@ -178,10 +178,10 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$theory_vs_cutter$mard,
                 m$loading_vs_cutter$mard,
                 function(v) color_mard(v, n),
-                fmt_fn = function(v) paste0(v, " posisi"),
-                note   = paste0("Rata-rata pergeseran ranking (\u2264",
-                                round(n*0.05), " = konsisten | \u2264",
-                                round(n*0.10), " = moderat)")
+                fmt_fn = function(v) paste0(v, " positions"),
+                note   = paste0("Average rank shift (\u2264",
+                                round(n*0.05), " = consistent | \u2264",
+                                round(n*0.10), " = moderate)")
               ),
               
               metric_row(
@@ -190,7 +190,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$theory_vs_cutter$rmsd,
                 m$loading_vs_cutter$rmsd,
                 color_rmsd,
-                note = "\u2264 0.05 kuat | 0.05\u20130.10 moderat | > 0.10 lemah"
+                note = "\u2264 0.05 strong | 0.05\u20130.10 moderate | > 0.10 weak"
               ),
               
               # ── Kelompok 2: Kesepakatan Klasifikasi ────────────────────────
@@ -198,7 +198,7 @@ method_comparison_server <- function(input, output, session, rv) {
                       tags$td(colspan = "4",
                               style = "padding:5px 8px; font-size:11.5px; font-weight:700;
                                color:#1b5e20; letter-spacing:0.5px;",
-                              "\u25B6 KESEPAKATAN KLASIFIKASI")
+                              "\u25B6 CLASSIFICATION AGREEMENT")
               ),
               
               metric_row(
@@ -208,7 +208,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 m$loading_vs_cutter$kappa,
                 color_kappa,
                 fmt_fn = function(v) if(is.na(v)) "N/A" else v,
-                note   = "\u2265 0.80 hampir sempurna | 0.60\u20130.79 substansial | < 0.60 moderat"
+                note   = "\u2265 0.80 almost perfect | 0.60\u20130.79 substantial | < 0.60 moderate"
               ),
               
               # ── Kelompok 3: Relevansi Kebijakan ────────────────────────────
@@ -216,7 +216,7 @@ method_comparison_server <- function(input, output, session, rv) {
                       tags$td(colspan = "4",
                               style = "padding:5px 8px; font-size:11.5px; font-weight:700;
                                color:#e65100; letter-spacing:0.5px;",
-                              "\u25B6 RELEVANSI KEBIJAKAN (20% Distrik Teratas & Terbawah)")
+                              "\u25B6 POLICY RELEVANCE (Top & Bottom 20% Districts)")
               ),
               
               metric_row(
@@ -227,7 +227,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 color_agree,
                 fmt_fn = function(v) paste0(v, "%"),
                 note   = paste0("Most vulnerable districts in common (n=",
-                                m$theory_vs_loading$k_top, ") | \u2265 80% konsisten")
+                                m$theory_vs_loading$k_top, ") | \u2265 80% consistent")
               ),
               
               metric_row(
@@ -238,7 +238,7 @@ method_comparison_server <- function(input, output, session, rv) {
                 color_agree,
                 fmt_fn = function(v) paste0(v, "%"),
                 note   = paste0("Least vulnerable districts in common (n=",
-                                m$theory_vs_loading$k_top, ") | \u2265 80% konsisten")
+                                m$theory_vs_loading$k_top, ") | \u2265 80% consistent")
               )
             ) # end tbody
           )   # end table
@@ -248,7 +248,7 @@ method_comparison_server <- function(input, output, session, rv) {
       
       # ── Panduan interpretasi ───────────────────────────────────────────────
       shinydashboard::box(
-        title       = tags$span(icon("book-open"), " Panduan Interpretasi Metrik"),
+        title       = tags$span(icon("book-open"), " Metric Interpretation Guide"),
         status      = "info",
         solidHeader = FALSE,
         width       = 12,
@@ -274,8 +274,8 @@ method_comparison_server <- function(input, output, session, rv) {
               list("Kendall \u03c4", "Local ranking consistency",
                    "\u2265 0.80", "More robust for small datasets, confirms Spearman"),
               list("MARD", "Average ranking shift (positions)",
-                   "\u2264 5% dari n", "Very intuitive for reporting"),
-              list("RMSD", "Magnitude perbedaan skor [0\u20131]",
+                   "\u2264 5% of n", "Very intuitive for reporting"),
+              list("RMSD", "Score difference magnitude [0\u20131]",
                    "\u2264 0.05", "Sensitive to score outliers"),
               list("Cohen's \u03ba", "Vulnerability class agreement",
                    "\u2265 0.80", "Correction for chance agreement"),
@@ -560,9 +560,9 @@ method_comparison_server <- function(input, output, session, rv) {
         style = "background:#e3f2fd; border-left-color:#1a73c1;
                  font-size:12.5px; margin-top:10px;",
         icon("info-circle"),
-        " Beberapa metrik menunjukkan perbedaan moderat. Periksa tab ",
-        tags$strong("Scatter"), " dan ", tags$strong("Metrik Evaluasi"),
-        " untuk detail distrik yang bergeser ranking."
+        " Some metrics show moderate differences. Check the ",
+        tags$strong("Scatter"), " and ", tags$strong("Evaluation Metrics"),
+        " tabs for details on districts with shifted rankings."
       )
       
     } else if (pct_score >= 30) {
@@ -575,15 +575,15 @@ method_comparison_server <- function(input, output, session, rv) {
         style = "background:#fff8e1; border-left-color:#f39c12;
                  font-size:12.5px; margin-top:10px;",
         icon("exclamation-triangle"),
-        tags$strong(" Saran:"),
+        tags$strong(" Note:"),
         " Double-check variable direction (+/-) in the Variable Config tab.",
         " Ensure each variable aligns with social vulnerability literature.",
-        " Perbedaan ini tidak mengubah rekomendasi — cukup didokumentasikan dalam laporan."
+        " This difference does not change the recommendation — simply document it in the report."
       )
       
     } else {
       conf_status <- "warning"
-      conf_label  <- "Dikonfirmasi \u2014 Perlu Investigasi Arah Variabel"
+      conf_label  <- "Confirmed \u2014 Variable Direction Requires Investigation"
       conf_color  <- "#e74c3c"
       conf_icon   <- icon("exclamation-triangle")
       warning_box <- div(
@@ -591,10 +591,10 @@ method_comparison_server <- function(input, output, session, rv) {
         style = "background:#fdf0ed; border-left-color:#e74c3c;
                  font-size:12.5px; margin-top:10px;",
         icon("exclamation-triangle", style = "color:#e74c3c;"),
-        tags$strong(" Tindakan Diperlukan:"),
+        tags$strong(" Action Required:"),
         " Return to Variable Config tab and re-check the direction (+/-) of each variable.",
         " Ensure protective variables are marked negative (-).",
-        " Ketidakkonsistenan ini BUKAN alasan beralih ke method lain."
+        " Inconsistency is NOT a reason to switch to another method."
       )
     }
     
@@ -620,7 +620,7 @@ method_comparison_server <- function(input, output, session, rv) {
     
     div(
       shinydashboard::box(
-        title       = tags$span(conf_icon, " Rekomendasi Berdasarkan Data"),
+        title       = tags$span(conf_icon, " Data-Driven Recommendation"),
         status      = conf_status,
         solidHeader = TRUE,
         width       = 12,
@@ -629,12 +629,12 @@ method_comparison_server <- function(input, output, session, rv) {
         div(style = "background:#eafaf1; border:1px solid #27ae60;
                      border-radius:8px; padding:14px 18px; margin-bottom:14px;",
             div(style = "font-size:15px; font-weight:700; color:#27ae60; margin-bottom:4px;",
-                icon("star"), " Method yang Direkomendasikan: Theory-Based (PM)"),
+                icon("star"), " Recommended Method: Theory-Based (PM)"),
             div(style = "font-size:12.5px; color:#37474f;",
-                "Theory-Based (PM) direkomendasikan secara konsisten dalam literatur SoVI ",
-                "(Cutter et al., 2003). Direction variabel ditetapkan berdasarkan teori, ",
-                "bukan pola matematis PCA, sehingga lebih reproducible dan defensible ",
-                "untuk penelitian dan kebijakan.")
+                "Theory-Based (PM) is consistently recommended in the SoVI literature ",
+                "(Cutter et al., 2003). Variable direction is set based on theory, ",
+                "not PCA mathematical patterns, making it more reproducible and defensible ",
+                "for research and policy.")
         ),
         
         # ── Level konfirmasi dari semua metrik ────────────────────────────
@@ -643,7 +643,7 @@ method_comparison_server <- function(input, output, session, rv) {
             conf_icon, " Confirmation Level: ", conf_label,
             tags$span(style = "font-size:12px; font-weight:400; color:#78909c;
                                margin-left:10px;",
-                      paste0("(Skor: ", total_score, "/", max_score, " = ",
+                      paste0("(Score: ", total_score, "/", max_score, " = ",
                              round(pct_score), "%)"))
         ),
         warning_box,
@@ -656,8 +656,8 @@ method_comparison_server <- function(input, output, session, rv) {
         # Solusi: pisahkan nilai dan ikon menjadi elemen terpisah dalam td.
         tags$p(tags$strong("Detail Score per Metric (Theory-Based as reference):")),
         tags$p(style = "font-size:12px; color:#78909c; margin-bottom:10px;",
-               "\u2713\u2713 = kuat (skor 2)  |  \u2713 = moderat (skor 1)  |",
-               "  \u2717 = lemah (skor 0)"),
+               "\u2713\u2713 = strong (score 2)  |  \u2713 = moderate (score 1)  |",
+               "  \u2717 = weak (score 0)"),
         
         tags$table(
           style = "width:100%; font-size:13px; border-collapse:collapse;",

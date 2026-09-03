@@ -34,12 +34,6 @@
 #                    algorithm = "pso")
 # =============================================================================
 
-message("[lfgwc_wrapper] Memuat LFGWC...")
-
-# =============================================================================
-# FASE 0 — BANGUN SPATIAL WEIGHTS MATRIX W
-# Persamaan (10) & (11) paper Grekousis (2020)
-# =============================================================================
 
 #' Bangun spatial weights matrix W untuk LFGWC
 #'
@@ -543,7 +537,7 @@ lfgwc_with_optimizer <- function(data, pop_vec, dist_mat, W_std,
   
   opt_param <- build_opt_param(algorithm, opt_params)
   
-  message(sprintf("[LFGWC] Menjalankan %s untuk inisialisasi centroid...",
+  message(sprintf("[LFGWC] Running %s for centroid initialization...",
                   toupper(algorithm)))
   
   opt_result <- tryCatch({
@@ -654,7 +648,7 @@ build_lfgwc_feature_matrix <- function(data_source, raw_data, sovi_result,
     
   } else if (data_source == "standardized") {
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     Z        <- sovi_result$std_out$Z
     use_vars <- intersect(selected_vars, names(Z))
     if (length(use_vars) == 0) use_vars <- names(Z)
@@ -662,21 +656,21 @@ build_lfgwc_feature_matrix <- function(data_source, raw_data, sovi_result,
     
   } else if (data_source == "sovi") {
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     mat <- data.frame(sovi_score = sovi_result$sovi_df$sovi_score)
     
   } else if (data_source == "rc") {
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     rc_cols <- grep("^RC", names(sovi_result$sovi_df), value = TRUE)
     if (length(rc_cols) == 0)
-      stop("Tidak ada kolom RC. Jalankan SoVI Computation terlebih dahulu.")
+      stop("No RC columns found. Run SoVI Computation first.")
     mat <- as.data.frame(
       lapply(sovi_result$sovi_df[, rc_cols, drop = FALSE], normalize_01)
     )
     
   } else {
-    stop(paste("data_source tidak dikenal:", data_source))
+    stop(paste("Unknown data_source:", data_source))
   }
   
   # ── Normalisasi min-max [0,1] wajib untuk LFGWC ──────────────────────────
@@ -729,10 +723,10 @@ run_lfgwc_shiny <- function(data_source,
   
   # ── 2. Validasi dimensi input ─────────────────────────────────────────────
   if (length(pop_vec) != n)
-    stop(sprintf("Panjang vektor populasi (%d) tidak sesuai jumlah unit (%d).",
+    stop(sprintf("Population vector length (%d) does not match number of units (%d).",
                  length(pop_vec), n))
   if (nrow(dist_mat) != n || ncol(dist_mat) != n)
-    stop(sprintf("Dimensi matriks jarak (%dx%d) tidak sesuai jumlah unit (%d).",
+    stop(sprintf("Distance matrix dimensions (%dx%d) do not match number of units (%d).",
                  nrow(dist_mat), ncol(dist_mat), n))
   
   # ── 3. Ambil parameter LFGWC ──────────────────────────────────────────────
@@ -748,7 +742,7 @@ run_lfgwc_shiny <- function(data_source,
   exp_d    <- lfgwc_params$exp_d    %||% 2       # eksponent distance decay
   
   # ── 4. FASE 0: Bangun spatial weights matrix W ────────────────────────────
-  message("[LFGWC] Membangun spatial weights matrix...")
+  message("[LFGWC] Building spatial weights matrix...")
   w_result <- build_lfgwc_weights(
     dist_mat = dist_mat,
     pop_vec  = pop_vec,
@@ -859,16 +853,16 @@ run_lfgwc_shiny <- function(data_source,
   # ── 10. Tabel indeks validasi ─────────────────────────────────────────────
   val      <- result$validation
   val_df   <- data.frame(
-    Indeks     = c("PC (max)", "CE (min)", "SC (min)", "SI (max)", "XB (min)", "IFV (max)", "Kwon (min)"),
-    Nilai      = round(c(val$PC, val$CE, val$SC, sil_mean, val$XB, val$IFV, val$Kwon), 6),
-    Keterangan = c(
-      "Partition Coefficient — lebih tinggi lebih baik",
-      "Classification Entropy — lebih rendah lebih baik",
-      "Partition Index — lebih rendah lebih baik",
-      "Silhouette Index — lebih tinggi lebih baik",
-      "Xie-Beni Index — lebih rendah lebih baik",
-      "Index for Spatial Fuzzy Validity — lebih tinggi lebih baik",
-      "Kwon Index — lebih rendah lebih baik"
+    Index       = c("PC (max)", "CE (min)", "SC (min)", "SI (max)", "XB (min)", "IFV (max)", "Kwon (min)"),
+    Value       = round(c(val$PC, val$CE, val$SC, sil_mean, val$XB, val$IFV, val$Kwon), 6),
+    Description = c(
+      "Partition Coefficient \u2014 higher is better",
+      "Classification Entropy \u2014 lower is better",
+      "Partition Index \u2014 lower is better",
+      "Silhouette Index \u2014 higher is better",
+      "Xie-Beni Index \u2014 lower is better",
+      "Index for Spatial Fuzzy Validity \u2014 higher is better",
+      "Kwon Index \u2014 lower is better"
     ),
     stringsAsFactors = FALSE
   )

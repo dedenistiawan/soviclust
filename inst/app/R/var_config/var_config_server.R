@@ -48,13 +48,13 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
           tags$tr(
             tags$th(style = "padding:6px; background:#f8f9fa;
                              border-bottom:2px solid #dee2e6;",
-                    "Variabel"),
+                    "Variable"),
             tags$th(style = "padding:6px; background:#f8f9fa;
                              border-bottom:2px solid #dee2e6;",
                     "Direction"),
             tags$th(style = "padding:6px; background:#f8f9fa;
                              border-bottom:2px solid #dee2e6;",
-                    "Keterangan")
+                    "Description")
           )
         ),
         
@@ -76,9 +76,9 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
                         label        = NULL,
                         choiceNames  = list(
                           tags$span(style = "color:#155724; font-weight:600;",
-                                    "+ (Positif)"),
+                                    "+ (Positive)"),
                           tags$span(style = "color:#721c24; font-weight:600;",
-                                    "- (Negatif)")
+                                    "- (Negative)")
                         ),
                         choiceValues = list("pos", "neg"),
                         selected     = "pos",
@@ -151,12 +151,12 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
     if (isTRUE(rv$vars_ok)) {
       status_icon  <- icon("check-circle", style = "color:#27ae60;")
       status_label <- tags$span(style = "color:#27ae60; font-weight:700;",
-                                " \u2713 Konfigurasi dikonfirmasi")
+                                " \u2713 Configuration confirmed")
       box_style    <- "background:#eafaf1; border-left-color:#27ae60;"
     } else {
       status_icon  <- icon("clock", style = "color:#f39c12;")
       status_label <- tags$span(style = "color:#f39c12; font-weight:700;",
-                                " Belum dikonfirmasi")
+                                " Not yet confirmed")
       box_style    <- "background:#fff8e1; border-left-color:#f39c12;"
     }
     
@@ -172,19 +172,19 @@ var_config_server <- function(input, output, session, rv, unlock_tab) {
       div(style = "line-height:1.8;",
           tags$span(style = "color:#37474f;",
                     icon("layer-group"),
-                    tags$strong(" Total variabel : "),
+                    tags$strong(" Total variables: "),
                     tags$span(style = "font-weight:700; color:#1a73c1;", length(vars))
           ),
           tags$br(),
           tags$span(style = "color:#155724;",
                     icon("plus-circle"),
-                    tags$strong(" Positif (+) : "),
+                    tags$strong(" Positive (+): "),
                     tags$span(style = "font-weight:700; color:#28a745;", pos_count)
           ),
           tags$br(),
           tags$span(style = "color:#721c24;",
                     icon("minus-circle"),
-                    tags$strong(" Negatif (-) : "),
+                    tags$strong(" Negative (-): "),
                     tags$span(style = "font-weight:700; color:#dc3545;", neg_count)
           )
       )

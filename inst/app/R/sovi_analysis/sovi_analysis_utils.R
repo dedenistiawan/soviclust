@@ -383,11 +383,11 @@ build_summary_table <- function(cls_result) {
 
 get_source_label <- function(data_source) {
   switch(data_source,
-         "raw"          = "Data Asli (tanpa transformasi)",
-         "raw_norm"     = "Data Asli Ternormalisasi (0-1)",
-         "standardized" = "Data Ter-standardisasi (Z-score)",
+         "raw"          = "Original Data (no transformation)",
+         "raw_norm"     = "Normalized Data (0-1)",
+         "standardized" = "Standardized Data (Z-score)",
          "sovi"         = "SoVI Score",
-         "rc"           = "Skor RC (Komponen PCA)",
+         "rc"           = "RC Scores (PCA Components)",
          data_source
   )
 }

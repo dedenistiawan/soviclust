@@ -61,10 +61,10 @@ lfgwc_server <- function(input, output, session, rv) {
         df  <- read_uploaded_file(input$lfgwc_file_dist)
         mat <- parse_distance_matrix(df)
         attr(mat, "dist_mode") <- "matrix"
-        attr(mat, "dist_unit") <- "unit asli"
+        attr(mat, "dist_unit") <- "original unit"
         mat
       }, error = function(e) {
-        showNotification(paste("Error matriks jarak:", e$message),
+        showNotification(paste("Distance matrix error:", e$message),
                          type = "error", duration = 8)
         NULL
       })
@@ -82,8 +82,8 @@ lfgwc_server <- function(input, output, session, rv) {
         id_col   <- names(df)[which(cols %in% c("districtcode", "id", "kode",
                                                 "code", "regions"))[1]]
         
-        if (is.na(lon_col)) stop("Kolom longitude tidak ditemukan.")
-        if (is.na(lat_col)) stop("Kolom latitude tidak ditemukan.")
+        if (is.na(lon_col)) stop("Longitude column not found.")
+        if (is.na(lat_col)) stop("Latitude column not found.")
         
         lon <- as.numeric(df[[lon_col]])
         lat <- as.numeric(df[[lat_col]])
@@ -147,26 +147,26 @@ lfgwc_server <- function(input, output, session, rv) {
                  style = "background:#fff3cd; border-left-color:#f39c12;
                           font-size:12px;",
                  icon("exclamation-triangle"),
-                 " Belum diupload atau error."))
+                 " Not uploaded or error."))
     }
     
     mode <- attr(mat, "dist_mode") %||% "matrix"
-    unit <- attr(mat, "dist_unit") %||% "unit asli"
+    unit <- attr(mat, "dist_unit") %||% "original unit"
     
     if (mode == "lonlat") {
       div(class = "progress-box status-ok", style = "font-size:12px;",
           icon("check"),
-          paste0(" Haversine distance dihitung: ", nrow(mat), " × ", ncol(mat)),
+          paste0(" Haversine distance computed: ", nrow(mat), " \u00d7 ", ncol(mat)),
           tags$br(),
           tags$span(style = "color:#27ae60;",
-                    icon("ruler"), " Satuan: kilometer"))
+                    icon("ruler"), " Unit: kilometers"))
     } else {
       div(class = "progress-box status-ok", style = "font-size:12px;",
           icon("check"),
-          paste0(" Matriks dimuat: ", nrow(mat), " × ", ncol(mat)),
+          paste0(" Matrix loaded: ", nrow(mat), " \u00d7 ", ncol(mat)),
           tags$br(),
           tags$span(style = "color:#78909c;",
-                    icon("ruler"), " Satuan: ", unit))
+                    icon("ruler"), " Unit: ", unit))
     }
   })
   
@@ -181,11 +181,11 @@ lfgwc_server <- function(input, output, session, rv) {
                  style = "background:#fff3cd; border-left-color:#f39c12;
                           font-size:12px;",
                  icon("exclamation-triangle"),
-                 " Belum diupload atau error."))
+                 " Not uploaded or error."))
     }
     div(class = "progress-box status-ok", style = "font-size:12px;",
         icon("check"),
-        paste0(" Populasi dimuat: ", length(pop), " unit"))
+        paste0(" Population loaded: ", length(pop), " units"))
   })
   
   # ==========================================================================
@@ -203,16 +203,16 @@ lfgwc_server <- function(input, output, session, rv) {
     max_dist       <- round(max(col_mins), 2)
     
     mode <- attr(mat, "dist_mode") %||% "matrix"
-    unit <- if (mode == "lonlat") "km" else "unit asli"
+    unit <- if (mode == "lonlat") "km" else "original unit"
     
     div(class = "progress-box",
         style = "background:#e3f2fd; border-left-color:#1a73c1;
                  font-size:11.5px; margin-bottom:6px;",
         icon("info-circle"),
-        tags$strong(sprintf(" Min. dthr aman: %.2f %s", max_dist, unit)),
-        sprintf(" (jarak minimum agar setiap unit punya ≥1 tetangga)."),
+        tags$strong(sprintf(" Safe min. dthr: %.2f %s", max_dist, unit)),
+        sprintf(" (minimum distance so every unit has \u22651 neighbor)."),
         tags$br(),
-        "Set -99 untuk mode Global (semua unit).")
+        "Set -99 for Global mode (all units).")
   })
   
   # ==========================================================================
@@ -229,17 +229,17 @@ lfgwc_server <- function(input, output, session, rv) {
                                         style = "background:#fff8e1;border-left-color:#f39c12;
                                     font-size:11px;margin-bottom:6px;",
                                         icon("exclamation-triangle"),
-                                       " Nilai mentah tanpa transformasi."),
+                                        " Raw values without transformation."),
                    "raw_norm"     = div(class = "progress-box",
                                         style = "background:#fff8e1;border-left-color:#f39c12;
                                     font-size:11px;margin-bottom:6px;",
                                         icon("info-circle"),
-                                        " Akan dinormalisasi min-max 0–1."),
+                                        " Will be min-max normalized 0\u20131."),
                    "standardized" = div(class = "progress-box",
                                         style = "background:#e3f2fd;border-left-color:#1a73c1;
                                     font-size:11px;margin-bottom:6px;",
                                         icon("info-circle"),
-                                        " Z-score dari SoVI. LFGWC akan normalisasi ke [0,1]."),
+                                        " Z-scores from SoVI. LFGWC will normalize to [0,1]."),
                    NULL
     )
     
@@ -261,7 +261,7 @@ lfgwc_server <- function(input, output, session, rv) {
     
     info <- switch(src,
                    "sovi" = "Single SoVI Score (0–1) as clustering feature.",
-                   "rc"   = "Skor RC (komponen PCA Varimax, ternormalisasi 0–1).",
+                   "rc"   = "RC Scores (PCA Varimax components, normalized 0\u20131).",
                    NULL
     )
     if (is.null(info)) return(NULL)
@@ -286,20 +286,20 @@ lfgwc_server <- function(input, output, session, rv) {
     
     # ── Validasi prasyarat ───────────────────────────────────────────────────
     if (is.null(rv$data)) {
-      showNotification("Upload dataset terlebih dahulu!", type = "warning")
+      showNotification("Upload dataset first!", type = "warning")
       return()
     }
     if (is.null(rv_lfgwc_dist())) {
-      showNotification("Upload matriks jarak terlebih dahulu!", type = "warning")
+      showNotification("Upload distance matrix first!", type = "warning")
       return()
     }
     if (is.null(rv_lfgwc_pop())) {
-      showNotification("Upload data populasi terlebih dahulu!", type = "warning")
+      showNotification("Upload population data first!", type = "warning")
       return()
     }
     if (input$lfgwc_data_source %in% c("sovi", "rc", "standardized") &&
         is.null(rv$sovi_result)) {
-      showNotification("Jalankan SoVI Computation terlebih dahulu!",
+      showNotification("Run SoVI Computation first!",
                        type = "warning")
       return()
     }
@@ -379,7 +379,7 @@ lfgwc_server <- function(input, output, session, rv) {
     withProgress(message = paste("Running LFGWC", toupper(algo), "..."),
                  value = 0, {
                    
-                   incProgress(0.2, detail = "Membangun spatial weights matrix...")
+                   incProgress(0.2, detail = "Building spatial weights matrix...")
                    
                    result <- tryCatch({
                      run_lfgwc_shiny(
@@ -433,15 +433,15 @@ lfgwc_server <- function(input, output, session, rv) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12;",
                  icon("exclamation-triangle"),
-                 " Jalankan LFGWC dengan tombol di panel kiri."))
+                 " Run LFGWC using the button in the left panel."))
     }
     
     src_label <- switch(res$data_source,
-                        "raw"          = "Data Asli (tanpa transformasi)",
-                        "raw_norm"     = "Data Asli Ternormalisasi (0-1)",
-                        "standardized" = "Data Z-score → Normalisasi [0,1]",
+                        "raw"          = "Original Data (no transformation)",
+                        "raw_norm"     = "Normalized Data (0-1)",
+                        "standardized" = "Z-score Data \u2192 Normalized [0,1]",
                         "sovi"         = "SoVI Score",
-                        "rc"           = "Skor RC (komponen PCA)",
+                        "rc"           = "RC Scores (PCA Components)",
                         res$data_source
     )
     
@@ -465,29 +465,29 @@ lfgwc_server <- function(input, output, session, rv) {
                    tags$p(style = "font-size:13px; font-weight:700; color:#1a73c1;",
                           algo_labels[res$algorithm]),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Sumber data: ", src_label),
+                          "Data source: ", src_label),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Features: ", length(res$feat_cols), " dimensi"),
+                          "Features: ", length(res$feat_cols), " dimensions"),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Iterasi: ", res$iteration)
+                          "Iterations: ", res$iteration)
                )
         ),
         column(4,
                div(class = "info-card",
-                   tags$h4(icon("map-marker-alt"), " Parameter Spasial LFGWC"),
+                   tags$h4(icon("map-marker-alt"), " LFGWC Spatial Parameters"),
                    tags$p(style = "font-size:13px;",
                           tags$strong("Mode: "), res$mode_label),
                    tags$p(style = "font-size:13px;",
                           tags$strong("dthr = "),
-                          if (res$dthr == -99) "Global (semua unit)"
+                          if (res$dthr == -99) "Global (all units)"
                           else paste0(res$dthr, " (neighborhood)")),
                    tags$p(style = "font-size:13px;",
                           tags$strong("exp = "), res$exp_d),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Unit tanpa tetangga (KNN fallback): ",
+                          "Units without neighbors (KNN fallback): ",
                           res$n_isolated),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Max dist aman: ",
+                          "Safe max dist: ",
                           round(res$max_dist, 2))
                )
         ),
@@ -518,7 +518,7 @@ lfgwc_server <- function(input, output, session, rv) {
       fluidRow(column(12,
                       div(class = "info-card",
                           style = "border-left-color:#27ae60; margin-top:4px;",
-                          tags$h4(icon("book-open"), " Referensi"),
+                          tags$h4(icon("book-open"), " References"),
                           tags$p(style = "font-size:12px; margin:0;",
                                  tags$strong("Grekousis, G. (2020)."),
                                  " Local fuzzy geographically weighted clustering: a new method",
@@ -546,15 +546,15 @@ lfgwc_server <- function(input, output, session, rv) {
   output$lfgwc_conv_plot <- renderPlot({
     req(rv$cga_result_lfgwc)
     conv <- rv$cga_result_lfgwc$conv
-    df   <- data.frame(Iterasi = seq_along(conv), J = conv)
+    df   <- data.frame(Iteration = seq_along(conv), J = conv)
     
-    ggplot2::ggplot(df, ggplot2::aes(x = Iterasi, y = J)) +
+    ggplot2::ggplot(df, ggplot2::aes(x = Iteration, y = J)) +
       ggplot2::geom_line(color = "#1a73c1", linewidth = 1.0) +
       ggplot2::geom_point(color = "#1a73c1", size = 1.5, alpha = 0.6) +
       ggplot2::labs(
-        title = paste("Konvergensi Objective Function J —",
+        title = paste("Objective Function J Convergence —",
                       toupper(rv$cga_result_lfgwc$algorithm)),
-        x = "Iterasi", y = "J (Objective Function)"
+        x = "Iteration", y = "J (Objective Function)"
       ) +
       ggplot2::theme_minimal(base_size = 11)
   })
@@ -617,7 +617,7 @@ lfgwc_server <- function(input, output, session, rv) {
     res <- rv$cga_result_lfgwc
     if (is.null(res$sil_obj)) {
       plot.new()
-      text(0.5, 0.5, "Silhouette tidak tersedia.",
+      text(0.5, 0.5, "Silhouette not available.",
            cex = 1.1, col = "grey50")
       return()
     }
@@ -633,7 +633,7 @@ lfgwc_server <- function(input, output, session, rv) {
     req(rv$cga_result_lfgwc)
     res <- rv$cga_result_lfgwc
     if (is.null(res$sil_obj)) {
-      return(DT::datatable(data.frame(Info = "Silhouette tidak tersedia")))
+      return(DT::datatable(data.frame(Info = "Silhouette not available")))
     }
     sil_sum <- summary(res$sil_obj)$clus.avg.widths
     df <- data.frame(
@@ -650,8 +650,8 @@ lfgwc_server <- function(input, output, session, rv) {
     if (is.na(s)) return(NULL)
     cls   <- if (s >= 0.50) "status-ok"   else
       if (s >= 0.25) "status-warn" else "status-err"
-    label <- if (s >= 0.50) "Struktur Kuat ✓" else
-      if (s >= 0.25) "Struktur Moderat" else "Struktur Lemah ✗"
+    label <- if (s >= 0.50) "Strong Structure \u2713" else
+      if (s >= 0.25) "Moderate Structure" else "Weak Structure \u2717"
     div(class = paste("progress-box", cls),
         icon("tachometer-alt"),
         paste0(" Mean Silhouette = ", s, " — ", label))
@@ -761,8 +761,8 @@ lfgwc_server <- function(input, output, session, rv) {
            bty    = "n",
            title  = "Cluster",
            cex    = 0.85)
-    mtext(paste0("Profil Radar LFGWC (", toupper(res$algorithm),
-                 ") — nilai ternormalisasi 0–1"),
+    mtext(paste0("LFGWC Radar Profile (", toupper(res$algorithm),
+                 ") \u2014 normalized values 0\u20131"),
           outer = TRUE, line = 0.5, cex = 1.0, font = 2)
   })
   
@@ -790,7 +790,7 @@ lfgwc_server <- function(input, output, session, rv) {
     DT::datatable(show_df, filter = "top",
                   options  = list(pageLength = 15, scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = paste0("Hasil LFGWC — Algoritma: ",
+                  caption  = paste0("LFGWC Results \u2014 Algorithm: ",
                                     toupper(res$algorithm),
                                     " | k=", res$k,
                                     " | Mode: ", res$mode_label))
@@ -956,7 +956,7 @@ lfgwc_server <- function(input, output, session, rv) {
       }
       plot.new()
       legend("center", legend = cluster_labels, col = pal_rad, lwd = 3, bty = "n", title = "Cluster", cex = 0.85)
-      mtext(paste0("Profil Radar LFGWC (", toupper(res$algorithm), ") \u2014 nilai ternormalisasi 0\u20131"),
+      mtext(paste0("LFGWC Radar Profile (", toupper(res$algorithm), ") \u2014 normalized values 0\u20131"),
             outer = TRUE, line = 0.5, cex = 1.0, font = 2)
       grDevices::dev.off()
     }
@@ -980,7 +980,7 @@ lfgwc_server <- function(input, output, session, rv) {
       df_plot <- data.frame(Dim1=sm$points[,1], Dim2=sm$points[,2], Cluster=factor(cv, levels=seq_len(k)))
       p <- .dim_reduction_plot(df_plot=df_plot, k=k, pal_c=pal_c, pt_sz=pt_sz,
         title_str=paste0("LFGWC \u2014 Sammon Mapping (", toupper(res$algorithm), ") | k=", k),
-        subtitle_str=paste0("Stress=", round(sm$stress,5), "  |  Iterasi=", input$lfgwc_sammon_iter%||%500),
+        subtitle_str=paste0("Stress=", round(sm$stress,5), "  |  Iterations=", input$lfgwc_sammon_iter%||%500),
         xlab="Dim 1", ylab="Dim 2")
       ggplot2::ggsave(file, plot=p, width=10, height=8, dpi=300, bg="white")
     }
@@ -1003,7 +1003,7 @@ lfgwc_server <- function(input, output, session, rv) {
                             Cluster=factor(as.integer(as.character(res$result_df$lfgwc_cluster)), levels=seq_len(k)))
       p <- .dim_reduction_plot(df_plot=df_plot, k=k, pal_c=pal_c, pt_sz=pt_sz,
         title_str=paste0("LFGWC \u2014 t-SNE (", toupper(res$algorithm), ") | k=", k),
-        subtitle_str=paste0("Perplexity=", perp, "  |  Iterasi=", input$lfgwc_tsne_iter%||%1000),
+        subtitle_str=paste0("Perplexity=", perp, "  |  Iterations=", input$lfgwc_tsne_iter%||%1000),
         xlab="t-SNE Dim 1", ylab="t-SNE Dim 2")
       ggplot2::ggsave(file, plot=p, width=10, height=8, dpi=300, bg="white")
     }
@@ -1150,7 +1150,7 @@ lfgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk Sammon Mapping.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for Sammon Mapping.", cex = 1.1, col = "grey50")
       return()
     }
 
@@ -1194,7 +1194,7 @@ lfgwc_server <- function(input, output, session, rv) {
       title_str    = paste0("LFGWC — Sammon Mapping (",
                             toupper(res$algorithm), ") | k=", k),
       subtitle_str = paste0("Stress = ", round(sm$stress, 5),
-                            "  |  Iterasi Sammon = ",
+                            "  |  Sammon Iterations = ",
                             input$lfgwc_sammon_iter %||% 500),
       xlab         = "Dim 1",
       ylab         = "Dim 2"
@@ -1212,7 +1212,7 @@ lfgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk t-SNE.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for t-SNE.", cex = 1.1, col = "grey50")
       return()
     }
 
@@ -1254,7 +1254,7 @@ lfgwc_server <- function(input, output, session, rv) {
       title_str    = paste0("LFGWC — t-SNE (",
                             toupper(res$algorithm), ") | k=", k),
       subtitle_str = paste0("Perplexity = ", perp,
-                            "  |  Iterasi = ",
+                            "  |  Iterations = ",
                             input$lfgwc_tsne_iter %||% 1000),
       xlab         = "t-SNE Dim 1",
       ylab         = "t-SNE Dim 2"
@@ -1272,7 +1272,7 @@ lfgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk UMAP.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for UMAP.", cex = 1.1, col = "grey50")
       return()
     }
 

@@ -70,7 +70,7 @@ parse_distance_matrix <- function(df) {
   mat <- data.matrix(df)
   
   if (nrow(mat) != ncol(mat))
-    stop(paste("Matriks jarak tidak persegi:", nrow(mat), "x", ncol(mat)))
+    stop(paste("Distance matrix is not square:", nrow(mat), "x", ncol(mat)))
   
   return(mat)
 }
@@ -87,7 +87,7 @@ parse_distance_matrix <- function(df) {
 parse_population <- function(df) {
   num_cols <- sapply(df, is.numeric)
   if (!any(num_cols))
-    stop("Tidak ada kolom numerik di file populasi.")
+    stop("No numeric columns found in population file.")
   as.numeric(unlist(df[, which(num_cols)[1], drop = FALSE]))
 }
 
@@ -153,7 +153,7 @@ build_fgwc_feature_matrix <- function(data_source, raw_data,
   } else if (data_source == "standardized") {
     # Z-score dari proses SoVI
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     Z        <- sovi_result$std_out$Z
     use_vars <- intersect(selected_vars, names(Z))
     if (length(use_vars) == 0) use_vars <- names(Z)
@@ -162,22 +162,22 @@ build_fgwc_feature_matrix <- function(data_source, raw_data,
   } else if (data_source == "sovi") {
     # SoVI Score tunggal
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     return(data.frame(sovi_score = sovi_result$sovi_df$sovi_score))
     
   } else if (data_source == "rc") {
     # Skor komponen RC dari PCA (ternormalisasi)
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     rc_cols <- grep("^RC", names(sovi_result$sovi_df), value = TRUE)
     if (length(rc_cols) == 0)
-      stop("Tidak ada kolom RC. Jalankan SoVI Computation terlebih dahulu.")
+      stop("No RC columns found. Run SoVI Computation first.")
     return(as.data.frame(
       lapply(sovi_result$sovi_df[, rc_cols, drop = FALSE], normalize_01)
     ))
     
   } else {
-    stop(paste("data_source tidak dikenal:", data_source))
+    stop(paste("Unknown data_source:", data_source))
   }
 }
 
@@ -317,10 +317,10 @@ run_fgwc_shiny <- function(data_source,
   
   # ── 2. Validasi dimensi ─────────────────────────────────────────────────
   if (length(pop_vec) != n)
-    stop(sprintf("Panjang vektor populasi (%d) tidak sesuai jumlah unit (%d).",
+    stop(sprintf("Population vector length (%d) does not match number of units (%d).",
                  length(pop_vec), n))
   if (nrow(dist_mat) != n || ncol(dist_mat) != n)
-    stop(sprintf("Dimensi matriks jarak (%dx%d) tidak sesuai jumlah unit (%d).",
+    stop(sprintf("Distance matrix dimensions (%dx%d) do not match number of units (%d).",
                  nrow(dist_mat), ncol(dist_mat), n))
   
   # ── 3. Susun parameter FGWC ─────────────────────────────────────────────

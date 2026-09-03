@@ -49,7 +49,7 @@ build_feature_matrix <- function(data_source,
   } else if (data_source == "standardized") {
     # ── Data Z-score dari proses standardisasi SoVI ────────────────────────
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     Z        <- sovi_result$std_out$Z
     use_vars <- intersect(selected_vars, names(Z))
     if (length(use_vars) == 0) use_vars <- names(Z)
@@ -58,22 +58,22 @@ build_feature_matrix <- function(data_source,
   } else if (data_source == "sovi") {
     # ── SoVI Score tunggal [0, 1] ──────────────────────────────────────────
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     mat <- data.frame(sovi_score = sovi_result$sovi_df$sovi_score)
     
   } else if (data_source == "rc") {
     # ── Skor komponen RC dari PCA (ternormalisasi 0-1) ─────────────────────
     if (is.null(sovi_result))
-      stop("Jalankan SoVI Computation terlebih dahulu.")
+      stop("Run SoVI Computation first.")
     rc_cols <- grep("^RC", names(sovi_result$sovi_df), value = TRUE)
     if (length(rc_cols) == 0)
-      stop("Tidak ada kolom RC. Jalankan SoVI Computation terlebih dahulu.")
+      stop("No RC columns found. Run SoVI Computation first.")
     mat <- as.data.frame(
       lapply(sovi_result$sovi_df[, rc_cols, drop = FALSE], normalize_01)
     )
     
   } else {
-    stop(paste("data_source tidak dikenal:", data_source))
+    stop(paste("Unknown data_source:", data_source))
   }
   
   return(mat)

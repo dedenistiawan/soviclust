@@ -27,21 +27,21 @@ clustgeo_server <- function(input, output, session, rv) {
                           style = "background:#fff8e1; border-left-color:#f39c12;
                  font-size:11.5px; margin-bottom:6px;",
                           icon("exclamation-triangle"),
-                          " Nilai mentah digunakan langsung tanpa transformasi apapun."
+                          " Raw values used directly without any transformation."
                         ),
                         "raw_norm" = div(
                           class = "progress-box",
                           style = "background:#fff8e1; border-left-color:#f39c12;
                  font-size:11.5px; margin-bottom:6px;",
                           icon("info-circle"),
-                          " Data asli akan dinormalisasi min-max 0\u20131 sebelum clustering."
+                          " Original data will be min-max normalized 0\u20131 before clustering."
                         ),
                         "standardized" = div(
                           class = "progress-box",
                           style = "background:#e3f2fd; border-left-color:#1a73c1;
                  font-size:11.5px; margin-bottom:6px;",
                           icon("info-circle"),
-                          " Z-score diambil dari proses standardisasi SoVI (mean=0, SD=1)."
+                          " Z-scores derived from SoVI standardization process (mean=0, SD=1)."
                         ),
                         NULL
     )
@@ -55,7 +55,7 @@ clustgeo_server <- function(input, output, session, rv) {
   })
   
   # ==========================================================================
-  # OUTPUT: Info Sumber Data (sovi/rc)
+  # OUTPUT: Data Source Info (sovi/rc)
   # ==========================================================================
   
   output$cga_datasource_info <- renderUI({
@@ -63,8 +63,8 @@ clustgeo_server <- function(input, output, session, rv) {
     if (is.null(src)) return(NULL)
     
     info <- switch(src,
-                   "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
-                   "rc"   = "Menggunakan skor komponen RC (hasil PCA Varimax, ternormalisasi 0\u20131).",
+                   "sovi" = "Using single SoVI Score (0\u20131) as clustering feature.",
+                   "rc"   = "Using RC component scores (PCA Varimax, normalized 0\u20131).",
                    NULL
     )
     if (is.null(info)) return(NULL)
@@ -76,26 +76,26 @@ clustgeo_server <- function(input, output, session, rv) {
   })
   
   # ==========================================================================
-  # OUTPUT: Progress box (kosong saat awal)
+  # OUTPUT: Progress box (initially empty)
   # ==========================================================================
   
   output$cga_progress <- renderUI({ NULL })
   
   # ==========================================================================
-  # OBSERVER: Tombol Run ClustGeo
+  # OBSERVER: Run ClustGeo Button
   # ==========================================================================
   
   observeEvent(input$run_clustgeo_adv, {
     req(rv$sovi_result, rv$sovi_ok, rv$shp)
     
-    # Tampilkan progress spinner
+    # Show progress spinner
     output$cga_progress <- renderUI({
       div(class = "progress-box", style = "background:#cce5ff;",
           icon("spinner", class = "fa-spin"),
           " Running ClustGeo Advanced...")
     })
     
-    # Ambil variabel yang dipilih (hanya untuk sumber raw/standardized)
+    # Get selected variables (only for raw/standardized sources)
     sel_vars <- if (input$cga_data_source %in% c("raw", "raw_norm", "standardized"))
       input$cga_selected_vars else NULL
     
@@ -128,7 +128,7 @@ clustgeo_server <- function(input, output, session, rv) {
       rv$cga_result <- result
     })
     
-    # Update progress box sesuai hasil
+    # Update progress box according to result
     output$cga_progress <- renderUI({
       if (!is.null(rv$cga_result))
         div(class = "progress-box status-ok",
@@ -143,56 +143,56 @@ clustgeo_server <- function(input, output, session, rv) {
   })
   
   # ==========================================================================
-  # TAB 1: RINGKASAN PARAMETER
+  # TAB 1: PARAMETER SUMMARY
   # ==========================================================================
   
   output$cga_summary_params <- renderUI({
     res <- rv$cga_result
     
-    # Belum dijalankan
+    # Not yet run
     if (is.null(res)) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12;",
                  icon("exclamation-triangle"),
-                 " Jalankan ClustGeo terlebih dahulu dengan tombol di panel kiri."))
+                 " Run ClustGeo first using the button in the left panel."))
     }
     
-    # Label sumber data
+    # Data source label
     src_label <- switch(res$data_source,
-                        "raw"          = "Data Asli (tanpa transformasi)",
-                        "raw_norm"     = "Data Asli Ternormalisasi (min-max 0-1)",
-                        "standardized" = "Data Ter-standardisasi (Z-score)",
+                        "raw"          = "Original Data (no transformation)",
+                        "raw_norm"     = "Normalized Data (min-max 0-1)",
+                        "standardized" = "Standardized Data (Z-score)",
                         "sovi"         = "SoVI Score",
-                        "rc"           = "Skor RC (Komponen PCA)",
+                        "rc"           = "RC Scores (PCA Components)",
                         res$data_source
     )
     
     k_label     <- if (res$k_mode == "auto")
-      paste0(res$k, " (otomatis)") else as.character(res$k)
+      paste0(res$k, " (automatic)") else as.character(res$k)
     
     alpha_label <- if (res$alpha_mode == "auto")
-      paste0(round(res$alpha, 3), " (otomatis)")
+      paste0(round(res$alpha, 3), " (automatic)")
     else
       as.character(round(res$alpha, 3))
     
-    # Warna silhouette sesuai kualitas
+    # Silhouette color based on quality
     sil_color <- if (res$sil_mean >= 0.5) "color:#27ae60;font-weight:700;"
     else if (res$sil_mean >= 0.25) "color:#f39c12;font-weight:700;"
     else "color:#e74c3c;font-weight:700;"
     
     div(
       fluidRow(
-        # Card: Sumber Data
+        # Card: Data Source
         column(4, div(class = "info-card",
                       tags$h4(icon("database"), " Data Source"),
                       tags$p(style = "font-size:13px;", src_label),
                       tags$p(style = "font-size:12px; color:#78909c;",
-                             "Features: ", length(res$feat_cols), " dimensi")
+                             "Features: ", length(res$feat_cols), " dimensions")
         )),
         
-        # Card: Hasil Clustering
+        # Card: Clustering Results
         column(4, div(class = "info-card",
-                      tags$h4(icon("object-group"), " Hasil Clustering"),
+                      tags$h4(icon("object-group"), " Clustering Results"),
                       tags$p(style = "font-size:13px;",
                              tags$strong("k = "), k_label),
                       tags$p(style = "font-size:13px;",
@@ -202,7 +202,7 @@ clustgeo_server <- function(input, output, session, rv) {
                              tags$span(style = sil_color, res$sil_mean))
         )),
         
-        # Card: Distribusi Cluster
+        # Card: Cluster Distribution
         column(4, div(class = "info-card",
                       tags$h4(icon("chart-bar"), " Cluster Distribution"),
                       tags$table(
@@ -223,18 +223,18 @@ clustgeo_server <- function(input, output, session, rv) {
         ))
       ),
       
-      # Card: Interpretasi Silhouette
+      # Card: Silhouette Interpretation
       fluidRow(column(12,
                       div(class = "info-card",
                           style = "border-left-color:#27ae60; margin-top:4px;",
-                          tags$h4(icon("lightbulb"), " Interpretasi Silhouette"),
+                          tags$h4(icon("lightbulb"), " Silhouette Interpretation"),
                           tags$ul(style = "font-size:12.5px; margin:0;",
                                   tags$li(tags$span(style="color:#27ae60;font-weight:600;", "\u2265 0.50"),
-                                          " \u2014 Struktur cluster kuat"),
+                                          " \u2014 Strong cluster structure"),
                                   tags$li(tags$span(style="color:#f39c12;font-weight:600;", "0.25\u20130.49"),
-                                          " \u2014 Struktur cluster moderat"),
+                                          " \u2014 Moderate cluster structure"),
                                   tags$li(tags$span(style="color:#e74c3c;font-weight:600;", "< 0.25"),
-                                          " \u2014 Struktur cluster lemah, pertimbangkan k lain")
+                                          " \u2014 Weak cluster structure, consider different k")
                           )
                       )
       ))
@@ -242,7 +242,7 @@ clustgeo_server <- function(input, output, session, rv) {
   })
   
   # ==========================================================================
-  # TAB 2: PETA INTERAKTIF
+  # TAB 2: INTERACTIVE MAP
   # ==========================================================================
   
   output$cga_map <- leaflet::renderLeaflet({
@@ -286,9 +286,9 @@ clustgeo_server <- function(input, output, session, rv) {
     req(rv$cga_result)
     s     <- rv$cga_result$sil_mean
     cls   <- if (s >= 0.50) "status-ok" else if (s >= 0.25) "status-warn" else "status-err"
-    label <- if (s >= 0.50) "Struktur Kuat \u2713"
-    else if (s >= 0.25) "Struktur Moderat"
-    else "Struktur Lemah \u2717"
+    label <- if (s >= 0.50) "Strong Structure \u2713"
+    else if (s >= 0.25) "Moderate Structure"
+    else "Weak Structure \u2717"
     div(class = paste("progress-box", cls),
         icon("tachometer-alt"),
         paste0(" Mean Silhouette = ", s, " \u2014 ", label))
@@ -316,8 +316,8 @@ clustgeo_server <- function(input, output, session, rv) {
       ) +
       ggplot2::scale_x_continuous(breaks = df$k) +
       ggplot2::labs(
-        title = "Pencarian k Optimal via Mean Silhouette",
-        x     = "Jumlah Cluster (k)",
+        title = "Optimal k Search via Mean Silhouette",
+        x     = "Number of Clusters (k)",
         y     = "Mean Silhouette Width"
       ) +
       ggplot2::theme_minimal(base_size = 11)
@@ -337,13 +337,13 @@ clustgeo_server <- function(input, output, session, rv) {
                           font-size:12.5px;",
                  icon("info-circle"),
                  " Mode alpha: Manual \u2014 \u03b1 = ", input$cga_alpha,
-                 ". Aktifkan mode Otomatis untuk melihat trade-off Q1/Q2."))
+                 ". Enable Automatic mode to view Q1/Q2 trade-off."))
     }
     
     div(class = "progress-box status-ok",
         icon("check"),
         paste0(" Alpha optimal = ", alpha_info$alpha_opt,
-               " (titik trade-off Q1/Q2 terdekat)"))
+               " (nearest Q1/Q2 trade-off point)"))
   })
   
   output$cga_plot_alpha <- renderPlot({
@@ -353,22 +353,22 @@ clustgeo_server <- function(input, output, session, rv) {
     if (is.null(alpha_info)) {
       plot.new()
       text(0.5, 0.5,
-           "Aktifkan mode Alpha Otomatis\nuntuk melihat grafik trade-off Q1/Q2.",
+           "Enable Automatic Alpha mode\nto view Q1/Q2 trade-off chart.",
            cex = 1.1, col = "grey50")
       return()
     }
     
     q_df <- alpha_info$q_df
     long <- tidyr::pivot_longer(
-      q_df[, c("alpha", "Q1_atribut", "Q2_spasial")],
-      cols      = c("Q1_atribut", "Q2_spasial"),
-      names_to  = "Kriteria",
+      q_df[, c("alpha", "Q1_attribute", "Q2_spatial")],
+      cols      = c("Q1_attribute", "Q2_spatial"),
+      names_to  = "Criteria",
       values_to = "Q"
     )
     
     ggplot2::ggplot(long, ggplot2::aes(x = alpha, y = Q,
-                                       color = Kriteria,
-                                       linetype = Kriteria)) +
+                                       color = Criteria,
+                                       linetype = Criteria)) +
       ggplot2::geom_line(linewidth = 1.1) +
       ggplot2::geom_point(size = 2.5) +
       ggplot2::geom_vline(xintercept = alpha_info$alpha_opt,
@@ -381,22 +381,22 @@ clustgeo_server <- function(input, output, session, rv) {
                         hjust = -0.1, color = "#e74c3c", fontface = "bold", size = 3.5
       ) +
       ggplot2::scale_color_manual(
-        values = c("Q1_atribut" = "#1a73c1", "Q2_spasial" = "#27ae60")
+        values = c("Q1_attribute" = "#1a73c1", "Q2_spatial" = "#27ae60")
       ) +
       ggplot2::labs(
-        title    = "Trade-off Homogenitas Atribut (Q1) vs Spasial (Q2)",
-        subtitle = "Alpha optimal dipilih di titik |Q1-Q2| minimum",
+        title    = "Attribute Homogeneity (Q1) vs Spatial (Q2) Trade-off",
+        subtitle = "Optimal alpha selected at minimum |Q1-Q2| point",
         x        = "Alpha (\u03b1)",
         y        = "Q (Normalized Within-Cluster Inertia)",
-        color    = "Kriteria",
-        linetype = "Kriteria"
+        color    = "Criteria",
+        linetype = "Criteria"
       ) +
       ggplot2::theme_minimal(base_size = 11) +
       ggplot2::theme(legend.position = "bottom")
   })
   
   # ==========================================================================
-  # TAB 5: PROFIL CLUSTER
+  # TAB 5: CLUSTER PROFILE
   # ==========================================================================
   
   output$cga_table_profile <- DT::renderDT({
@@ -430,7 +430,7 @@ clustgeo_server <- function(input, output, session, rv) {
                                     direction = -1,
                                     name      = "Mean\nScore") +
       ggplot2::labs(
-        title    = "Heatmap Profil Cluster",
+        title    = "Cluster Profile Heatmap",
         subtitle = "Mean feature values per cluster",
         x        = "Feature / Dimension",
         y        = "Cluster"
@@ -457,7 +457,7 @@ clustgeo_server <- function(input, output, session, rv) {
     pal_rad        <- RColorBrewer::brewer.pal(min(max(k, 3), 8), "Set2")[seq_len(k)]
     cluster_labels <- paste0("Cluster ", seq_len(k))
     
-    # Normalisasi profil ke [0, 1] untuk radar
+    # Normalize profile to [0, 1] for radar
     feat_mat  <- as.matrix(profile[, feat_cols, drop = FALSE])
     row_mins  <- apply(feat_mat, 2, min)
     row_maxs  <- apply(feat_mat, 2, max)
@@ -494,12 +494,12 @@ clustgeo_server <- function(input, output, session, rv) {
     plot.new()
     legend("center", legend = cluster_labels, col = pal_rad,
            lwd = 3, bty = "n", title = "Cluster", cex = 0.85)
-    mtext("Profil Radar per Cluster (nilai ternormalisasi 0\u20131)",
+    mtext("Radar Profile per Cluster (normalized values 0\u20131)",
           outer = TRUE, line = 0.5, cex = 1.0, font = 2)
   })
   
   # ==========================================================================
-  # TAB 6: DATA CLUSTER
+  # TAB 6: CLUSTER DATA
   # ==========================================================================
   
   output$cga_table_result <- DT::renderDT({
@@ -525,7 +525,7 @@ clustgeo_server <- function(input, output, session, rv) {
                   filter   = "top",
                   options  = list(pageLength = 15, scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = paste0("Hasil Clustering ClustGeo \u2014 k=",
+                  caption  = paste0("ClustGeo Clustering Results \u2014 k=",
                                     res$k, ", \u03b1=", round(res$alpha, 3)))
   })
   

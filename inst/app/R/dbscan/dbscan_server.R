@@ -23,13 +23,13 @@ dbscan_server <- function(input, output, session, rv) {
     note <- switch(src,
       "raw"          = div(class = "progress-box",
                            style = "background:#fff8e1;border-left-color:#f39c12;font-size:11px;",
-                           icon("exclamation-triangle"), " Nilai mentah tanpa transformasi."),
+                           icon("exclamation-triangle"), " Raw values without transformation."),
       "raw_norm"     = div(class = "progress-box",
                            style = "background:#fff8e1;border-left-color:#f39c12;font-size:11px;",
-                           icon("info-circle"), " Akan dinormalisasi min-max 0\u20131."),
+                           icon("info-circle"), " Will be min-max normalized 0\u20131."),
       "standardized" = div(class = "progress-box",
                            style = "background:#e3f2fd;border-left-color:#1a73c1;font-size:11px;",
-                           icon("info-circle"), " Z-score dari proses SoVI."),
+                           icon("info-circle"), " Z-scores from SoVI process."),
       NULL
     )
     tagList(note, checkboxGroupInput("dbs_selected_vars", NULL,
@@ -44,8 +44,8 @@ dbscan_server <- function(input, output, session, rv) {
     src <- input$dbs_data_source
     if (is.null(src)) return(NULL)
     info <- switch(src,
-      "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
-      "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
+      "sovi" = "Using single SoVI Score (0\u20131) as clustering feature.",
+      "rc"   = "Using RC component scores (PCA Varimax, normalized 0\u20131).",
       NULL
     )
     if (is.null(info)) return(NULL)
@@ -114,8 +114,8 @@ dbscan_server <- function(input, output, session, rv) {
                         color = "#e74c3c", hjust = 0, size = 4) +
       ggplot2::labs(
         title    = paste0("k-NN Distance Plot (k = ", k, ")"),
-        subtitle = "Titik siku (knee) menunjukkan nilai eps yang optimal",
-        x        = "Observasi (diurutkan)",
+        subtitle = "The knee/elbow point indicates the optimal eps value",
+        x        = "Observations (sorted)",
         y        = paste0(k, "-NN Distance")
       ) +
       ggplot2::theme_minimal(base_size = 13) +
@@ -154,7 +154,7 @@ dbscan_server <- function(input, output, session, rv) {
 
       req(dbs_result)
 
-      incProgress(0.7, detail = "Merangkum hasil...")
+      incProgress(0.7, detail = "Summarizing results...")
       sovi_df             <- rv$sovi_result$sovi_df
       sovi_df$dbs_cluster <- dbs_result$cluster  # 0 = noise
 
@@ -193,11 +193,11 @@ dbscan_server <- function(input, output, session, rv) {
   output$dbs_summary_table <- DT::renderDT({
     req(rv$dbs_result)
     sovi_df <- rv$dbs_result$sovi_df
-    tbl <- as.data.frame(table(Klaster = ifelse(
+    tbl <- as.data.frame(table(Cluster = ifelse(
       sovi_df$dbs_cluster == 0, "Noise (0)",
       paste0("Cluster ", sovi_df$dbs_cluster)
     )))
-    tbl$Persen <- round(tbl$Freq / nrow(sovi_df) * 100, 1)
+    tbl$Percent <- round(tbl$Freq / nrow(sovi_df) * 100, 1)
     DT::datatable(tbl,
                   options  = list(dom = "t"),
                   rownames = FALSE)
@@ -210,7 +210,7 @@ dbscan_server <- function(input, output, session, rv) {
         tags$p(icon("ruler"), tags$strong(" Epsilon (\u03b5): "), res$eps),
         tags$p(icon("users"), tags$strong(" MinPts: "),           res$minpts),
         tags$p(icon("object-group"), tags$strong(" Number of Clusters: "),
-               res$n_cluster, " (tidak termasuk noise)"),
+               res$n_cluster, " (excluding noise)"),
         tags$p(icon("times-circle"), tags$strong(" Noise Points: "),
                res$n_noise, " regions",
                tags$span(style = "color:#78909c; font-size:12px;",

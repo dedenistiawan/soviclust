@@ -164,7 +164,7 @@ server <- function(input, output, session) {
     }) # end withProgress
 
     showNotification(
-      paste0("\u2713 Data sampel dimuat: ", nrow(rv$data), " regencies/cities, ",
+      paste0("\u2713 Sample data loaded: ", nrow(rv$data), " regencies/cities, ",
              sum(sapply(rv$data, is.numeric)), " SoVI variables."),
       type = "message", duration = 5
     )
@@ -246,17 +246,17 @@ server <- function(input, output, session) {
   output$data_status <- renderPrint({
     if (is.null(rv$data)) { cat("No dataset uploaded yet."); return() }
     num_cols <- names(rv$data)[sapply(rv$data, is.numeric)]
-    cat("\u2713 Dataset dimuat:", nrow(rv$data), "baris x", ncol(rv$data), "kolom\n")
-    cat("Kolom numerik  :", length(num_cols), "kolom\n")
-    cat("Kolom          :", paste(names(rv$data), collapse = ", "))
+    cat("\u2713 Dataset loaded:", nrow(rv$data), "rows x", ncol(rv$data), "columns\n")
+    cat("Numeric columns:", length(num_cols), "columns\n")
+    cat("Columns       :", paste(names(rv$data), collapse = ", "))
   })
   
   output$shp_status <- renderPrint({
     if (is.null(rv$shp)) { cat("No shapefile uploaded yet."); return() }
-    cat("\u2713 Shapefile dimuat:", nrow(rv$shp), "unit spasial\n")
+    cat("\u2713 Shapefile loaded:", nrow(rv$shp), "spatial units\n")
     cat("CRS            :", sf::st_crs(rv$shp)$input, "\n")
     geom_col <- attr(rv$shp, "sf_column")
-    cat("Kolom          :", paste(setdiff(names(rv$shp), geom_col), collapse = ", "))
+    cat("Columns        :", paste(setdiff(names(rv$shp), geom_col), collapse = ", "))
   })
   
   output$preview_data <- DT::renderDT({
@@ -271,14 +271,14 @@ server <- function(input, output, session) {
     # ── 1. Cek ketersediaan data dan shapefile ─────────────────────────────
     if (is.null(rv$data)) {
       showNotification(
-        "\u26a0\ufe0f Dataset belum diupload. Upload file Excel/CSV terlebih dahulu.",
+        "\u26a0\ufe0f Dataset not uploaded yet. Please upload an Excel/CSV file first.",
         type = "warning", duration = 6
       )
       return()
     }
     if (is.null(rv$shp)) {
       showNotification(
-        "\u26a0\ufe0f Shapefile belum diupload. Upload file .shp dan file pendukungnya.",
+        "\u26a0\ufe0f Shapefile not uploaded yet. Please upload the .shp file and its supporting files.",
         type = "warning", duration = 6
       )
       return()
@@ -336,10 +336,10 @@ server <- function(input, output, session) {
     unlock_tab("tab_varconfig")
     showNotification(
       paste0(
-        "\u2713 Data dikonfirmasi!\n",
+        "\u2713 Data confirmed!\n",
         v_data$msg, "\n",
         v_id$msg, "\n",
-        "Silakan lanjut ke Variable Config."
+        "Please proceed to Variable Config."
       ),
       type = "message", duration = 6
     )

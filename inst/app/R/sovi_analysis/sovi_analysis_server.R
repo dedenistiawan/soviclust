@@ -65,19 +65,19 @@ sovi_analysis_server <- function(input, output, session, rv) {
     info <- switch(src,
                    "raw"          = list(bg = "#fff8e1", bc = "#f39c12",
                                          ic = "exclamation-triangle",
-                                         tx = "Nilai mentah digunakan langsung."),
+                                         tx = "Raw values used directly."),
                    "raw_norm"     = list(bg = "#fff8e1", bc = "#f39c12",
                                          ic = "info-circle",
-                                         tx = "Data asli ternormalisasi min-max ke [0,1]."),
+                                         tx = "Original data min-max normalized to [0,1]."),
                    "standardized" = list(bg = "#e3f2fd", bc = "#1a73c1",
                                          ic = "info-circle",
-                                         tx = "Z-score dari proses standardisasi SoVI."),
+                                         tx = "Z-scores from SoVI standardization process."),
                    "sovi"         = list(bg = "#e8f5e9", bc = "#27ae60",
                                          ic = "check-circle",
-                                         tx = "SoVI Score tunggal hasil komputasi SoVI."),
+                                         tx = "Single SoVI Score from SoVI computation."),
                    "rc"           = list(bg = "#e3f2fd", bc = "#1a73c1",
                                          ic = "info-circle",
-                                         tx = "Skor RC (komponen PCA, ternormalisasi 0-1).")
+                                         tx = "RC Scores (PCA components, normalized 0-1).")
     )
     
     div(class = "progress-box",
@@ -144,7 +144,7 @@ sovi_analysis_server <- function(input, output, session, rv) {
       div(class = "progress-box",
           style = "background:#cce5ff;",
           icon("spinner", class = "fa-spin"),
-          " Menghitung klasifikasi dan merender peta...")
+          " Computing classification and rendering map...")
     })
     
     tryCatch({
@@ -182,6 +182,7 @@ sovi_analysis_server <- function(input, output, session, rv) {
   
   # ==========================================================================
   # OUTPUT: Info bar — Peta Tunggal
+  # OUTPUT: Info bar — Single Map
   # ==========================================================================
   output$sa_single_infobar <- renderUI({
     if (!sa$map1_ready || is.null(sa$cls1)) {
@@ -189,19 +190,19 @@ sovi_analysis_server <- function(input, output, session, rv) {
                  style = "background:#fff3cd; border-left-color:#f39c12; font-size:13px;",
                  icon("exclamation-triangle"),
                  " Select data source, variable, number of classes, then click ",
-                 tags$strong("Tampilkan Peta.")))
+                 tags$strong("Generate Map.")))
     }
     div(class = "progress-box status-ok",
         style  = "font-size:13px;",
         icon("map"), " ",
-        tags$strong("Variabel: "), input$sa_var1, " | ",
-        tags$strong("Sumber: "), get_source_label(input$sa_data_source), " | ",
+        tags$strong("Variable: "), input$sa_var1, " | ",
+        tags$strong("Source: "), get_source_label(input$sa_data_source), " | ",
         tags$strong("k = "), sa$cls1$k
     )
   })
   
   # ==========================================================================
-  # OUTPUT: Peta Tunggal (Leaflet)
+  # OUTPUT: Single Map (Leaflet)
   # ==========================================================================
   output$sa_map_single <- leaflet::renderLeaflet({
     req(sa$map1_ready, !is.null(sa$cls1), rv$shp)
@@ -226,44 +227,44 @@ sovi_analysis_server <- function(input, output, session, rv) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12; font-size:13px;",
                  icon("exclamation-triangle"),
-                 " Klik ", tags$strong("Tampilkan Peta"), " terlebih dahulu."))
+                 " Click ", tags$strong("Generate Map"), " first."))
     }
     div(class = "progress-box status-ok",
         style  = "font-size:13px;",
         icon("arrow-up"), " ",
-        tags$strong("Atas: "), input$sa_var1, " | ",
-        tags$strong("Bawah: "), input$sa_var2, " | ",
-        tags$strong("Sumber: "), get_source_label(input$sa_data_source), " | ",
+        tags$strong("Top: "), input$sa_var1, " | ",
+        tags$strong("Bottom: "), input$sa_var2, " | ",
+        tags$strong("Source: "), get_source_label(input$sa_data_source), " | ",
         tags$strong("k = "), input$sa_n_classes
     )
   })
   
   # ==========================================================================
-  # OUTPUT: Atas-Bawah — dua peta leaflet full-width, disinkronkan
+  # OUTPUT: Top-Bottom — two full-width synchronized leaflet maps
   # ==========================================================================
   output$sa_map_sidebyside_ui <- renderUI({
     if (!sa$map1_ready || !sa$map2_ready) return(NULL)
     
-    # Layout atas-bawah: masing-masing column(12) full width
+    # Layout top-bottom: each column(12) full width
     tagList(
-      # ── Peta Atas ────────────────────────────────────────────────────────
+      # ── Top Map ────────────────────────────────────────────────────────
       fluidRow(
         column(12,
                div(style = "font-weight:700; color:#1a73c1; margin-bottom:4px;
                        font-size:13px; border-left:4px solid #1a73c1;
                        padding-left:8px;",
-                   icon("map"), " Peta Atas — ", input$sa_var1),
+                   icon("map"), " Top Map \u2014 ", input$sa_var1),
                leaflet::leafletOutput("sa_map_left", height = "440px")
         )
       ),
       tags$div(style = "height:10px;"),
-      # ── Peta Bawah ───────────────────────────────────────────────────────
+      # ── Bottom Map ───────────────────────────────────────────────────────
       fluidRow(
         column(12,
                div(style = "font-weight:700; color:#27ae60; margin-bottom:4px;
                        font-size:13px; border-left:4px solid #27ae60;
                        padding-left:8px;",
-                   icon("map"), " Peta Bawah — ", input$sa_var2),
+                   icon("map"), " Bottom Map \u2014 ", input$sa_var2),
                leaflet::leafletOutput("sa_map_right", height = "440px")
         )
       )
@@ -300,62 +301,62 @@ sovi_analysis_server <- function(input, output, session, rv) {
     )
   })
   
-  # Zoom & Pan masing-masing peta bersifat independen (tidak disinkronkan)
+  # Zoom & Pan for each map are independent (not synchronized)
   
   # ==========================================================================
-  # OUTPUT: Tab Ringkasan — header
+  # OUTPUT: Summary Tab — header
   # ==========================================================================
   output$sa_summary_header <- renderUI({
     if (!sa$map1_ready) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12;",
                  icon("exclamation-triangle"),
-                 " Klik Tampilkan Peta untuk melihat ringkasan."))
+                 " Click Generate Map to view the summary."))
     }
     div(class = "progress-box status-ok",
         icon("table"),
-        paste0(" Ringkasan klasifikasi Jenks — k = ", input$sa_n_classes,
-               " | Sumber: ", get_source_label(input$sa_data_source)))
+        paste0(" Jenks classification summary \u2014 k = ", input$sa_n_classes,
+               " | Source: ", get_source_label(input$sa_data_source)))
   })
   
   output$sa_summary_title1 <- renderUI({
     if (is.null(sa$cls1)) return(NULL)
-    tags$span(icon("map"), " Variabel 1: ", input$sa_var1)
+    tags$span(icon("map"), " Variable 1: ", input$sa_var1)
   })
   
   output$sa_summary_title2 <- renderUI({
     if (is.null(sa$cls2)) return(NULL)
-    tags$span(icon("map"), " Variabel 2: ", input$sa_var2)
+    tags$span(icon("map"), " Variable 2: ", input$sa_var2)
   })
   
   # ==========================================================================
-  # OUTPUT: Tabel ringkasan Variabel 1
+  # OUTPUT: Summary table Variable 1
   # ==========================================================================
   output$sa_summary_table1 <- DT::renderDT({
     req(!is.null(sa$cls1))
     df <- build_summary_table(sa$cls1)
-    names(df) <- c("No", "Range", "Min", "Max", "n", "Persen (%)")
+    names(df) <- c("No", "Range", "Min", "Max", "n", "Percent (%)")
     DT::datatable(df,
                   options  = list(dom = "t", pageLength = 12),
                   rownames = FALSE,
-                  caption  = paste0("Distribusi per Kelas — ", input$sa_var1))
+                  caption  = paste0("Distribution per Class \u2014 ", input$sa_var1))
   })
   
   # ==========================================================================
-  # OUTPUT: Tabel ringkasan Variabel 2
+  # OUTPUT: Summary table Variable 2
   # ==========================================================================
   output$sa_summary_table2 <- DT::renderDT({
     req(!is.null(sa$cls2))
     df <- build_summary_table(sa$cls2)
-    names(df) <- c("No", "Range", "Min", "Max", "n", "Persen (%)")
+    names(df) <- c("No", "Range", "Min", "Max", "n", "Percent (%)")
     DT::datatable(df,
                   options  = list(dom = "t", pageLength = 12),
                   rownames = FALSE,
-                  caption  = paste0("Distribusi per Kelas — ", input$sa_var2))
+                  caption  = paste0("Distribution per Class \u2014 ", input$sa_var2))
   })
   
   # ==========================================================================
-  # OUTPUT: GVF Plot Variabel 1
+  # OUTPUT: GVF Plot Variable 1
   # ==========================================================================
   output$sa_gvf_plot1 <- renderPlot({
     req(!is.null(sa$cls1), rv$data, input$sa_var1)
@@ -389,7 +390,7 @@ sovi_analysis_server <- function(input, output, session, rv) {
       ggplot2::scale_x_continuous(breaks = gvf_df$k) +
       ggplot2::labs(
         title = paste0("GVF — ", input$sa_var1),
-        x     = "Jumlah Kelas (k)",
+        x     = "Number of Classes (k)",
         y     = "GVF"
       ) +
       ggplot2::theme_minimal(base_size = 10)
@@ -430,7 +431,7 @@ sovi_analysis_server <- function(input, output, session, rv) {
       ggplot2::scale_x_continuous(breaks = gvf_df$k) +
       ggplot2::labs(
         title = paste0("GVF — ", input$sa_var2),
-        x     = "Jumlah Kelas (k)",
+        x     = "Number of Classes (k)",
         y     = "GVF"
       ) +
       ggplot2::theme_minimal(base_size = 10)
