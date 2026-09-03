@@ -278,3 +278,133 @@ Verify all roxygen docs in these files are in English.
 ---
 
 *Last updated: 2026-09-03 | soviclust v0.6.0*
+
+
+---
+
+## Unit Test Recommendations
+
+### Current Coverage (16 tests in 2 files)
+
+| File | Tests | Coverage |
+|------|-------|----------|
+| `test-run_app.R` | 4 | `run_app()` directory, Shiny files, callable, path validation |
+| `test-sample_data.R` | 12 | File availability, structure, integrity for 4 xlsx + shapefile |
+
+---
+
+### Priority 1 - Must Have
+
+Add to new file: `tests/testthat/test-sample_functions.R`
+
+```r
+# sovi_sample_data()
+test_that("sovi_sample_data() returns a data.frame with 514 rows", {
+  df <- sovi_sample_data()
+  expect_s3_class(df, "data.frame")
+  expect_equal(nrow(df), 514)
+  expect_true("DISTRICTCODE" %in% names(df))
+  expect_true("KABUPATEN"    %in% names(df))
+})
+
+# sovi_sample_shapefile()
+test_that("sovi_sample_shapefile() returns an sf object with 514 features", {
+  shp <- sovi_sample_shapefile()
+  expect_s3_class(shp, "sf")
+  expect_equal(nrow(shp), 514)
+  expect_true("idkab" %in% names(shp))
+})
+
+# sovi_sample_coords()
+test_that("sovi_sample_coords() returns correct structure", {
+  coord <- sovi_sample_coords()
+  expect_s3_class(coord, "data.frame")
+  expect_equal(nrow(coord), 514)
+  expect_true(all(c("DISTRICTCODE", "longitude", "latitude") %in% names(coord)))
+})
+
+# sovi_sample_pop()
+test_that("sovi_sample_pop() returns a data.frame with 514 rows", {
+  pop <- sovi_sample_pop()
+  expect_s3_class(pop, "data.frame")
+  expect_equal(nrow(pop), 514)
+  num_col <- which(sapply(pop, is.numeric))[1]
+  expect_false(is.na(num_col))
+  expect_true(all(pop[[num_col]] > 0, na.rm = TRUE))
+})
+
+# sovi_sample_distmat()
+test_that("sovi_sample_distmat() returns a square 514x514 numeric matrix", {
+  mat <- sovi_sample_distmat()
+  expect_true(is.matrix(mat))
+  expect_true(is.numeric(mat))
+  expect_equal(dim(mat), c(514L, 514L))
+  expect_true(all(diag(mat) == 0))
+})
+```
+
+---
+
+### Priority 2 - Should Have
+
+```r
+# Error messages
+test_that("sovi_sample_data() gives informative error when file missing", {
+  expect_error(
+    withr::with_envvar(list(R_PACKAGE_DIR = tempdir()), sovi_sample_data()),
+    "not found"
+  )
+})
+
+# Matrix symmetry
+test_that("sovi_sample_distmat() is a symmetric matrix", {
+  mat <- sovi_sample_distmat()
+  expect_true(isSymmetric(mat, tol = 1e-6))
+})
+```
+
+---
+
+### Priority 3 - Nice to Have
+
+```r
+# Package metadata
+test_that("package version follows semantic versioning x.y.z", {
+  v <- as.character(packageVersion("soviclust"))
+  expect_match(v, "^\\d+\\.\\d+\\.\\d+$")
+})
+
+test_that("package has required metadata fields", {
+  desc <- packageDescription("soviclust")
+  expect_false(is.null(desc$URL))
+  expect_false(is.null(desc$BugReports))
+  expect_false(is.null(desc$License))
+})
+
+# SoVI normalization
+test_that("SoVI normalization maps to [0, 1]", {
+  scores     <- c(-2.5, -1.0, 0.0, 1.5, 3.0)
+  normalized <- (scores - min(scores)) / (max(scores) - min(scores))
+  expect_true(all(normalized >= 0 & normalized <= 1))
+  expect_equal(min(normalized), 0)
+  expect_equal(max(normalized), 1)
+})
+```
+
+---
+
+### Test Priority Summary
+
+| Priority | What to Test | File | Status |
+|----------|-------------|------|--------|
+| MUST | `run_app()` directory and Shiny files | `test-run_app.R` | Done |
+| MUST | Data integrity - 4 xlsx + shapefile | `test-sample_data.R` | Done |
+| MUST | Wrapper functions return types | `test-sample_functions.R` | TODO |
+| SHOULD | Informative error messages | `test-sample_functions.R` | TODO |
+| SHOULD | Matrix symmetry validation | `test-sample_functions.R` | TODO |
+| OPTIONAL | Package metadata validation | `test-metadata.R` | TODO |
+| OPTIONAL | SoVI normalization logic | `test-sovi_logic.R` | TODO |
+
+---
+
+*Unit test section added: 2026-09-03 | soviclust v0.6.0*
