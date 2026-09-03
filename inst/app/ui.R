@@ -40,10 +40,10 @@ home_tab_ui         <- function() shinydashboard::tabItem("tab_home",
                                                           fluidRow(lapply(list(
                                                             list("upload",       "Upload Data",       ".xlsx/.csv dataset and area shapefile"),
                                                             list("sliders-h",    "Variable Config",   "Select variables & set vulnerability direction (+/-)"),
-                                                            list("calculator",   "Hitung SoVI",       "PCA varimax, loading weights, Jenks classification"),
-                                                            list("map",          "Peta Interaktif",   "Visualize SoVI results with Leaflet"),
+                                                            list("calculator",   "Compute SoVI",      "PCA varimax, loading weights, Jenks classification"),
+                                                            list("map",          "Interactive Map",   "Visualize SoVI results with Leaflet"),
                                                             list("object-group", "Cluster Analysis",  "ClustGeo, FGWC & LFGWC: flexible spatial clustering"),
-                                                            list("download",     "Download Hasil",    "Export CSV and PNG maps")
+                                                            list("download",     "Download Results",  "Export CSV and PNG maps")
                                                           ), function(f) {
                                                             column(2, div(class = "home-feature-card",
                                                                           div(class = "icon-wrap", icon(f[[1]])),
@@ -52,7 +52,7 @@ home_tab_ui         <- function() shinydashboard::tabItem("tab_home",
                                                           })),
                                                           fluidRow(column(12, tags$br(),
                                                                           shinydashboard::box(
-                                                                            title = tags$span(icon("rocket"), " Quick Start \u2014 Alur Penggunaan"),
+                                                                            title = tags$span(icon("rocket"), " Quick Start \u2014 Workflow"),
                                                                             status = "primary", solidHeader = TRUE, width = 12, collapsible = TRUE,
                                                                             fluidRow(
                                                                               column(6,
@@ -329,18 +329,18 @@ ui <- shinydashboard::dashboardPage(
       # Disimpan dari ui.R lama tanpa perubahan
       shinydashboard::tabItem("tab_workflow",
                               fluidRow(column(12, shinydashboard::box(
-                                title = tags$span(icon("project-diagram"), " Pipeline SoVI \u2014 7 Fase"),
+                                title = tags$span(icon("project-diagram"), " SoVI Pipeline \u2014 7 Phases"),
                                 status = "primary", solidHeader = TRUE, width = 12,
                                 tags$p(style = "color:#37474f; font-size:13.5px;",
-                                       "Pipeline mengikuti ", tags$strong("Cutter et al. (2003)"),
-                                       " dengan peningkatan berupa bobot proporsional loading dan ",
-                                       "tiga opsi penentuan arah variabel."),
+                                       "Pipeline follows ", tags$strong("Cutter et al. (2003)"),
+                                       " with enhancements: proportional loading weights and ",
+                                       "three options for variable direction determination."),
                                 fluidRow(lapply(list(
                                   list("1","Load Data","upload","User uploads dataset & shapefile"),
                                   list("2","Z-score","equals","Standardization: mean=0, SD=1"),
                                   list("3","PCA","cogs","KMO, Bartlett, communality, Kaiser, Varimax"),
-                                  list("4","Variable Selection","filter","Threshold |\u03c4|\u22650.5, 1 variabel \u2192 1 komponen"),
-                                  list("5","Aggregation","calculator","Bobot proporsional loading, normalisasi 0\u20131"),
+                                  list("4","Variable Selection","filter","Threshold |\u03c4|\u22650.5, 1 variable \u2192 1 component"),
+                                  list("5","Aggregation","calculator","Proportional loading weights, normalized 0\u20131"),
                                   list("6","Jenks","tags","Natural Breaks 5 vulnerability classes"),
                                   list("7","Output","map","Leaflet map, LISA, ClustGeo, Sensitivity")
                                 ), function(p) {
@@ -389,7 +389,7 @@ ui <- shinydashboard::dashboardPage(
                                 column(4, div(class="info-card", style="border-left-color:#42a5f5; min-height:130px;",
                                               tags$h4(icon("book", style="color:#42a5f5"), " Cutter's Method"),
                                               tags$p(style="font-size:13px; color:#37474f;",
-                                                     "Component direction from ", tags$strong("variabel dominan"),
+                                                     "Component direction from ", tags$strong("dominant variable"),
                                                      " (largest absolute loading) per component — original Cutter et al. (2003) method.")
                                 ))
                               ),
@@ -450,7 +450,7 @@ ui <- shinydashboard::dashboardPage(
                                          div(class="step-header","Basic Concept"),
                                          tags$p(style="font-size:13.5px;color:#37474f;line-height:1.8;",
                                                 "This method is ", tags$strong("entirely empirical"),
-                                                ". Arah kontribusi variabel ditentukan from PCA loading signs. ",
+                                                ". Variable contribution direction is determined from PCA loading signs. ",
                                                 "No a priori direction setting — data determines its structure."),
                                          div(class="step-header","Formula"),
                                          div(style="background:#f8faff;border:1px solid #90caf9;border-radius:8px;padding:14px 18px;",
@@ -458,7 +458,7 @@ ui <- shinydashboard::dashboardPage(
                                              tags$p(style="text-align:center;",
                                                     HTML("\\[ d_i = \\begin{cases} +\\,\\text{sign}(\\lambda_{ik^*}) & i \\notin \\text{neg\\_vars} \\\\ -\\,\\text{sign}(\\lambda_{ik^*}) & i \\in \\text{neg\\_vars} \\end{cases} \\]")),
                                              tags$p(style="font-size:12px;color:#78909c;",
-                                                    HTML("dimana \\( k^* = \\arg\\max_k |\\lambda_{ik}| \\) adalah komponen dominan variabel \\( i \\)"))
+                                                    HTML("where \\( k^* = \\arg\\max_k |\\lambda_{ik}| \\) is the dominant component of variable \\( i \\)"))
                                          )
                                   ),
                                   column(6,
@@ -491,7 +491,7 @@ ui <- shinydashboard::dashboardPage(
                                          div(class="step-header","Basic Concept"),
                                          tags$p(style="font-size:13.5px;color:#37474f;line-height:1.8;",
                                                 "Original Cutter et al. (2003) method. Direction of each component is determined by ",
-                                                tags$strong("variabel dominan"), " (largest absolute loading) in that component. ",
+                                                tags$strong("the dominant variable"), " (largest absolute loading) in that component. ",
                                                 "All variables in one component follow that component's direction."),
                                          div(class="step-header","Formula"),
                                          div(style="background:#f8faff;border:1px solid #90caf9;border-radius:8px;padding:14px 18px;",
@@ -502,7 +502,7 @@ ui <- shinydashboard::dashboardPage(
                                              tags$p(style="text-align:center;",
                                                     HTML("\\[ D_k = \\text{sign}\\left(\\lambda_{v_k^*, k}\\right) \\quad\\Rightarrow\\quad RC_k = D_k \\cdot F_k \\]")),
                                              tags$p(style="font-size:12px;color:#78909c;",
-                                                    HTML("dimana \\( F_k \\) adalah factor score komponen ke-\\(k\\) dari PCA"))
+                                                    HTML("where \\( F_k \\) is the factor score of component \\(k\\) from PCA"))
                                          )
                                   ),
                                   column(6,
@@ -577,10 +577,10 @@ ui <- shinydashboard::dashboardPage(
                                              tags$thead(tags$tr(tags$th("Column"), tags$th("Type"), tags$th("Description"))),
                                              tags$tbody(
                                                tags$tr(tags$td(tags$code("DISTRICTCODE")), tags$td("Chr/Num"),
-                                                       tags$td("ID unik \u2014 cocok dengan shapefile")),
-                                               tags$tr(tags$td(tags$code("KABUPATEN")), tags$td("Karakter"),
+                                                       tags$td("Unique ID \u2014 must match shapefile")),
+                                               tags$tr(tags$td(tags$code("KABUPATEN")), tags$td("Character"),
                                                        tags$td("Region name")),
-                                               tags$tr(tags$td(tags$code("VAR_1...n")), tags$td("Numerik"),
+                                               tags$tr(tags$td(tags$code("VAR_1...n")), tags$td("Numeric"),
                                                        tags$td("SoVI Variables in % (0\u2013100)"))
                                              )
                                   )
@@ -594,11 +594,11 @@ ui <- shinydashboard::dashboardPage(
                                              tags$thead(tags$tr(tags$th("Extension"), tags$th("Description"), tags$th("Status"))),
                                              tags$tbody(
                                                tags$tr(tags$td(tags$code(".shp")), tags$td("Area geometry"),
-                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\u2713 Wajib"))),
+                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\\u2713 Required"))),
                                                tags$tr(tags$td(tags$code(".dbf")), tags$td("Data attributes"),
-                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\u2713 Wajib"))),
+                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\\u2713 Required"))),
                                                tags$tr(tags$td(tags$code(".shx")), tags$td("Geometry index"),
-                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\u2713 Wajib"))),
+                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\\u2713 Required"))),
                                                tags$tr(tags$td(tags$code(".prj")), tags$td("CRS projection"), tags$td("Recommended")),
                                                tags$tr(tags$td(tags$code(".cpg")), tags$td("Character encoding"), tags$td("Optional"))
                                              )

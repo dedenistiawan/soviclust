@@ -24,7 +24,7 @@ method_comparison_tab_ui <- function() {
                                          style = "border-left-color:#f39c12; padding:10px;",
                                          tags$p(style = "font-size:12.5px; margin:0;",
                                                 icon("star", style = "color:#f39c12;"),
-                                                tags$strong(" Tab ini opsional. "),
+                                                tags$strong(" This tab is optional. "),
                                                 "You can skip to SoVI Computation.")),
                                      tags$br(),
                                      
@@ -50,14 +50,14 @@ method_comparison_tab_ui <- function() {
                                      
                                      tabsetPanel(
                                        
-                                       # Tab 1: Semua Metrik Evaluasi (BARU — tampil pertama)
+                                       # Tab 1: All Evaluation Metrics (shown first)
                                        tabPanel(
                                          title = tags$span(icon("ruler-combined"), " Evaluation Metrics"),
                                          tags$br(),
                                          uiOutput("comp_metrics_ui")
                                        ),
                                        
-                                       # Tab 2: Spearman (lama)
+                                       # Tab 2: Spearman
                                        tabPanel(
                                          title = tags$span(icon("table"), " Spearman"),
                                          tags$br(),
@@ -72,7 +72,7 @@ method_comparison_tab_ui <- function() {
                                          plotOutput("comp_scatter", height = "400px")
                                        ),
                                        
-                                       # Tab 4: Distribusi Kelas
+                                       # Tab 4: Class Distribution
                                        tabPanel(
                                          title = tags$span(icon("chart-bar"), " Class Distribution"),
                                          plotOutput("comp_class_dist", height = "360px")
@@ -84,7 +84,7 @@ method_comparison_tab_ui <- function() {
                                          plotOutput("comp_profile", height = "360px")
                                        ),
                                        
-                                       # Tab 6: Rekomendasi
+                                       # Tab 6: Recommendation
                                        tabPanel(
                                          title = tags$span(icon("lightbulb"), " Recommendation"),
                                          tags$br(),
