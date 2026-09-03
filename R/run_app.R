@@ -1,27 +1,27 @@
-#' Jalankan Aplikasi SoVI Interactive Mapper
+#' Launch the SoVI Interactive Mapper Application
 #'
 #' @description
-#' Membuka aplikasi Shiny **SoVI Interactive Mapper** di browser default Anda.
-#' Aplikasi ini menyediakan platform interaktif untuk menghitung, memvisualisasikan,
-#' dan menganalisis Social Vulnerability Index (SoVI) di tingkat wilayah administratif.
+#' Opens the **SoVI Interactive Mapper** Shiny application in your default browser.
+#' This application provides an interactive platform for computing, visualizing,
+#' and analyzing the Social Vulnerability Index (SoVI) at the administrative unit level.
 #'
-#' Secara default, aplikasi akan langsung terbuka di browser eksternal
-#' (bukan RStudio Viewer pane) melalui `http://127.0.0.1:<port>`.
+#' By default, the application opens in an external browser
+#' (not the RStudio Viewer pane) at `http://127.0.0.1:<port>`.
 #'
-#' @param ... Argumen tambahan yang diteruskan ke \code{\link[shiny]{runApp}}.
-#'   Misalnya: \code{port = 3838}, \code{launch.browser = FALSE}.
+#' @param ... Additional arguments passed to \code{\link[shiny]{runApp}}.
+#'   For example: \code{port = 3838}, \code{launch.browser = FALSE}.
 #'
-#' @return Tidak mengembalikan nilai (dipanggil karena side-effect menjalankan app).
+#' @return Invisible. Called for its side effect of launching the Shiny app.
 #'
 #' @examples
 #' \dontrun{
-#'   # Cara paling sederhana — buka di browser default
+#'   # Simplest usage — open in default browser
 #'   soviclust::run_app()
 #'
-#'   # Tentukan port tertentu
+#'   # Specify a custom port
 #'   soviclust::run_app(port = 3838)
 #'
-#'   # Jalankan tanpa membuka browser otomatis
+#'   # Run without automatically opening a browser
 #'   soviclust::run_app(launch.browser = FALSE)
 #' }
 #'
@@ -43,9 +43,9 @@ run_app <- function(...) {
 
   if (length(missing_pkgs) > 0) {
     stop(
-      "Package berikut diperlukan tetapi belum terinstall:\n",
+      "The following packages are required but not installed:\n",
       paste(" -", missing_pkgs, collapse = "\n"), "\n\n",
-      "Silakan install dengan:\n",
+      "Please install them with:\n",
       "  install.packages(c('", paste(missing_pkgs, collapse = "', '"), "'))",
       call. = FALSE
     )
@@ -55,9 +55,9 @@ run_app <- function(...) {
   app_dir <- system.file("app", package = "soviclust")
   if (app_dir == "") {
     stop(
-      "Tidak dapat menemukan direktori aplikasi.\n",
-      "Pastikan package 'soviclust' sudah terinstall dengan benar.\n",
-      "Coba: remotes::install_github('dedenistiawan/soviclust')",
+      "Cannot find the application directory.\n",
+      "Please ensure the 'soviclust' package is installed correctly.\n",
+      "Try: remotes::install_github('dedenistiawan/soviclust')",
       call. = FALSE
     )
   }
