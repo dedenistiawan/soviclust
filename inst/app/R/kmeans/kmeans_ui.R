@@ -20,10 +20,10 @@ kmeans_tab_ui <- function() {
           width       = 12,
 
           # 1. Jumlah Cluster
-          div(class = "step-header", "1. Jumlah Cluster (k)"),
+          div(class = "step-header", "1. Number of Clusters (k)"),
           radioButtons("km_k_mode", NULL,
                        choices  = c("Manual" = "manual",
-                                    "Otomatis (Elbow)" = "auto"),
+                                    "Automatic (Elbow)" = "auto"),
                        selected = "manual", inline = TRUE),
 
           conditionalPanel(
@@ -33,12 +33,12 @@ kmeans_tab_ui <- function() {
           ),
           conditionalPanel(
             "input.km_k_mode == 'auto'",
-            sliderInput("km_k_max", "k Maksimum untuk Pencarian",
+            sliderInput("km_k_max", "Maximum k to Search",
                         min = 3, max = 12, value = 10, step = 1),
             div(class = "progress-box",
                 style = "background:#e3f2fd; border-left-color:#1a73c1; font-size:12px;",
                 icon("info-circle"),
-                " k optimal dipilih dari titik elbow Within-SS.")
+                " Optimal k is selected from the Within-SS elbow point.")
           ),
 
           tags$hr(),
@@ -47,11 +47,11 @@ kmeans_tab_ui <- function() {
           div(class = "step-header", "2. Data Source"),
           radioButtons("km_data_source", NULL,
                        choices = c(
-                         "Data Asli (tanpa transformasi)"   = "raw",
-                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
-                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                         "Original Data (no transformation)" = "raw",
+                         "Normalized Data (0-1)"            = "raw_norm",
+                         "Standardized Data (Z-score)"      = "standardized",
                          "SoVI Score"                       = "sovi",
-                         "Skor RC (komponen PCA)"           = "rc"
+                         "RC Scores (PCA components)"       = "rc"
                        ),
                        selected = "rc"
           ),
@@ -60,7 +60,7 @@ kmeans_tab_ui <- function() {
             "input.km_data_source == 'raw' ||
              input.km_data_source == 'raw_norm' ||
              input.km_data_source == 'standardized'",
-            div(class = "step-header", "Pilih Variabel"),
+            div(class = "step-header", "Select Variables"),
             uiOutput("km_var_selector")
           ),
 
@@ -73,13 +73,13 @@ kmeans_tab_ui <- function() {
           tags$hr(),
 
           # 3. Algoritma
-          div(class = "step-header", "3. Algoritma"),
+          div(class = "step-header", "3. Algorithm"),
           selectInput("km_algorithm", NULL,
                       choices  = c("Hartigan-Wong (default)" = "Hartigan-Wong",
                                    "Lloyd (MacQueen)"        = "Lloyd",
                                    "Forgy"                   = "Forgy"),
                       selected = "Hartigan-Wong"),
-          sliderInput("km_nstart", "Starts (ulangan random)",
+          sliderInput("km_nstart", "Starts (random restarts)",
                       min = 1, max = 50, value = 25, step = 1),
 
           tags$hr(),
@@ -95,7 +95,7 @@ kmeans_tab_ui <- function() {
       # ── Kolom Kanan: Output ───────────────────────────────────────────────
       column(9,
         shinydashboard::box(
-          title       = tags$span(icon("object-group"), " Hasil K-Means Clustering"),
+          title       = tags$span(icon("object-group"), " K-Means Clustering Results"),
           status      = "info",
           solidHeader = TRUE,
           width       = 12,
@@ -104,7 +104,7 @@ kmeans_tab_ui <- function() {
 
             # Tab 1: Ringkasan Klaster
             tabPanel(
-              title = tags$span(icon("table"), " Ringkasan"),
+              title = tags$span(icon("table"), " Summary"),
               tags$br(),
               fluidRow(
                 column(6,
@@ -112,7 +112,7 @@ kmeans_tab_ui <- function() {
                   DT::DTOutput("km_summary_table")
                 ),
                 column(6,
-                  div(class = "step-header", "Statistik Within-Cluster SS"),
+                  div(class = "step-header", "Within-Cluster SS Statistics"),
                   DT::DTOutput("km_stats_table")
                 )
               ),

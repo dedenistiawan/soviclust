@@ -10,7 +10,7 @@ alfgwc_tab_ui <- function() {
       # ── KOLOM 1 (width=3): Data Pendukung & Sumber Data ──────────────────────────────
       column(3,
         shinydashboard::box(
-          title       = tags$span(icon("upload"), " Data Pendukung ALFGWC"),
+          title       = tags$span(icon("upload"), " ALFGWC Supporting Data"),
           status      = "warning",
           solidHeader = TRUE,
           width       = 12,
@@ -25,7 +25,7 @@ alfgwc_tab_ui <- function() {
           ),
           div(class = "step-header", "1. Distance Matrix Input"),
           radioButtons("alfgwc_dist_mode", NULL,
-                       choices  = c("Upload Matriks n\u00d7n Jarak" = "matrix",
+                       choices  = c("Upload n\u00d7n Distance Matrix" = "matrix",
                                     "Upload Longitude & Latitude"   = "lonlat"),
                        selected = "matrix"),
           
@@ -55,24 +55,24 @@ alfgwc_tab_ui <- function() {
           div(class = "step-header", "3. Feature Data Source"),
           radioButtons("alfgwc_data_source", NULL,
                        choices = c(
-                         "Data Asli (tanpa transformasi)"   = "raw",
-                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
-                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                         "Original Data (no transformation)" = "raw",
+                         "Normalized Data (0-1)"            = "raw_norm",
+                         "Standardized Data (Z-score)"      = "standardized",
                          "SoVI Score"                       = "sovi",
-                         "Skor RC (komponen PCA)"           = "rc"
+                         "RC Scores (PCA components)"       = "rc"
                        ),
                        selected = "rc"),
           
           conditionalPanel(
             "input.alfgwc_data_source == 'raw' || input.alfgwc_data_source == 'raw_norm' || input.alfgwc_data_source == 'standardized'",
-            div(class = "step-header", "Pilih Variabel"),
+            div(class = "step-header", "Select Variables"),
             uiOutput("alfgwc_var_selector")
           ),
           
           conditionalPanel(
             "input.alfgwc_data_source == 'sovi' || input.alfgwc_data_source == 'rc'",
             div(class = "progress-box", style = "background:#e3f2fd; border-left-color:#1a73c1; font-size:11px; margin-bottom:6px;",
-                icon("info-circle"), " Menggunakan data hasil tahap komputasi.")
+                icon("info-circle"), " Using data from the computation stage.")
           )
         )
       ),
@@ -80,7 +80,7 @@ alfgwc_tab_ui <- function() {
       # ── KOLOM 2 (width=3): Parameter ALFGWC ──────────────────────────────────────────
       column(3,
         shinydashboard::box(
-          title       = tags$span(icon("cog"), " Parameter ALFGWC"),
+          title       = tags$span(icon("cog"), " ALFGWC Parameters"),
           status      = "primary",
           solidHeader = TRUE,
           width       = 12,
@@ -91,11 +91,11 @@ alfgwc_tab_ui <- function() {
           
           div(class = "step-header", "Fuzzifier (m)"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;",
-                 "m=2 default | m>2 lebih fuzzy | m\u21921 mendekati hard clustering"),
+                 "m=2 default | m>2 more fuzzy | m\u21921 approaches hard clustering"),
           sliderInput("alfgwc_m", NULL, min = 1.1, max = 3.0, value = 2.0, step = 0.1),
           
 
-          div(class = "step-header", "Kriteria Ketetanggaan"),
+          div(class = "step-header", "Contiguity Criterion"),
           selectInput("alfgwc_neighbor_type", NULL, 
                       choices = c(
                         "Queen Contiguity" = "queen",
@@ -110,7 +110,7 @@ alfgwc_tab_ui <- function() {
             div(class = "step-header", "Distance Threshold (dthr)"),
             numericInput("alfgwc_dthr", NULL, value = 1.0, step = 0.1),
             div(class = "progress-box", style = "font-size:11px; margin-bottom:10px;",
-                icon("info-circle"), " Radius neighborhood. -99 = mode Global (semua unit).")
+                icon("info-circle"), " Neighborhood radius. -99 = Global mode (all units).")
           ),
           div(class = "step-header", "Mode Weighting (TW)"),
           radioButtons("alfgwc_tw", NULL,
@@ -128,10 +128,10 @@ alfgwc_tab_ui <- function() {
           
           tags$hr(),
           
-          div(class = "step-header", "Maks. Iterasi"),
+          div(class = "step-header", "Max. Iterations"),
           numericInput("alfgwc_maxiter", NULL, value = 100, min = 10, step = 10),
           
-          div(class = "step-header", "Toleransi Konvergensi (\u03b5)"),
+          div(class = "step-header", "Convergence Tolerance (\u03b5)"),
           numericInput("alfgwc_error", NULL, value = 0.001, min = 1e-6, step = 0.001),
           
           div(class = "step-header", "Random Seed"),
@@ -142,45 +142,45 @@ alfgwc_tab_ui <- function() {
       # ── KOLOM 3 (width=3): Parameter Adaptif (Local Moran's I) ───────────────────────
       column(3,
         shinydashboard::box(
-          title       = tags$span(icon("project-diagram"), " Mekanisme Adaptif"),
+          title       = tags$span(icon("project-diagram"), " Adaptive Mechanism"),
           status      = "primary",
           solidHeader = TRUE,
           width       = 12,
           
-          div(class = "step-header", "Target Variabel Local Moran's I"),
+          div(class = "step-header", "Target Variable for Local Moran's I"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;",
-                 "Variabel yang digunakan untuk menghitung Indeks Autokorelasi Spasial (Hotspot/Coldspot)"),
+                 "Variable used to compute Spatial Autocorrelation Index (Hotspot/Coldspot)"),
           uiOutput("alfgwc_moran_var_selector"),
           
           tags$hr(),
           
-          div(class = "step-header", "Aturan Nilai Alpha (\u03b1)"),
+          div(class = "step-header", "Alpha (\u03b1) Rules"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "Old membership weights, dynamically adjusted:"),
           
           div(class = "step-header", "Alpha High"),
-          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Wilayah Hotspot I>0, p<0.05)"),
+          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Hotspot region I>0, p<0.05)"),
           numericInput("alfgwc_alpha_high", NULL, value = 0.8, min = 0, max = 1, step = 0.1),
           
           div(class = "step-header", "Alpha Low"),
-          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Wilayah Coldspot I<0, p<0.05)"),
+          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Coldspot region I<0, p<0.05)"),
           numericInput("alfgwc_alpha_low", NULL, value = 0.2, min = 0, max = 1, step = 0.1),
           
           div(class = "step-header", "Alpha Mid"),
-          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Tidak Signifikan / Lainnya)"),
+          tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;", "(Not Significant / Other)"),
           numericInput("alfgwc_alpha_mid", NULL, value = 0.5, min = 0, max = 1, step = 0.1)
         )
       ),
       # ── KOLOM 4 (width=3): Algoritma Optimasi ──────────────────────────────
       column(3,
         shinydashboard::box(
-          title  = tags$span(icon("microchip"), " Algoritma Optimasi"),
+          title  = tags$span(icon("microchip"), " Optimization Algorithm"),
           status = "primary",
           solidHeader = TRUE,
           width  = 12,
 
-          div(class = "step-header", "5. Pilih Algoritma"),
+          div(class = "step-header", "5. Select Algorithm"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;",
-                 "Classic = ALFGWC murni. Lainnya = optimasi centroid awal."),
+                 "Classic = pure ALFGWC. Others = initial centroid optimization."),
           radioButtons("alfgwc_algorithm", NULL,
                        choices = c(
                          "Classic ALFGWC"                         = "classic",
@@ -201,7 +201,7 @@ alfgwc_tab_ui <- function() {
       # ── KOLOM 5 (width=3): Parameter Algoritma ─────────────────────────────
       column(3,
         shinydashboard::box(
-          title       = tags$span(icon("sliders-h"), " Parameter Algoritma"),
+          title       = tags$span(icon("sliders-h"), " Algorithm Parameters"),
           status      = "info",
           solidHeader = TRUE,
           width       = 12,
@@ -213,7 +213,7 @@ alfgwc_tab_ui <- function() {
             div(class = "step-header", "Number of Particles / Agents"),
             sliderInput("alfgwc_npar", NULL,
                         min = 3, max = 30, value = 10, step = 1),
-            div(class = "step-header", "Konvergensi (same)"),
+            div(class = "step-header", "Convergence (same)"),
             sliderInput("alfgwc_same", NULL,
                         min = 5, max = 30, value = 10, step = 1),
             div(class = "step-header", "Initialization Distribution"),
@@ -227,7 +227,7 @@ alfgwc_tab_ui <- function() {
             div(class = "progress-box",
                 style = "background:#f8f9fa; border-left-color:#adb5bd; font-size:12px;",
                 icon("info-circle"),
-                " Classic ALFGWC: inisialisasi centroid random (uniform/normal).")
+                " Classic ALFGWC: random centroid initialization (uniform/normal).")
           ),
 
           # ABC
@@ -269,14 +269,14 @@ alfgwc_tab_ui <- function() {
             sliderInput("alfgwc_gsa_vmax", NULL,
                         min = 0.1, max = 2.0, value = 0.7, step = 0.1),
             checkboxInput("alfgwc_gsa_new",
-                          "Gunakan GSA versi baru (Li & Dong 2017)",
+                          "Use new GSA version (Li & Dong 2017)",
                           value = FALSE)
           ),
 
           # HHO
           conditionalPanel(
             "input.alfgwc_algorithm == 'hho'",
-            div(class = "step-header", "Algoritma HHO"),
+            div(class = "step-header", "HHO Algorithm"),
             selectInput("alfgwc_hho_algo", NULL,
                         choices  = c("Heidari (2019)" = "heidari",
                                      "Bairathi (2018)" = "bairathi"),
@@ -348,7 +348,7 @@ alfgwc_tab_ui <- function() {
             sliderInput("alfgwc_tlbo_nselect", NULL,
                         min = 2, max = 20, value = 10, step = 1),
             checkboxInput("alfgwc_tlbo_elitism",
-                          "Gunakan Elitisme", value = FALSE),
+                          "Use Elitism", value = FALSE),
             div(class = "step-header", "Number of Elites"),
             numericInput("alfgwc_tlbo_nelite", NULL,
                          value = 2, min = 1, step = 1)
@@ -367,10 +367,10 @@ alfgwc_tab_ui <- function() {
       # ── KOLOM 6 (width=3): Eksekusi + Download ────────────────────────────────────────────────
       column(3,
         shinydashboard::box(
-          title = tags$span(icon("play"), " Eksekusi ALFGWC"),
+          title = tags$span(icon("play"), " Run ALFGWC"),
           status = "success", solidHeader = TRUE, width = 12,
           
-          actionButton("btn_run_alfgwc", "Jalankan ALFGWC",
+          actionButton("btn_run_alfgwc", "Run ALFGWC",
                        icon = icon("cogs"),
                        class = "btn-primary btn-lg btn-block",
                        style = "margin-bottom:15px; font-weight:bold;"),
@@ -378,8 +378,8 @@ alfgwc_tab_ui <- function() {
           uiOutput("alfgwc_run_msg"),
           tags$hr(),
           
-          div(class = "step-header", "Pengaturan Tampilan"),
-          selectInput("alfgwc_palette", "Palet Warna Peta & Grafik",
+          div(class = "step-header", "Display Settings"),
+          selectInput("alfgwc_palette", "Map & Chart Color Palette",
                       choices = c("Dark2", "Set1", "Set2", "Set3", 
                                   "Pastel1", "Pastel2", "Paired", 
                                   "Accent", "Spectral", "RdYlBu"),
@@ -388,7 +388,7 @@ alfgwc_tab_ui <- function() {
           
           div(class = "step-header", "Download Results"),
           downloadButton("dl_alfgwc_csv",
-                         tags$span(icon("download"), " Hasil Cluster (.csv)"),
+                         tags$span(icon("download"), " Cluster Results (.csv)"),
                          class = "btn-info btn-block"),
           tags$br(),
           downloadButton("dl_alfgwc_memb_csv",
@@ -396,7 +396,7 @@ alfgwc_tab_ui <- function() {
                          class = "btn-info btn-block"),
           tags$br(),
           downloadButton("dl_alfgwc_map_png",
-                         tags$span(icon("map"), " Peta Cluster (.png)"),
+                         tags$span(icon("map"), " Cluster Map (.png)"),
                          class = "btn-success btn-block")
         )
       )
@@ -413,24 +413,24 @@ alfgwc_tab_ui <- function() {
 
           tabsetPanel(
             # Tab 1: Ringkasan
-            tabPanel(tags$span(icon("info-circle"), " Ringkasan"),
+            tabPanel(tags$span(icon("info-circle"), " Summary"),
                      tags$br(),
                      uiOutput("alfgwc_summary")),
 
             # Tab 2: Validasi + Konvergensi
-            tabPanel(tags$span(icon("chart-bar"), " Validasi"),
+            tabPanel(tags$span(icon("chart-bar"), " Validation"),
                      tags$br(),
                      div(class = "step-header", "ALFGWC Validation Index"),
                      tags$p(style = "font-size:12px; color:#78909c;",
-                            "PC & IFV: nilai besar lebih baik.",
-                            " CE & SC: nilai kecil lebih baik."),
+                            "PC & IFV: higher is better.",
+                            " CE & SC: lower is better."),
                      DT::DTOutput("alfgwc_val_table"),
                      tags$hr(),
-                     div(class = "step-header", "Konvergensi Objective Function J"),
+                     div(class = "step-header", "Objective Function Convergence"),
                      plotOutput("alfgwc_conv_plot", height = "260px")),
 
             # Tab 3: Peta Cluster
-            tabPanel(tags$span(icon("map"), " Peta Cluster"),
+            tabPanel(tags$span(icon("map"), " Cluster Map"),
                      tags$br(),
                      leaflet::leafletOutput("alfgwc_map", height = "500px")),
 
@@ -441,8 +441,8 @@ alfgwc_tab_ui <- function() {
                          style = "background:#e3f2fd; border-left-color:#1a73c1;
                                   font-size:12px; margin-bottom:8px;",
                          icon("info-circle"),
-                         " Nilai mendekati 1 = unit sangat jelas masuk 1 cluster.",
-                         " Nilai rendah = unit boundary antar cluster (fuzzy)."),
+                         " Values close to 1 = unit clearly belongs to 1 cluster.",
+                         " Low values = boundary units between clusters (fuzzy)."),
                      leaflet::leafletOutput("alfgwc_map_membership", height = "480px")),
 
             # Tab 5: Silhouette
@@ -450,7 +450,7 @@ alfgwc_tab_ui <- function() {
                      tags$br(),
                      fluidRow(
                        column(7,
-                              div(class = "step-header", "Plot Silhouette"),
+                              div(class = "step-header", "Silhouette Plot"),
                               plotOutput("alfgwc_sil_plot", height = "300px")),
                        column(5,
                               div(class = "step-header", "Avg. Silhouette Width"),
@@ -460,12 +460,12 @@ alfgwc_tab_ui <- function() {
                      )),
 
             # Tab 6: Profil Cluster
-            tabPanel(tags$span(icon("th"), " Profil Cluster"),
+            tabPanel(tags$span(icon("th"), " Cluster Profile"),
                      tags$br(),
-                     div(class = "step-header", "Tabel Profil (Mean per Cluster)"),
+                     div(class = "step-header", "Cluster Profile Table (Mean per Cluster)"),
                      DT::DTOutput("alfgwc_profile_table"),
                      tags$hr(),
-                     div(class = "step-header", "Heatmap Profil"),
+                     div(class = "step-header", "Profile Heatmap"),
                      plotOutput("alfgwc_heatmap", height = "320px"),
                      div(style = "text-align:right; margin-top:6px;",
                          downloadButton("dl_alfgwc_heatmap",
@@ -480,7 +480,7 @@ alfgwc_tab_ui <- function() {
                                         class = "btn-sm btn-default"))),
 
             # Tab 7: Data Cluster
-            tabPanel(tags$span(icon("list-ol"), " Data Cluster"),
+            tabPanel(tags$span(icon("list-ol"), " Cluster Data"),
                      tags$br(),
                      DT::DTOutput("alfgwc_result_table")),
 
@@ -490,19 +490,19 @@ alfgwc_tab_ui <- function() {
                      fluidRow(
                        column(3,
                               wellPanel(
-                                tags$strong("Parameter Sammon"),
+                                tags$strong("Sammon Parameters"),
                                 tags$hr(style = "margin-top:5px; margin-bottom:10px;"),
                                 div(class = "progress-box",
                                     style = "background:#e8f5e9; border-left-color:#27ae60;
                                              font-size:11.5px; margin-bottom:8px;",
                                     icon("info-circle"),
-                                    " Memproyeksikan data high-dimensional ke 2D",
-                                    " dengan mempertahankan struktur jarak."),
-                                numericInput("alfgwc_sammon_iter",  "Maks. Iterasi:",
+                                    " Projects high-dimensional data to 2D",
+                                    " while preserving distance structure."),
+                                numericInput("alfgwc_sammon_iter",  "Max. Iterations:",
                                              value = 500, min = 100, step = 100),
                                 numericInput("alfgwc_sammon_magic", "Magic (Step Size):",
                                              value = 0.2, min = 0.01, step = 0.05),
-                                sliderInput("alfgwc_sammon_pt",    "Ukuran Titik:",
+                                sliderInput("alfgwc_sammon_pt",    "Point Size:",
                                             min = 1, max = 6, value = 3, step = 0.5),
                                 tags$hr(style = "margin-top:10px; margin-bottom:8px;"),
                                 downloadButton("dl_alfgwc_sammon",
@@ -522,18 +522,18 @@ alfgwc_tab_ui <- function() {
                      fluidRow(
                        column(3,
                               wellPanel(
-                                tags$strong("Parameter t-SNE"),
+                                tags$strong("t-SNE Parameters"),
                                 tags$hr(style = "margin-top:5px; margin-bottom:10px;"),
                                 div(class = "progress-box",
                                     style = "background:#e3f2fd; border-left-color:#1a73c1;
                                              font-size:11.5px; margin-bottom:8px;",
                                     icon("info-circle"),
-                                    " t-SNE menonjolkan struktur lokal cluster di ruang 2D."),
+                                    " t-SNE highlights local cluster structure in 2D space."),
                                 sliderInput("alfgwc_tsne_perp", "Perplexity:",
                                             min = 5, max = 50, value = 15, step = 5),
-                                numericInput("alfgwc_tsne_iter", "Maks. Iterasi:",
+                                numericInput("alfgwc_tsne_iter", "Max. Iterations:",
                                              value = 1000, min = 250, step = 250),
-                                sliderInput("alfgwc_tsne_pt",   "Ukuran Titik:",
+                                sliderInput("alfgwc_tsne_pt",   "Point Size:",
                                             min = 1, max = 6, value = 3, step = 0.5),
                                 tags$hr(style = "margin-top:10px; margin-bottom:8px;"),
                                 downloadButton("dl_alfgwc_tsne",
@@ -553,18 +553,18 @@ alfgwc_tab_ui <- function() {
                      fluidRow(
                        column(3,
                               wellPanel(
-                                tags$strong("Parameter UMAP"),
+                                tags$strong("UMAP Parameters"),
                                 tags$hr(style = "margin-top:5px; margin-bottom:10px;"),
                                 div(class = "progress-box",
                                     style = "background:#fce4ec; border-left-color:#e91e63;
                                              font-size:11.5px; margin-bottom:8px;",
                                     icon("info-circle"),
-                                    " UMAP menjaga struktur lokal & global, lebih cepat dari t-SNE."),
+                                    " UMAP preserves local & global structure, faster than t-SNE."),
                                 sliderInput("alfgwc_umap_nn", "n_neighbors:",
                                             min = 2, max = 30, value = 15, step = 1),
                                 sliderInput("alfgwc_umap_md", "min_dist:",
                                             min = 0.01, max = 0.99, value = 0.1, step = 0.05),
-                                sliderInput("alfgwc_umap_pt", "Ukuran Titik:",
+                                sliderInput("alfgwc_umap_pt", "Point Size:",
                                             min = 1, max = 6, value = 3, step = 0.5),
                                 tags$hr(style = "margin-top:10px; margin-bottom:8px;"),
                                 downloadButton("dl_alfgwc_umap",

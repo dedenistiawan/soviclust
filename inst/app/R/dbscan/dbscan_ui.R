@@ -25,26 +25,26 @@ dbscan_tab_ui <- function() {
                         font-size:12px; margin-bottom:10px;",
               icon("info-circle"),
               tags$strong(" DBSCAN"), " groups regions based on",
-              tags$strong(" densitas"), " — tidak perlu menentukan k.",
+              tags$strong(" density"), " — no need to specify k.",
               " Points too far from any cluster are classified",
-              " sebagai ", tags$strong("noise (cluster 0)"), "."),
+              " as ", tags$strong("noise (cluster 0)"), "."),
 
           # 1. Epsilon (radius tetangga)
-          div(class = "step-header", "1. Epsilon (\u03b5) — Radius Tetangga"),
+          div(class = "step-header", "1. Epsilon (\u03b5) \u2014 Neighbor Radius"),
           sliderInput("dbs_eps", NULL,
                       min = 0.01, max = 1.0, value = 0.15, step = 0.01),
           div(style = "font-size:12px; color:#78909c; margin-top:-10px;",
               icon("lightbulb"),
-              " Gunakan Tab 'k-NN Distance' untuk memilih eps optimal."),
+              " Use the 'k-NN Distance' tab to choose the optimal eps."),
 
           tags$hr(),
 
           # 2. MinPts
-          div(class = "step-header", "2. MinPts — Minimum Anggota"),
+          div(class = "step-header", "2. MinPts \u2014 Minimum Members"),
           sliderInput("dbs_minpts", NULL,
                       min = 2, max = 20, value = 5, step = 1),
           div(style = "font-size:12px; color:#78909c; margin-top:-10px;",
-              "Aturan: MinPts \u2265 dimensi data + 1."),
+              "Rule: MinPts \u2265 data dimensions + 1."),
 
           tags$hr(),
 
@@ -52,11 +52,11 @@ dbscan_tab_ui <- function() {
           div(class = "step-header", "3. Data Source"),
           radioButtons("dbs_data_source", NULL,
                        choices = c(
-                         "Data Asli (tanpa transformasi)"   = "raw",
-                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
-                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                         "Original Data (no transformation)" = "raw",
+                         "Normalized Data (0-1)"            = "raw_norm",
+                         "Standardized Data (Z-score)"      = "standardized",
                          "SoVI Score"                       = "sovi",
-                         "Skor RC (komponen PCA)"           = "rc"
+                         "RC Scores (PCA components)"       = "rc"
                        ),
                        selected = "rc"
           ),
@@ -65,7 +65,7 @@ dbscan_tab_ui <- function() {
             "input.dbs_data_source == 'raw' ||
              input.dbs_data_source == 'raw_norm' ||
              input.dbs_data_source == 'standardized'",
-            div(class = "step-header", "Pilih Variabel"),
+            div(class = "step-header", "Select Variables"),
             uiOutput("dbs_var_selector")
           ),
 
@@ -78,7 +78,7 @@ dbscan_tab_ui <- function() {
           tags$hr(),
 
           # 4. Skala data
-          checkboxInput("dbs_scale", "Standardisasi tambahan (Z-score)", value = FALSE),
+          checkboxInput("dbs_scale", "Additional standardization (Z-score)", value = FALSE),
 
           tags$hr(),
 
@@ -93,7 +93,7 @@ dbscan_tab_ui <- function() {
       # ── Kolom Kanan: Output ───────────────────────────────────────────────
       column(9,
         shinydashboard::box(
-          title       = tags$span(icon("project-diagram"), " Hasil DBSCAN Clustering"),
+          title       = tags$span(icon("project-diagram"), " DBSCAN Clustering Results"),
           status      = "warning",
           solidHeader = TRUE,
           width       = 12,
@@ -102,7 +102,7 @@ dbscan_tab_ui <- function() {
 
             # Tab 1: Ringkasan
             tabPanel(
-              title = tags$span(icon("table"), " Ringkasan"),
+              title = tags$span(icon("table"), " Summary"),
               tags$br(),
               fluidRow(
                 column(6,
@@ -110,12 +110,12 @@ dbscan_tab_ui <- function() {
                   DT::DTOutput("dbs_summary_table")
                 ),
                 column(6,
-                  div(class = "step-header", "Parameter yang Digunakan"),
+                  div(class = "step-header", "Parameters Used"),
                   uiOutput("dbs_params_info")
                 )
               ),
               tags$br(),
-              div(class = "step-header", "Data per Wilayah"),
+              div(class = "step-header", "Data per Region"),
               DT::DTOutput("dbs_detail_table")
             ),
 
@@ -123,15 +123,15 @@ dbscan_tab_ui <- function() {
             tabPanel(
               title = tags$span(icon("chart-line"), " k-NN Distance"),
               tags$br(),
-              div(class = "step-header", "k-NN Distance Plot — Bantu Memilih Epsilon"),
+              div(class = "step-header", "k-NN Distance Plot \u2014 Help Choose Epsilon"),
               div(style = "font-size:13px; color:#546e7a; margin-bottom:10px;",
                   icon("info-circle"),
-                  " Cari titik ", tags$strong("\"siku\" (knee/elbow)"),
-                  " pada plot. Nilai jarak di titik siku adalah eps yang baik."),
+                  " Look for the ", tags$strong('"elbow/knee"'),
+                  " point on the plot. The distance at that point is a good eps value."),
               plotOutput("dbs_knn_plot", height = "380px"),
               fluidRow(
                 column(4,
-                  sliderInput("dbs_knn_k", "k untuk k-NN Distance:",
+                  sliderInput("dbs_knn_k", "k for k-NN Distance:",
                               min = 2, max = 20, value = 5, step = 1)
                 )
               )

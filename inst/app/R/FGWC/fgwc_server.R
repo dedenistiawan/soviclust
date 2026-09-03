@@ -61,10 +61,10 @@ fgwc_server <- function(input, output, session, rv) {
         df  <- read_uploaded_file(input$fgwc_file_dist)
         mat <- parse_distance_matrix(df)
         attr(mat, "dist_mode") <- "matrix"
-        attr(mat, "dist_unit") <- "unit asli"
+        attr(mat, "dist_unit") <- "original unit"
         mat
       }, error = function(e) {
-        showNotification(paste("Error matriks jarak:", e$message),
+        showNotification(paste("Distance matrix error:", e$message),
                          type = "error", duration = 8)
         NULL
       })
@@ -81,18 +81,18 @@ fgwc_server <- function(input, output, session, rv) {
         lat_col <- names(df)[which(cols %in% c("latitude","lat","y"))[1]]
         id_col  <- names(df)[which(cols %in% c("districtcode","id","kode","code"))[1]]
         
-        if (is.na(lon_col)) stop("Kolom longitude tidak ditemukan.")
-        if (is.na(lat_col)) stop("Kolom latitude tidak ditemukan.")
+        if (is.na(lon_col)) stop("Longitude column not found.")
+        if (is.na(lat_col)) stop("Latitude column not found.")
         
         lon <- as.numeric(df[[lon_col]])
         lat <- as.numeric(df[[lat_col]])
         
         if (any(is.na(lon)) || any(is.na(lat)))
-          stop("Terdapat nilai NA pada kolom longitude/latitude.")
+          stop("NA values found in longitude/latitude columns.")
         if (any(lon < -180 | lon > 180))
-          stop("Nilai longitude di luar rentang -180 hingga 180.")
+          stop("Longitude values out of range -180 to 180.")
         if (any(lat < -90 | lat > 90))
-          stop("Nilai latitude di luar rentang -90 hingga 90.")
+          stop("Latitude values out of range -90 to 90.")
         
         mat <- haversine_matrix(lon, lat)
         
@@ -127,7 +127,7 @@ fgwc_server <- function(input, output, session, rv) {
       pop <- parse_population(df)
       pop
     }, error = function(e) {
-      showNotification(paste("Error data populasi:", e$message),
+      showNotification(paste("Population data error:", e$message),
                        type = "error", duration = 8)
       NULL
     })
@@ -144,23 +144,23 @@ fgwc_server <- function(input, output, session, rv) {
                  style = "background:#fff3cd; border-left-color:#f39c12;
                           font-size:12px;",
                  icon("exclamation-triangle"),
-                 " Belum diupload atau error."))
+                 " Not uploaded or error."))
     }
     mode <- attr(mat, "dist_mode") %||% "matrix"
-    unit <- attr(mat, "dist_unit") %||% "unit asli"
+    unit <- attr(mat, "dist_unit") %||% "original unit"
     
     if (mode == "lonlat") {
       div(class = "progress-box status-ok", style = "font-size:12px;",
           icon("check"),
-          paste0(" Haversine distance dihitung: ", nrow(mat), " \u00d7 ", ncol(mat)),
+          paste0(" Haversine distance computed: ", nrow(mat), " \u00d7 ", ncol(mat)),
           tags$br(),
-          tags$span(style = "color:#27ae60;", icon("ruler"), " Satuan: kilometer"))
+          tags$span(style = "color:#27ae60;", icon("ruler"), " Unit: kilometers"))
     } else {
       div(class = "progress-box status-ok", style = "font-size:12px;",
           icon("check"),
-          paste0(" Matriks dimuat: ", nrow(mat), " \u00d7 ", ncol(mat)),
+          paste0(" Matrix loaded: ", nrow(mat), " \u00d7 ", ncol(mat)),
           tags$br(),
-          tags$span(style = "color:#78909c;", icon("ruler"), " Satuan: ", unit))
+          tags$span(style = "color:#78909c;", icon("ruler"), " Unit: ", unit))
     }
   })
   
@@ -174,10 +174,10 @@ fgwc_server <- function(input, output, session, rv) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12;
                           font-size:12px;",
-                 icon("exclamation-triangle"), " Belum diupload atau error."))
+                 icon("exclamation-triangle"), " Not uploaded or error."))
     }
     div(class = "progress-box status-ok", style = "font-size:12px;",
-        icon("check"), paste0(" Populasi dimuat: ", length(pop), " unit"))
+        icon("check"), paste0(" Population loaded: ", length(pop), " units"))
   })
   
   # ==========================================================================
@@ -193,15 +193,15 @@ fgwc_server <- function(input, output, session, rv) {
                    "raw" = div(class = "progress-box",
                                style = "background:#fff8e1;border-left-color:#f39c12;
                            font-size:11px;margin-bottom:6px;",
-                               icon("exclamation-triangle"), " Nilai mentah tanpa transformasi."),
+                               icon("exclamation-triangle"), " Raw values without transformation."),
                    "raw_norm" = div(class = "progress-box",
                                     style = "background:#fff8e1;border-left-color:#f39c12;
                                 font-size:11px;margin-bottom:6px;",
-                                    icon("info-circle"), " Akan dinormalisasi min-max 0\u20131."),
+                                    icon("info-circle"), " Will be min-max normalized 0\u20131."),
                    "standardized" = div(class = "progress-box",
                                         style = "background:#e3f2fd;border-left-color:#1a73c1;
                                     font-size:11px;margin-bottom:6px;",
-                                        icon("info-circle"), " Z-score dari proses SoVI."),
+                                        icon("info-circle"), " Z-scores from SoVI process."),
                    NULL
     )
     
@@ -221,8 +221,8 @@ fgwc_server <- function(input, output, session, rv) {
     src  <- input$fgwc_data_source
     if (is.null(src)) return(NULL)
     info <- switch(src,
-                   "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
-                   "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
+                   "sovi" = "Using single SoVI Score (0\u20131) as clustering feature.",
+                   "rc"   = "Using RC component scores (PCA Varimax, normalized 0\u20131).",
                    NULL
     )
     if (is.null(info)) return(NULL)
@@ -244,22 +244,22 @@ fgwc_server <- function(input, output, session, rv) {
   
   observeEvent(input$run_fgwc, {
     
-    # â”€â”€ Validasi prasyarat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ────────────────────────── Validasi prasyarat ──────────────────────────
     if (is.null(rv$data)) {
-      showNotification("Upload dataset terlebih dahulu!", type = "warning")
+      showNotification("Upload dataset first!", type = "warning")
       return()
     }
     if (is.null(rv_fgwc_dist())) {
-      showNotification("Upload matriks jarak terlebih dahulu!", type = "warning")
+      showNotification("Upload distance matrix first!", type = "warning")
       return()
     }
     if (is.null(rv_fgwc_pop())) {
-      showNotification("Upload data populasi terlebih dahulu!", type = "warning")
+      showNotification("Upload population data first!", type = "warning")
       return()
     }
     if (input$fgwc_data_source %in% c("sovi","rc","standardized") &&
         is.null(rv$sovi_result)) {
-      showNotification("Jalankan SoVI Computation terlebih dahulu!", type = "warning")
+      showNotification("Run SoVI Computation first!", type = "warning")
       return()
     }
     
@@ -269,11 +269,11 @@ fgwc_server <- function(input, output, session, rv) {
           paste0(" Running FGWC (", toupper(input$fgwc_algorithm), ")..."))
     })
     
-    # â”€â”€ Kumpulkan variabel yang dipilih â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ────────────────────────── Kumpulkan variabel yang dipilih ──────────────────────────
     sel_vars <- if (input$fgwc_data_source %in% c("raw","raw_norm","standardized"))
       input$fgwc_selected_vars else NULL
     
-    # â”€â”€ Kumpulkan parameter FGWC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ────────────────────────── Kumpulkan parameter FGWC ──────────────────────────
     fgwc_params <- list(
       m        = input$fgwc_m,
       distance = "euclidean",
@@ -286,7 +286,7 @@ fgwc_server <- function(input, output, session, rv) {
       randomN  = input$fgwc_seed
     )
     
-    # â”€â”€ Kumpulkan parameter algoritma â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ────────────────────────── Kumpulkan parameter algoritma ──────────────────────────
     algo       <- input$fgwc_algorithm
     opt_params <- list(
       npar       = input$fgwc_npar,
@@ -365,7 +365,7 @@ fgwc_server <- function(input, output, session, rv) {
   })
   
   # ==========================================================================
-  # TAB 1: RINGKASAN
+  # TAB 1: SUMMARY
   # ==========================================================================
   
   output$fgwc_summary <- renderUI({
@@ -374,15 +374,15 @@ fgwc_server <- function(input, output, session, rv) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12;",
                  icon("exclamation-triangle"),
-                 " Jalankan FGWC dengan tombol di panel kiri."))
+                 " Run FGWC using the button in the left panel."))
     }
     
     src_label <- switch(res$data_source,
-                        "raw"          = "Data Asli (tanpa transformasi)",
-                        "raw_norm"     = "Data Asli Ternormalisasi (0-1)",
-                        "standardized" = "Data Z-score",
+                        "raw"          = "Original Data (no transformation)",
+                        "raw_norm"     = "Normalized Data (0-1)",
+                        "standardized" = "Z-score Data",
                         "sovi"         = "SoVI Score",
-                        "rc"           = "Skor RC (komponen PCA)",
+                        "rc"           = "RC Scores (PCA Components)",
                         res$data_source
     )
     
@@ -409,15 +409,15 @@ fgwc_server <- function(input, output, session, rv) {
     div(
       fluidRow(
         column(4, div(class = "info-card",
-                      tags$h4(icon("microchip"), " Algoritma"),
+                      tags$h4(icon("microchip"), " Algorithm"),
                       tags$p(style = "font-size:13px; font-weight:700; color:#1a73c1;",
                              algo_labels[res$algorithm]),
                       tags$p(style = "font-size:12px; color:#78909c;",
-                             "Sumber data: ", src_label),
+                              "Data source: ", src_label),
                       tags$p(style = "font-size:12px; color:#78909c;",
-                             "Features: ", length(res$feat_cols), " dimensi"),
+                             "Features: ", length(res$feat_cols), " dimensions"),
                       tags$p(style = "font-size:12px; color:#78909c;",
-                             "Iterasi: ", res$iteration)
+                              "Iterations: ", res$iteration)
         )),
         column(4, div(class = "info-card",
                       tags$h4(icon("object-group"), " Clustering Results"),
@@ -454,14 +454,14 @@ fgwc_server <- function(input, output, session, rv) {
       fluidRow(column(12,
                       div(class = "info-card",
                           style = "border-left-color:#27ae60; margin-top:4px;",
-                          tags$h4(icon("lightbulb"), " Interpretasi Silhouette"),
+                          tags$h4(icon("lightbulb"), " Silhouette Interpretation"),
                           tags$ul(style = "font-size:12.5px; margin:0;",
                                   tags$li(tags$span(style="color:#27ae60;font-weight:600;","\u2265 0.50"),
-                                          " \u2014 Struktur cluster kuat"),
+                                          " \u2014 Strong cluster structure"),
                                   tags$li(tags$span(style="color:#f39c12;font-weight:600;","0.25\u20130.49"),
-                                          " \u2014 Struktur cluster moderat"),
+                                          " \u2014 Moderate cluster structure"),
                                   tags$li(tags$span(style="color:#e74c3c;font-weight:600;","< 0.25"),
-                                          " \u2014 Struktur cluster lemah, pertimbangkan k lain")
+                                          " \u2014 Weak cluster structure, consider different k")
                           )
                       )
       ))
@@ -483,14 +483,14 @@ fgwc_server <- function(input, output, session, rv) {
   output$fgwc_conv_plot <- renderPlot({
     req(rv$cga_result_fgwc)
     conv <- rv$cga_result_fgwc$conv
-    df   <- data.frame(Iterasi = seq_along(conv), Obj = conv)
-    ggplot2::ggplot(df, ggplot2::aes(x = Iterasi, y = Obj)) +
+    df   <- data.frame(Iteration = seq_along(conv), Obj = conv)
+    ggplot2::ggplot(df, ggplot2::aes(x = Iteration, y = Obj)) +
       ggplot2::geom_line(color = "#1a73c1", linewidth = 1.0) +
       ggplot2::geom_point(color = "#1a73c1", size = 1.5, alpha = 0.5) +
       ggplot2::labs(
-        title = paste("Konvergensi Objective Function \u2014",
+        title = paste("Objective Function Convergence \u2014",
                       toupper(rv$cga_result_fgwc$algorithm)),
-        x = "Iterasi", y = "Objective Function"
+        x = "Iteration", y = "Objective Function"
       ) +
       ggplot2::theme_minimal(base_size = 11)
   })
@@ -522,7 +522,7 @@ fgwc_server <- function(input, output, session, rv) {
     res <- rv$cga_result_fgwc
     if (is.null(res$sil_obj)) {
       plot.new()
-      text(0.5, 0.5, "Silhouette tidak tersedia.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Silhouette not available.", cex = 1.1, col = "grey50")
       return()
     }
     k     <- res$k
@@ -550,9 +550,9 @@ fgwc_server <- function(input, output, session, rv) {
     s <- rv$cga_result_fgwc$sil_mean
     if (is.na(s)) return(NULL)
     cls   <- if (s >= 0.50) "status-ok" else if (s >= 0.25) "status-warn" else "status-err"
-    label <- if (s >= 0.50) "Struktur Kuat \u2713"
-    else if (s >= 0.25) "Struktur Moderat"
-    else "Struktur Lemah \u2717"
+    label <- if (s >= 0.50) "Strong Structure \u2713"
+    else if (s >= 0.25) "Moderate Structure"
+    else "Weak Structure \u2717"
     div(class = paste("progress-box", cls),
         icon("tachometer-alt"),
         paste0(" Mean Silhouette = ", s, " \u2014 ", label))
@@ -636,8 +636,8 @@ fgwc_server <- function(input, output, session, rv) {
     plot.new()
     legend("center", legend = cluster_labels, col = pal_rad,
            lwd = 3, bty = "n", title = "Cluster", cex = 0.85)
-    mtext(paste0("Profil Radar FGWC (", toupper(res$algorithm),
-                 ") \u2014 nilai ternormalisasi 0\u20131"),
+    mtext(paste0("FGWC Radar Profile (", toupper(res$algorithm),
+                 ") \u2014 normalized values 0\u20131"),
           outer = TRUE, line = 0.5, cex = 1.0, font = 2)
   })
   
@@ -659,7 +659,7 @@ fgwc_server <- function(input, output, session, rv) {
     DT::datatable(show_df, filter = "top",
                   options  = list(pageLength = 15, scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = paste0("Hasil FGWC \u2014 Algoritma: ",
+                  caption  = paste0("FGWC Results \u2014 Algorithm: ",
                                     toupper(res$algorithm), " | k=", res$k))
   })
 
@@ -754,7 +754,7 @@ fgwc_server <- function(input, output, session, rv) {
       }
       plot.new()
       legend("center", legend = cluster_labels, col = pal_rad, lwd = 3, bty = "n", title = "Cluster", cex = 0.85)
-      mtext(paste0("Profil Radar FGWC (", toupper(res$algorithm), ") \u2014 nilai ternormalisasi 0\u20131"),
+      mtext(paste0("FGWC Radar Profile (", toupper(res$algorithm), ") \u2014 normalized values 0\u20131"),
             outer = TRUE, line = 0.5, cex = 1.0, font = 2)
       grDevices::dev.off()
     }
@@ -785,7 +785,7 @@ fgwc_server <- function(input, output, session, rv) {
       p <- .dim_reduction_plot(
         df_plot = df_plot, k = k, pal_c = pal_c, pt_sz = pt_sz,
         title_str = paste0("FGWC \u2014 Sammon Mapping (", toupper(res$algorithm), ") | k=", k),
-        subtitle_str = paste0("Stress = ", round(sm$stress, 5), "  |  Iterasi = ", input$fgwc_sammon_iter %||% 500),
+        subtitle_str = paste0("Stress = ", round(sm$stress, 5), "  |  Iterations = ", input$fgwc_sammon_iter %||% 500),
         xlab = "Dim 1", ylab = "Dim 2"
       )
       ggplot2::ggsave(file, plot = p, width = 10, height = 8, dpi = 300, bg = "white")
@@ -816,7 +816,7 @@ fgwc_server <- function(input, output, session, rv) {
       p <- .dim_reduction_plot(
         df_plot = df_plot, k = k, pal_c = pal_c, pt_sz = pt_sz,
         title_str = paste0("FGWC \u2014 t-SNE (", toupper(res$algorithm), ") | k=", k),
-        subtitle_str = paste0("Perplexity = ", perp, "  |  Iterasi = ", input$fgwc_tsne_iter %||% 1000),
+        subtitle_str = paste0("Perplexity = ", perp, "  |  Iterations = ", input$fgwc_tsne_iter %||% 1000),
         xlab = "t-SNE Dim 1", ylab = "t-SNE Dim 2"
       )
       ggplot2::ggsave(file, plot = p, width = 10, height = 8, dpi = 300, bg = "white")
@@ -972,7 +972,7 @@ fgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk Sammon Mapping.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for Sammon Mapping.", cex = 1.1, col = "grey50")
       return()
     }
 
@@ -1016,7 +1016,7 @@ fgwc_server <- function(input, output, session, rv) {
       title_str    = paste0("LFGWC â€” Sammon Mapping (",
                             toupper(res$algorithm), ") | k=", k),
       subtitle_str = paste0("Stress = ", round(sm$stress, 5),
-                            "  |  Iterasi Sammon = ",
+                            "  |  Sammon Iterations = ",
                             input$fgwc_sammon_iter %||% 500),
       xlab         = "Dim 1",
       ylab         = "Dim 2"
@@ -1034,7 +1034,7 @@ fgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk t-SNE.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for t-SNE.", cex = 1.1, col = "grey50")
       return()
     }
 
@@ -1076,7 +1076,7 @@ fgwc_server <- function(input, output, session, rv) {
       title_str    = paste0("LFGWC â€” t-SNE (",
                             toupper(res$algorithm), ") | k=", k),
       subtitle_str = paste0("Perplexity = ", perp,
-                            "  |  Iterasi = ",
+                            "  |  Iterations = ",
                             input$fgwc_tsne_iter %||% 1000),
       xlab         = "t-SNE Dim 1",
       ylab         = "t-SNE Dim 2"
@@ -1094,7 +1094,7 @@ fgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk UMAP.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for UMAP.", cex = 1.1, col = "grey50")
       return()
     }
 

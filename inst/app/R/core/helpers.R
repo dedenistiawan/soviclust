@@ -88,7 +88,7 @@ read_shapefile <- function(files_df) {
   # ── Langkah 2: Identifikasi file .shp ─────────────────────────────────────
   shp_name <- files_df$name[tolower(exts) == "shp"]
   if (length(shp_name) == 0)
-    stop("File .shp tidak ditemukan dalam upload.")
+    stop(".shp file not found in upload.")
   
   # ── Langkah 3: Baca shapefile ─────────────────────────────────────────────
   shp_path <- file.path(tmpdir, shp_name[1])
@@ -118,7 +118,7 @@ validate_data_file <- function(df, filename) {
   # Cek ekstensi
   if (!ext %in% c("xlsx", "csv")) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Format file tidak didukung: '.", ext, "'.\n",
+      "\u274c Unsupported file format: '.", ext, "'.\n",
       "Use an Excel (.xlsx) or CSV (.csv) file."
     )))
   }
@@ -126,7 +126,7 @@ validate_data_file <- function(df, filename) {
   # Cek minimal baris
   if (nrow(df) < 2) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Dataset terlalu kecil: hanya ", nrow(df), " baris.\n",
+      "\u274c Dataset too small: only ", nrow(df), " rows.\n",
       "At least 2 regions are required for analysis."
     )))
   }
@@ -135,7 +135,7 @@ validate_data_file <- function(df, filename) {
   num_cols <- sum(sapply(df, is.numeric))
   if (num_cols < 3) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Dataset hanya memiliki ", num_cols, " kolom numerik.\n",
+      "\u274c Dataset has only ", num_cols, " numeric columns.\n",
       "At least 3 numeric variables required for PCA/SoVI."
     )))
   }
@@ -144,13 +144,13 @@ validate_data_file <- function(df, filename) {
   all_na_rows <- sum(rowSums(is.na(df)) == ncol(df))
   if (all_na_rows > 0) {
     return(list(ok = FALSE, msg = paste0(
-      "\u26a0\ufe0f Ditemukan ", all_na_rows, " baris yang seluruhnya kosong (NA).\n",
-      "Hapus baris kosong dari dataset sebelum upload."
+      "\u26a0\ufe0f Found ", all_na_rows, " completely empty rows (NA).\n",
+      "Remove empty rows from the dataset before uploading."
     )))
   }
 
   list(ok = TRUE, msg = paste0(
-    "\u2713 Dataset valid: ", nrow(df), " baris, ",
+    "\u2713 Dataset valid: ", nrow(df), " rows, ",
     num_cols, " numeric variables."
   ))
 }
@@ -172,9 +172,9 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
   dup_data <- sum(duplicated(data_ids))
   if (dup_data > 0) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Kolom ID '", data_col, "' di dataset memiliki ",
-      dup_data, " nilai duplikat.\n",
-      "Setiap baris harus memiliki ID unik."
+      "\u274c ID column '", data_col, "' in dataset has ",
+      dup_data, " duplicate values.\n",
+      "Each row must have a unique ID."
     )))
   }
 
@@ -182,18 +182,18 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
   dup_shp <- sum(duplicated(shp_ids))
   if (dup_shp > 0) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Kolom ID '", shp_col, "' di shapefile memiliki ",
-      dup_shp, " nilai duplikat.\n",
-      "Setiap fitur spasial harus memiliki ID unik."
+      "\u274c ID column '", shp_col, "' in shapefile has ",
+      dup_shp, " duplicate values.\n",
+      "Each spatial feature must have a unique ID."
     )))
   }
 
   # Cek jumlah baris
   if (n_data != n_shp) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Jumlah baris tidak cocok:\n",
-      "  - Dataset: ", n_data, " baris\n",
-      "  - Shapefile: ", n_shp, " fitur\n",
+      "\u274c Row count mismatch:\n",
+      "  - Dataset  : ", n_data, " rows\n",
+      "  - Shapefile: ", n_shp, " features\n",
       "Ensure both files have the same number of regions."
     )))
   }
@@ -204,10 +204,10 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
 
   if (matched == 0) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Tidak ada ID yang cocok antara dataset dan shapefile.\n",
-      "  - Kolom data   : '", data_col, "' (contoh: ", paste(head(data_ids, 3), collapse = ", "), ")\n",
-      "  - Kolom shapefile: '", shp_col, "' (contoh: ", paste(head(shp_ids, 3), collapse = ", "), ")\n",
-      "Pastikan kedua kolom berisi nilai ID yang sama."
+      "\u274c No matching IDs between dataset and shapefile.\n",
+      "  - Data column    : '", data_col, "' (example: ", paste(head(data_ids, 3), collapse = ", "), ")\n",
+      "  - Shapefile column: '", shp_col, "' (example: ", paste(head(shp_ids, 3), collapse = ", "), ")\n",
+      "Ensure both columns contain the same ID values."
     )))
   }
 
@@ -215,9 +215,9 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
     n_unmatched <- length(unmatched)
     contoh <- paste(head(unmatched, 3), collapse = ", ")
     return(list(ok = FALSE, msg = paste0(
-      "\u26a0\ufe0f ", n_unmatched, " ID di dataset tidak ditemukan di shapefile.\n",
-      "Contoh ID yang tidak cocok: ", contoh, "\n",
-      "Periksa apakah format ID konsisten (misalnya: angka vs teks, spasi, dll)."
+      "\u26a0\ufe0f ", n_unmatched, " IDs in dataset not found in shapefile.\n",
+      "Unmatched ID examples: ", contoh, "\n",
+      "Check whether ID format is consistent (e.g., numeric vs text, spaces, etc)."
     )))
   }
 
@@ -233,7 +233,7 @@ validate_id_match <- function(data_ids, shp_ids, data_col, shp_col) {
 validate_sovi_vars <- function(selected_vars, df) {
   if (length(selected_vars) < 3) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Pilih minimal 3 variabel SoVI.\n",
+      "\u274c Select at least 3 SoVI variables.\n",
       "Currently only ", length(selected_vars), " variables selected."
     )))
   }
@@ -252,9 +252,9 @@ validate_sovi_vars <- function(selected_vars, df) {
                                        function(x) all(is.na(x)))]
   if (length(all_na_vars) > 0) {
     return(list(ok = FALSE, msg = paste0(
-      "\u274c Variabel berikut seluruh nilainya kosong (NA): ",
+      "\u274c The following variables have all missing values (NA): ",
       paste(all_na_vars, collapse = ", "), ".\n",
-      "Hapus atau isi nilai yang hilang sebelum analisis."
+      "Remove or fill missing values before analysis."
     )))
   }
 

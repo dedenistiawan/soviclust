@@ -8,7 +8,7 @@
 # - Adaptive-DLFGWC-QC (TN = QUEEN, TW = DISTANCE_DECAY, A = TRUE)
 # =============================================================================
 
-message("[alfgwc_wrapper] Memuat ALFGWC...")
+message("[alfgwc_wrapper] Loading ALFGWC...")
 
 # =============================================================================
 # FASE 0 — BANGUN SPATIAL WEIGHTS MATRIX W (Adaptive ALFGWC)
@@ -280,7 +280,7 @@ alfgwc_with_optimizer <- function(data, pop_vec, dist_mat, W_std, ncluster, alph
   )
   
   opt_param <- build_opt_param(algorithm, opt_params)
-  message(sprintf("[ALFGWC] Menjalankan %s untuk inisialisasi centroid...", toupper(algorithm)))
+  message(sprintf("[ALFGWC] Running %s for centroid initialization...", toupper(algorithm)))
   
   opt_result <- tryCatch({
     fgwc(
@@ -354,18 +354,18 @@ run_alfgwc_shiny <- function(data_source, raw_data, sovi_result, selected_vars,
   # Gunakan fungsi dari LFGWC untuk standarisasi matrix fitur
   # Jika memilih 'sovi' atau 'rc', sovi_result harus ada. Jika tidak, akan diambil dari raw_data.
   if (data_source %in% c("sovi", "rc") && is.null(sovi_result)) {
-    stop("Sumber data 'SoVI Score' atau 'Skor RC' dipilih, tetapi hasil SoVI belum tersedia.")
+    stop("Data source 'SoVI Score' or 'RC Scores' selected, but SoVI results are not available.")
   }
   feat_df <- build_lfgwc_feature_matrix(data_source, raw_data, sovi_result, selected_vars)
   n <- nrow(feat_df)
   
   # Bangun Spatial Weights Matrix
-  if (is.null(nb_list)) stop("Daftar ketetanggaan (nb_list) tidak valid.")
+  if (is.null(nb_list)) stop("Neighborhood list (nb_list) is not valid.")
   W_std <- build_alfgwc_weights(dist_mat, pop_vec, nb_list, tw, gamma)
   
   # Tentukan nilai Alpha secara adaptif menggunakan Local Moran's I
   if (is.null(lisa_p) || is.null(lisa_I)) {
-    stop("Local Moran's I (lisa_p, lisa_I) tidak ditemukan.")
+    stop("Local Moran's I (lisa_p, lisa_I) not found.")
   }
   
   alpha_v <- numeric(n)
@@ -442,16 +442,16 @@ run_alfgwc_shiny <- function(data_source, raw_data, sovi_result, selected_vars,
   # Tabel indeks validasi
   val      <- result$validation
   val_df   <- data.frame(
-    Indeks     = c("PC (max)", "CE (min)", "SC (min)", "SI (max)", "XB (min)", "IFV (max)", "Kwon (min)"),
-    Nilai      = round(c(val$PC, val$CE, val$SC, sil_mean, val$XB, val$IFV, val$Kwon), 6),
-    Keterangan = c(
-      "Partition Coefficient — lebih tinggi lebih baik",
-      "Classification Entropy — lebih rendah lebih baik",
-      "Partition Index — lebih rendah lebih baik",
-      "Silhouette Index — lebih tinggi lebih baik",
-      "Xie-Beni Index — lebih rendah lebih baik",
-      "IFV Spatial Index — lebih tinggi lebih baik",
-      "Kwon Index — lebih rendah lebih baik"
+    Index      = c("PC (max)", "CE (min)", "SC (min)", "SI (max)", "XB (min)", "IFV (max)", "Kwon (min)"),
+    Value      = round(c(val$PC, val$CE, val$SC, sil_mean, val$XB, val$IFV, val$Kwon), 6),
+    Description = c(
+      "Partition Coefficient \u2014 higher is better",
+      "Classification Entropy \u2014 lower is better",
+      "Partition Index \u2014 lower is better",
+      "Silhouette Index \u2014 higher is better",
+      "Xie-Beni Index \u2014 lower is better",
+      "IFV Spatial Index \u2014 higher is better",
+      "Kwon Index \u2014 lower is better"
     ),
     stringsAsFactors = FALSE
   )

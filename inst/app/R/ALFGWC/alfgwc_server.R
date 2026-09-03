@@ -62,10 +62,10 @@ alfgwc_server <- function(input, output, session, rv) {
         df  <- read_uploaded_file(input$alfgwc_file_dist)
         mat <- parse_distance_matrix(df)
         attr(mat, "dist_mode") <- "matrix"
-        attr(mat, "dist_unit") <- "unit asli"
+        attr(mat, "dist_unit") <- "original unit"
         mat
       }, error = function(e) {
-        showNotification(paste("Error matriks jarak:", e$message),
+        showNotification(paste("Distance matrix error:", e$message),
                          type = "error", duration = 8)
         NULL
       })
@@ -83,18 +83,18 @@ alfgwc_server <- function(input, output, session, rv) {
         id_col   <- names(df)[which(cols %in% c("districtcode", "id", "kode",
                                                 "code", "regions"))[1]]
         
-        if (is.na(lon_col)) stop("Kolom longitude tidak ditemukan.")
-        if (is.na(lat_col)) stop("Kolom latitude tidak ditemukan.")
+        if (is.na(lon_col)) stop("Longitude column not found.")
+        if (is.na(lat_col)) stop("Latitude column not found.")
         
         lon <- as.numeric(df[[lon_col]])
         lat <- as.numeric(df[[lat_col]])
         
         if (any(is.na(lon)) || any(is.na(lat)))
-          stop("Terdapat nilai NA pada kolom longitude/latitude.")
+          stop("NA values found in longitude/latitude columns.")
         if (any(lon < -180 | lon > 180))
-          stop("Nilai longitude di luar rentang -180 hingga 180.")
+          stop("Longitude values out of range -180 to 180.")
         if (any(lat < -90  | lat > 90))
-          stop("Nilai latitude di luar rentang -90 hingga 90.")
+          stop("Latitude values out of range -90 to 90.")
         
         # Hitung Haversine distance matrix
         mat <- haversine_matrix(lon, lat)
@@ -131,14 +131,14 @@ alfgwc_server <- function(input, output, session, rv) {
       pop <- parse_population(df)
       pop
     }, error = function(e) {
-      showNotification(paste("Error data populasi:", e$message),
+      showNotification(paste("Population data error:", e$message),
                        type = "error", duration = 8)
       NULL
     })
   })
   
   # ==========================================================================
-  # OUTPUT: Status upload matriks jarak
+  # OUTPUT: Distance matrix upload status
   # ==========================================================================
   
   output$alfgwc_dist_status <- renderUI({
@@ -148,31 +148,31 @@ alfgwc_server <- function(input, output, session, rv) {
                  style = "background:#fff3cd; border-left-color:#f39c12;
                           font-size:12px;",
                  icon("exclamation-triangle"),
-                 " Belum diupload atau error."))
+                 " Not uploaded or error."))
     }
     
     mode <- attr(mat, "dist_mode") %||% "matrix"
-    unit <- attr(mat, "dist_unit") %||% "unit asli"
+    unit <- attr(mat, "dist_unit") %||% "original unit"
     
     if (mode == "lonlat") {
       div(class = "progress-box status-ok", style = "font-size:12px;",
           icon("check"),
-          paste0(" Haversine distance dihitung: ", nrow(mat), " × ", ncol(mat)),
+          paste0(" Haversine distance computed: ", nrow(mat), " \u00d7 ", ncol(mat)),
           tags$br(),
           tags$span(style = "color:#27ae60;",
-                    icon("ruler"), " Satuan: kilometer"))
+                    icon("ruler"), " Unit: kilometers"))
     } else {
       div(class = "progress-box status-ok", style = "font-size:12px;",
           icon("check"),
-          paste0(" Matriks dimuat: ", nrow(mat), " × ", ncol(mat)),
+          paste0(" Matrix loaded: ", nrow(mat), " \u00d7 ", ncol(mat)),
           tags$br(),
           tags$span(style = "color:#78909c;",
-                    icon("ruler"), " Satuan: ", unit))
+                    icon("ruler"), " Unit: ", unit))
     }
   })
   
   # ==========================================================================
-  # OUTPUT: Status upload populasi
+  # OUTPUT: Population upload status
   # ==========================================================================
   
   output$alfgwc_pop_status <- renderUI({
@@ -182,42 +182,42 @@ alfgwc_server <- function(input, output, session, rv) {
                  style = "background:#fff3cd; border-left-color:#f39c12;
                           font-size:12px;",
                  icon("exclamation-triangle"),
-                 " Belum diupload atau error."))
+                 " Not uploaded or error."))
     }
     div(class = "progress-box status-ok", style = "font-size:12px;",
         icon("check"),
-        paste0(" Populasi dimuat: ", length(pop), " unit"))
+        paste0(" Population loaded: ", length(pop), " units"))
   })
   
   # ==========================================================================
-  # OUTPUT: Info dthr — tampilkan max_dist dari matriks jarak
+  # OUTPUT: Info dthr — display max_dist from distance matrix
   # ==========================================================================
   
   output$alfgwc_dthr_info <- renderUI({
     mat <- rv_alfgwc_dist()
     if (is.null(mat)) return(NULL)
     
-    # Hitung jarak minimum agar tiap unit punya ≥1 tetangga
+    # Calculate min distance so every unit has ≥1 neighbor
     dist_aux       <- mat
     diag(dist_aux) <- NA
     col_mins       <- apply(dist_aux, 2, min, na.rm = TRUE)
     max_dist       <- round(max(col_mins), 2)
     
     mode <- attr(mat, "dist_mode") %||% "matrix"
-    unit <- if (mode == "lonlat") "km" else "unit asli"
+    unit <- if (mode == "lonlat") "km" else "original unit"
     
     div(class = "progress-box",
         style = "background:#e3f2fd; border-left-color:#1a73c1;
                  font-size:11.5px; margin-bottom:6px;",
         icon("info-circle"),
-        tags$strong(sprintf(" Min. dthr aman: %.2f %s", max_dist, unit)),
-        sprintf(" (jarak minimum agar setiap unit punya ≥1 tetangga)."),
+        tags$strong(sprintf(" Safe min. dthr: %.2f %s", max_dist, unit)),
+        sprintf(" (minimum distance so every unit has \u22651 neighbor)."),
         tags$br(),
-        "Set -99 untuk mode Global (semua unit).")
+        "Set -99 for Global mode (all units).")
   })
   
   # ==========================================================================
-  # OUTPUT: Pilihan variabel dinamis sesuai sumber data
+  # OUTPUT: Dynamic variable selector according to data source
   # ==========================================================================
   
   output$alfgwc_var_selector <- renderUI({
@@ -230,17 +230,17 @@ alfgwc_server <- function(input, output, session, rv) {
                                         style = "background:#fff8e1;border-left-color:#f39c12;
                                     font-size:11px;margin-bottom:6px;",
                                         icon("exclamation-triangle"),
-                                       " Nilai mentah tanpa transformasi."),
+                                        " Raw values without transformation."),
                    "raw_norm"     = div(class = "progress-box",
                                         style = "background:#fff8e1;border-left-color:#f39c12;
                                     font-size:11px;margin-bottom:6px;",
                                         icon("info-circle"),
-                                        " Akan dinormalisasi min-max 0–1."),
+                                        " Will be min-max normalized 0\u20131."),
                    "standardized" = div(class = "progress-box",
                                         style = "background:#e3f2fd;border-left-color:#1a73c1;
                                     font-size:11px;margin-bottom:6px;",
                                         icon("info-circle"),
-                                        " Z-score dari SoVI. ALFGWC akan normalisasi ke [0,1]."),
+                                        " Z-scores from SoVI. ALFGWC will normalize to [0,1]."),
                    NULL
     )
     
@@ -262,22 +262,21 @@ alfgwc_server <- function(input, output, session, rv) {
     src <- input$alfgwc_data_source %||% "raw"
     
     if (src == "sovi") {
-      # Jika sumber dari SoVI, hanya ada 1 variabel target: hasil komputasi SoVI (biasanya kolom sovi_result)
-      # Oleh karena itu, kita tidak perlu memunculkan pilihan, atau cukup beritahu user.
+      # If source is SoVI, only 1 target variable: SoVI computation result (usually sovi_result column)
       div(class = "progress-box", style = "font-size:11px; margin-bottom:10px;",
-          icon("info-circle"), " Local Moran's I dihitung otomatis dari Skor SoVI.")
+          icon("info-circle"), " Local Moran's I computed automatically from SoVI Score.")
     } else {
-      # Jika sumber dari Raw atau Standardized
-      # Biarkan user memilih variabel spesifik atau rata-rata
+      # If source is Raw or Standardized
+      # Let user choose specific variable or mean
       var_choices <- c("Mean of selected features" = "mean_selected", input$alfgwc_selected_vars)
       
       selectInput("alfgwc_moran_var", 
-                  "Variabel untuk Local Moran's I:", 
+                  "Variable for Local Moran's I:", 
                   choices = var_choices,
                   selected = "mean_selected")
     }
   })
-  # OUTPUT: Info sumber data (sovi / rc)
+  # OUTPUT: Info data source (sovi / rc)
   # ==========================================================================
   
   output$alfgwc_datasource_info <- renderUI({
@@ -286,7 +285,7 @@ alfgwc_server <- function(input, output, session, rv) {
     
     info <- switch(src,
                    "sovi" = "Single SoVI Score (0–1) as clustering feature.",
-                   "rc"   = "Skor RC (komponen PCA Varimax, ternormalisasi 0–1).",
+                   "rc"   = "RC Scores (PCA Varimax components, normalized 0\u20131).",
                    NULL
     )
     if (is.null(info)) return(NULL)
@@ -313,24 +312,24 @@ alfgwc_server <- function(input, output, session, rv) {
     dist_mat <- rv_alfgwc_dist()
     pop_vec <- rv_alfgwc_pop()
     if (is.null(dist_mat) || is.null(pop_vec)) {
-      showNotification("Matriks jarak dan populasi wajib diupload.", type = "error")
+      showNotification("Distance matrix and population data are required.", type = "error")
       return()
     }
     
     id_col <- rv$col_id %||% names(rv$data)[1]
     name_col <- rv$col_name %||% names(rv$data)[2]
     
-    withProgress(message = 'Menjalankan ALFGWC...', value = 0.3, {
+    withProgress(message = 'Running ALFGWC...', value = 0.3, {
       
       tryCatch({
-        # 1. Penentuan Ketetanggaan
+        # 1. Neighborhood determination
         join_shp <- input$join_shp %||% names(rv$shp)[1]
         shp_ids  <- normalize_id(rv$shp[[join_shp]])
         df_ids   <- normalize_id(rv$data[[id_col]])
         
         idx <- match(df_ids, shp_ids)
         if (any(is.na(idx))) {
-          stop("ID pada dataset tidak cocok dengan ID pada shapefile.")
+          stop("IDs in dataset do not match IDs in shapefile.")
         }
         
         shp_ordered <- rv$shp[idx, ]
@@ -358,7 +357,7 @@ alfgwc_server <- function(input, output, session, rv) {
             class(nb) <- "nb"
         }
         
-        # Tangani pulau (tanpa tetangga) dengan KNN=1
+        # Handle islands (no neighbors) with KNN=1
         islands <- which(spdep::card(nb) == 0)
         if (length(islands) > 0) {
           coords <- suppressWarnings(sf::st_coordinates(sf::st_centroid(sf::st_geometry(shp_ordered))))
@@ -371,7 +370,7 @@ alfgwc_server <- function(input, output, session, rv) {
         nb_list <- nb
         lw <- spdep::nb2listw(nb_list, style = "W", zero.policy = TRUE)
         
-        # 2. Hitung Local Moran's I
+        # 2. Calculate Local Moran's I
         feat_df <- build_lfgwc_feature_matrix(input$alfgwc_data_source, rv$data, rv$sovi_result, input$alfgwc_selected_vars)
         
         if (input$alfgwc_moran_var == "mean_selected") {
@@ -384,9 +383,9 @@ alfgwc_server <- function(input, output, session, rv) {
         lisa_I <- locm[, 1]
         lisa_p <- locm[, 5]
         
-        incProgress(0.2, message = "Memulai iterasi ALFGWC...")
+        incProgress(0.2, message = "Starting ALFGWC iterations...")
         
-        # Kumpulkan parameter algoritma optimasi
+        # Gather optimization algorithm parameters
         algo <- input$alfgwc_algorithm
         opt_params <- list(
           npar       = input$alfgwc_npar,
@@ -431,7 +430,7 @@ alfgwc_server <- function(input, output, session, rv) {
           woa_b      = input$alfgwc_woa_b
         )
         
-        # 3. Jalankan wrapper ALFGWC
+        # 3. Run ALFGWC wrapper
         res <- run_alfgwc_shiny(
           data_source   = input$alfgwc_data_source,
           raw_data      = rv$data,
@@ -459,7 +458,7 @@ alfgwc_server <- function(input, output, session, rv) {
         )
         
         rv_alfgwc_result(res)
-        showNotification("ALFGWC berhasil dijalankan!", type = "message")
+        showNotification("ALFGWC completed successfully!", type = "message")
         
       }, error = function(e) {
         showNotification(paste("Error ALFGWC:", e$message), type = "error")
@@ -469,7 +468,7 @@ alfgwc_server <- function(input, output, session, rv) {
   })
   
   # ==========================================================================
-  # TAB 1: RINGKASAN PARAMETER
+  # TAB 1: PARAMETER SUMMARY
   # ==========================================================================
   
   output$alfgwc_summary <- renderUI({
@@ -478,15 +477,15 @@ alfgwc_server <- function(input, output, session, rv) {
       return(div(class = "progress-box",
                  style = "background:#fff3cd; border-left-color:#f39c12;",
                  icon("exclamation-triangle"),
-                 " Jalankan ALFGWC dengan tombol di panel kiri."))
+                 " Run ALFGWC using the button in the left panel."))
     }
     
     src_label <- switch(res$data_source,
-                        "raw"          = "Data Asli (tanpa transformasi)",
-                        "raw_norm"     = "Data Asli Ternormalisasi (0-1)",
-                        "standardized" = "Data Z-score → Normalisasi [0,1]",
+                        "raw"          = "Original Data (no transformation)",
+                        "raw_norm"     = "Normalized Data (0-1)",
+                        "standardized" = "Z-score Data \u2192 Normalized [0,1]",
                         "sovi"         = "SoVI Score",
-                        "rc"           = "Skor RC (komponen PCA)",
+                        "rc"           = "RC Scores (PCA Components)",
                         res$data_source
     )
     
@@ -510,16 +509,16 @@ alfgwc_server <- function(input, output, session, rv) {
                    tags$p(style = "font-size:13px; font-weight:700; color:#1a73c1;",
                           algo_labels[res$algorithm]),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Sumber data: ", src_label),
+                          "Data source: ", src_label),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Features: ", length(res$feat_cols), " dimensi"),
+                          "Features: ", length(res$feat_cols), " dimensions"),
                    tags$p(style = "font-size:12px; color:#78909c;",
-                          "Iterasi: ", res$iteration)
+                          "Iterations: ", res$iteration)
                )
         ),
         column(4,
                div(class = "info-card",
-                   tags$h4(icon("map-marker-alt"), " Parameter Spasial ALFGWC"),
+                   tags$h4(icon("map-marker-alt"), " ALFGWC Spatial Parameters"),
                    tags$p(style = "font-size:13px;",
                           tags$strong("Mode: "), res$mode_label),
                    tags$p(style = "font-size:13px;",
@@ -581,15 +580,15 @@ alfgwc_server <- function(input, output, session, rv) {
   output$alfgwc_conv_plot <- renderPlot({
     req(rv_alfgwc_result())
     conv <- rv_alfgwc_result()$conv
-    df   <- data.frame(Iterasi = seq_along(conv), J = conv)
+    df   <- data.frame(Iteration = seq_along(conv), J = conv)
     
-    ggplot2::ggplot(df, ggplot2::aes(x = Iterasi, y = J)) +
+    ggplot2::ggplot(df, ggplot2::aes(x = Iteration, y = J)) +
       ggplot2::geom_line(color = "#1a73c1", linewidth = 1.0) +
       ggplot2::geom_point(color = "#1a73c1", size = 1.5, alpha = 0.6) +
       ggplot2::labs(
-        title = paste("Konvergensi Objective Function J —",
+        title = paste("Objective Function J Convergence \u2014",
                       toupper(rv_alfgwc_result()$algorithm)),
-        x = "Iterasi", y = "J (Objective Function)"
+        x = "Iteration", y = "J (Objective Function)"
       ) +
       ggplot2::theme_minimal(base_size = 11)
   })
@@ -685,8 +684,8 @@ alfgwc_server <- function(input, output, session, rv) {
     if (is.na(s)) return(NULL)
     cls   <- if (s >= 0.50) "status-ok"   else
       if (s >= 0.25) "status-warn" else "status-err"
-    label <- if (s >= 0.50) "Struktur Kuat ✓" else
-      if (s >= 0.25) "Struktur Moderat" else "Struktur Lemah ✗"
+    label <- if (s >= 0.50) "Strong Structure \u2713" else
+      if (s >= 0.25) "Moderate Structure" else "Weak Structure \u2717"
     div(class = paste("progress-box", cls),
         icon("tachometer-alt"),
         paste0(" Mean Silhouette = ", s, " — ", label))
@@ -796,8 +795,8 @@ alfgwc_server <- function(input, output, session, rv) {
            bty    = "n",
            title  = "Cluster",
            cex    = 0.85)
-    mtext(paste0("Profil Radar ALFGWC (", toupper(res$algorithm),
-                 ") — nilai ternormalisasi 0–1"),
+    mtext(paste0("ALFGWC Radar Profile (", toupper(res$algorithm),
+                 ") \u2014 normalized values 0\u20131"),
           outer = TRUE, line = 0.5, cex = 1.0, font = 2)
   })
   
@@ -991,7 +990,7 @@ alfgwc_server <- function(input, output, session, rv) {
       }
       plot.new()
       legend("center", legend = cluster_labels, col = pal_rad, lwd = 3, bty = "n", title = "Cluster", cex = 0.85)
-      mtext(paste0("Profil Radar ALFGWC (", toupper(res$algorithm), ") \u2014 nilai ternormalisasi 0\u20131"),
+      mtext(paste0("ALFGWC Radar Profile (", toupper(res$algorithm), ") \u2014 normalized values 0\u20131"),
             outer = TRUE, line = 0.5, cex = 1.0, font = 2)
       grDevices::dev.off()
     }
@@ -1185,7 +1184,7 @@ alfgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk Sammon Mapping.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for Sammon Mapping.", cex = 1.1, col = "grey50")
       return()
     }
 
@@ -1229,7 +1228,7 @@ alfgwc_server <- function(input, output, session, rv) {
       title_str    = paste0("ALFGWC — Sammon Mapping (",
                             toupper(res$algorithm), ") | k=", k),
       subtitle_str = paste0("Stress = ", round(sm$stress, 5),
-                            "  |  Iterasi Sammon = ",
+                            "  |  Sammon Iterations = ",
                             input$alfgwc_sammon_iter %||% 500),
       xlab         = "Dim 1",
       ylab         = "Dim 2"
@@ -1247,7 +1246,7 @@ alfgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk t-SNE.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for t-SNE.", cex = 1.1, col = "grey50")
       return()
     }
 
@@ -1289,7 +1288,7 @@ alfgwc_server <- function(input, output, session, rv) {
       title_str    = paste0("ALFGWC — t-SNE (",
                             toupper(res$algorithm), ") | k=", k),
       subtitle_str = paste0("Perplexity = ", perp,
-                            "  |  Iterasi = ",
+                            "  |  Iterations = ",
                             input$alfgwc_tsne_iter %||% 1000),
       xlab         = "t-SNE Dim 1",
       ylab         = "t-SNE Dim 2"
@@ -1307,7 +1306,7 @@ alfgwc_server <- function(input, output, session, rv) {
 
     if (is.null(feat_mat) || nrow(feat_mat) < 3) {
       plot.new()
-      text(0.5, 0.5, "Data tidak cukup untuk UMAP.", cex = 1.1, col = "grey50")
+      text(0.5, 0.5, "Insufficient data for UMAP.", cex = 1.1, col = "grey50")
       return()
     }
 

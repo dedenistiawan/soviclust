@@ -25,11 +25,11 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
     n   <- nrow(rv$data)
     p   <- length(rv$sovi_vars)
     est <- dplyr::case_when(
-      n > 2000 ~ paste0("\u26a0\ufe0f Dataset besar (", n, " baris \u00d7 ", p, " var). ",
-                        "Estimasi PCA: ~10-30 detik."),
-      n > 500  ~ paste0("\u23f1 Dataset sedang (", n, " baris \u00d7 ", p, " var). ",
+      n > 2000 ~ paste0("\u26a0\ufe0f Large dataset (", n, " rows \u00d7 ", p, " vars). ",
+                        "Estimated PCA: ~10-30 seconds."),
+      n > 500  ~ paste0("\u23f1 Medium dataset (", n, " rows \u00d7 ", p, " vars). ",
                         "Estimated PCA: ~3-8 seconds."),
-      TRUE     ~ paste0("\u26a1 Dataset kecil (", n, " baris \u00d7 ", p, " var). ",
+      TRUE     ~ paste0("\u26a1 Small dataset (", n, " rows \u00d7 ", p, " vars). ",
                         "Estimated PCA: < 2 seconds.")
     )
     tags$div(
@@ -40,7 +40,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
         tags$span(style = "color:#e67e22;",
                   tags$br(),
                   icon("lightbulb"),
-                  " Tips: Gunakan subset data dulu untuk eksplorasi, lalu run pada dataset lengkap.")
+                  " Tip: Use a data subset first for exploration, then run on the full dataset.")
     )
   })
 
@@ -76,10 +76,10 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       rv$sovi_ok     <- TRUE
       output$sovi_progress <- renderUI({
         div(class = "progress-box status-ok",
-            icon("bolt"), " SoVI diambil dari cache \u2014 data tidak berubah!")
+            icon("bolt"), " SoVI loaded from cache \u2014 data unchanged!")
       })
       showNotification(
-        "\u26a1 Cache hit! Hasil SoVI sebelumnya digunakan (data & parameter sama).",
+        "\u26a1 Cache hit! Previous SoVI result used (same data & parameters).",
         type = "message", duration = 4
       )
       unlock_tab("tab_analysis"); unlock_tab("tab_clustgeo_adv")
@@ -94,7 +94,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
     output$sovi_progress <- renderUI({
       div(class = "progress-box", style = "background:#cce5ff;",
           icon("spinner", class = "fa-spin"),
-          " Menghitung SoVI \u2014 6 fase pipeline...")
+          " Computing SoVI \u2014 6 pipeline phases...")
     })
 
     # Progress tracker: run_sovi_core melaporkan posisi absolut (0..1)
@@ -143,7 +143,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
       unlock_tab("tab_kmeans");       unlock_tab("tab_dbscan")
       unlock_tab("tab_download")
       showNotification(
-        "\u2713 SoVI berhasil dihitung. Tab Extended Analysis, Cluster Analysis & Downloads sudah terbuka.",
+        "\u2713 SoVI computed successfully. Extended Analysis, Cluster Analysis & Downloads tabs are now unlocked.",
         type = "message", duration = 5
       )
     }
@@ -151,7 +151,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
     output$sovi_progress <- renderUI({
       if (isTRUE(rv$sovi_ok))
         div(class = "progress-box status-ok",
-            icon("check"), " SoVI berhasil dihitung!")
+            icon("check"), " SoVI computed successfully!")
       else
         div(class = "progress-box status-err",
             icon("times"), " Failed. Check data & configuration.")

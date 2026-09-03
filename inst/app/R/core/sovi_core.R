@@ -94,12 +94,12 @@ run_pca <- function(Z,
   kmo_per_var <- round(kmo_result$MSAi, 3)
   
   kmo_label <- dplyr::case_when(
-    kmo_overall >= 0.90 ~ "Sangat Baik (Marvelous)",
-    kmo_overall >= 0.80 ~ "Baik (Meritorious)",
-    kmo_overall >= 0.70 ~ "Cukup (Middling)",
-    kmo_overall >= 0.60 ~ "Moderate (Mediocre)",
-    kmo_overall >= 0.50 ~ "Buruk (Miserable)",
-    TRUE                ~ "Tidak Dapat Diterima"
+    kmo_overall >= 0.90 ~ "Marvelous",
+    kmo_overall >= 0.80 ~ "Meritorious",
+    kmo_overall >= 0.70 ~ "Middling",
+    kmo_overall >= 0.60 ~ "Mediocre",
+    kmo_overall >= 0.50 ~ "Miserable",
+    TRUE                ~ "Unacceptable"
   )
   
   # ── Bartlett's Test of Sphericity ─────────────────────────────────────────
@@ -128,9 +128,9 @@ run_pca <- function(Z,
     Variabel    = names(communalities),
     Communality = round(communalities, 3),
     Status      = dplyr::case_when(
-      communalities >= 0.70 ~ "Sangat Baik",
-      communalities >= 0.50 ~ "Cukup Baik",
-      communalities >= 0.40 ~ "Batas Minimum",
+      communalities >= 0.70 ~ "Excellent",
+      communalities >= 0.50 ~ "Acceptable",
+      communalities >= 0.40 ~ "Minimum Threshold",
       TRUE                  ~ "Low"
     ),
     stringsAsFactors = FALSE

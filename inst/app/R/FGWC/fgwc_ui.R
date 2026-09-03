@@ -43,7 +43,7 @@ fgwc_tab_ui <- function() {
           ),
           div(class = "step-header", "1. Distance Matrix Input"),
           radioButtons("fgwc_dist_mode", NULL,
-                       choices  = c("Upload Matriks n\u00d7n Jarak" = "matrix",
+                       choices  = c("Upload n\u00d7n Distance Matrix" = "matrix",
                                     "Upload Longitude & Latitude"   = "lonlat"),
                        selected = "matrix"
           ),
@@ -56,7 +56,7 @@ fgwc_tab_ui <- function() {
                    " File Excel/CSV with distance matrix n\u00d7n regions."),
             fileInput("fgwc_file_dist", NULL,
                       accept = c(".xlsx", ".csv"),
-                      placeholder = "Belum ada file")
+                      placeholder = "No file selected")
           ),
 
           # Mode: Hitung dari lon/lat
@@ -64,17 +64,17 @@ fgwc_tab_ui <- function() {
             "input.fgwc_dist_mode == 'lonlat'",
             tags$p(style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                    icon("info-circle"),
-                   " File Excel/CSV dengan kolom: DISTRICTCODE, longitude, latitude."),
+                   " Excel/CSV file with columns: DISTRICTCODE, longitude, latitude."),
             fileInput("fgwc_file_lonlat", NULL,
                       accept = c(".xlsx", ".csv"),
-                      placeholder = "Belum ada file"),
+                      placeholder = "No file selected"),
             div(class = "progress-box",
                 style = "background:#e8f5e9; border-left-color:#27ae60;
                          font-size:11.5px; margin-bottom:6px;",
                 icon("info-circle"),
-                " Jarak dihitung otomatis menggunakan",
+                " Distance is calculated automatically using",
                 tags$strong(" Haversine Distance"),
-                " (satuan: kilometer).")
+                " (unit: kilometers).")
           ),
 
           uiOutput("fgwc_dist_status"),
@@ -84,10 +84,10 @@ fgwc_tab_ui <- function() {
           div(class = "step-header", "2. Upload Population Data"),
           tags$p(style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                  icon("info-circle"),
-                 " File Excel/CSV berisi 1 kolom populasi (n baris)."),
+                 " Excel/CSV file: 1 population column (n rows)."),
           fileInput("fgwc_file_pop", NULL,
                     accept = c(".xlsx", ".csv"),
-                    placeholder = "Belum ada file"),
+                    placeholder = "No file selected"),
           uiOutput("fgwc_pop_status")
         ),
 
@@ -101,11 +101,11 @@ fgwc_tab_ui <- function() {
           div(class = "step-header", "3. Feature Data Source"),
           radioButtons("fgwc_data_source", NULL,
                        choices = c(
-                         "Data Asli (tanpa transformasi)"   = "raw",
-                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
-                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                         "Original Data (no transformation)" = "raw",
+                         "Normalized Data (0-1)"            = "raw_norm",
+                         "Standardized Data (Z-score)"      = "standardized",
                          "SoVI Score"                       = "sovi",
-                         "Skor RC (komponen PCA)"           = "rc"
+                         "RC Scores (PCA components)"       = "rc"
                        ),
                        selected = "rc"
           ),
@@ -114,7 +114,7 @@ fgwc_tab_ui <- function() {
             "input.fgwc_data_source == 'raw' ||
              input.fgwc_data_source == 'raw_norm' ||
              input.fgwc_data_source == 'standardized'",
-            div(class = "step-header", "Pilih Variabel"),
+            div(class = "step-header", "Select Variables"),
             uiOutput("fgwc_var_selector")
           ),
 
@@ -145,24 +145,24 @@ fgwc_tab_ui <- function() {
           sliderInput("fgwc_m", NULL,
                       min = 1.1, max = 3.0, value = 2.0, step = 0.1),
 
-          div(class = "step-header", "Alpha Spasial (\u03b1)"),
+          div(class = "step-header", "Spatial Alpha (\u03b1)"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;",
-                 "\u03b1=1 \u2192 FCM murni | \u03b1=0 \u2192 bobot spasial penuh"),
+                 "\u03b1=1 \u2192 pure FCM | \u03b1=0 \u2192 full spatial weight"),
           sliderInput("fgwc_alpha", NULL,
                       min = 0.0, max = 1.0, value = 0.5, step = 0.05),
 
           fluidRow(
             column(6,
-                   div(class = "step-header", "Mag. Jarak (a)"),
+                   div(class = "step-header", "Distance Magnitude (a)"),
                    numericInput("fgwc_a", NULL, value = 1.2, min = 0, step = 0.1)
             ),
             column(6,
-                   div(class = "step-header", "Mag. Populasi (b)"),
+                   div(class = "step-header", "Population Magnitude (b)"),
                    numericInput("fgwc_b", NULL, value = 1.2, min = 0, step = 0.1)
             )
           ),
 
-          div(class = "step-header", "Maks. Iterasi"),
+          div(class = "step-header", "Max. Iterations"),
           numericInput("fgwc_maxiter", NULL, value = 500, min = 10, step = 50),
 
           div(class = "step-header", "Random Seed"),
@@ -175,12 +175,12 @@ fgwc_tab_ui <- function() {
 
         # ── Box: Pilih Algoritma ──────────────────────────────────────────────
         shinydashboard::box(
-          title       = tags$span(icon("microchip"), " Algoritma Optimasi"),
+          title       = tags$span(icon("microchip"), " Optimization Algorithm"),
           status      = "primary",
           solidHeader = TRUE,
           width       = 12,
 
-          div(class = "step-header", "5. Pilih Algoritma"),
+          div(class = "step-header", "5. Select Algorithm"),
           radioButtons("fgwc_algorithm", NULL,
                        choices = c(
                          "Classic FGWC"                      = "classic",
@@ -204,7 +204,7 @@ fgwc_tab_ui <- function() {
 
         # ── Box: Parameter Algoritma ──────────────────────────────────────────
         shinydashboard::box(
-          title       = tags$span(icon("sliders-h"), " Parameter Algoritma"),
+          title       = tags$span(icon("sliders-h"), " Algorithm Parameters"),
           status      = "info",
           solidHeader = TRUE,
           width       = 12,
@@ -216,7 +216,7 @@ fgwc_tab_ui <- function() {
             div(class = "step-header", "Number of Particles / Agents"),
             sliderInput("fgwc_npar", NULL,
                         min = 3, max = 30, value = 10, step = 1),
-            div(class = "step-header", "Konvergensi (same)"),
+            div(class = "step-header", "Convergence (same)"),
             sliderInput("fgwc_same", NULL,
                         min = 5, max = 30, value = 10, step = 1),
             div(class = "step-header", "Initialization Distribution"),
@@ -230,7 +230,7 @@ fgwc_tab_ui <- function() {
             div(class = "progress-box",
                 style = "background:#f8f9fa; border-left-color:#adb5bd; font-size:12px;",
                 icon("info-circle"),
-                " Classic FGWC tidak memiliki parameter optimasi tambahan.")
+                " Classic FGWC has no additional optimization parameters.")
           ),
 
           # ABC
@@ -270,7 +270,7 @@ fgwc_tab_ui <- function() {
             sliderInput("fgwc_gsa_vmax", NULL,
                         min = 0.1, max = 2.0, value = 0.7, step = 0.1),
             checkboxInput("fgwc_gsa_new",
-                          "Gunakan GSA versi baru (Li & Dong 2017)",
+                          "Use new GSA version (Li & Dong 2017)",
                           value = FALSE)
           ),
 
@@ -279,13 +279,13 @@ fgwc_tab_ui <- function() {
             div(class = "progress-box",
                 style = "background:#e8f5e9; border-left-color:#27ae60; font-size:12px;",
                 icon("info-circle"),
-                " GWO hanya menggunakan parameter universal.", tags$br(),
+                " GWO only uses universal parameters.", tags$br(),
                 "Set the number of wolves via ", tags$strong("Number of Particles / Agents"), " above.")
           ),
 
           # HHO
           conditionalPanel("input.fgwc_algorithm == 'hho'",
-            div(class = "step-header", "Algoritma HHO"),
+            div(class = "step-header", "HHO Algorithm"),
             selectInput("fgwc_hho_algo", NULL,
                         choices  = c("Heidari (2019)" = "heidari",
                                      "Bairathi (2018)" = "bairathi"),
@@ -354,7 +354,7 @@ fgwc_tab_ui <- function() {
             div(class = "step-header", "Number of Selections"),
             sliderInput("fgwc_tlbo_nselect", NULL,
                         min = 2, max = 20, value = 10, step = 1),
-            checkboxInput("fgwc_tlbo_elitism", "Gunakan Elitisme",
+            checkboxInput("fgwc_tlbo_elitism", "Use Elitism",
                           value = FALSE),
             div(class = "step-header", "Number of Elites"),
             numericInput("fgwc_tlbo_nelite", NULL,
@@ -371,7 +371,7 @@ fgwc_tab_ui <- function() {
 
         # ── Box: Tombol Run + Download ─────────────────────────────────────────
         shinydashboard::box(
-          title       = tags$span(icon("play"), " Jalankan"),
+          title       = tags$span(icon("play"), " Run"),
           status      = "success",
           solidHeader = TRUE,
           width       = 12,
@@ -383,13 +383,13 @@ fgwc_tab_ui <- function() {
           uiOutput("fgwc_progress"),
           tags$hr(),
 
-          div(class = "step-header", "Download Hasil"),
+          div(class = "step-header", "Download Results"),
           downloadButton("dl_fgwc_csv",
-                         tags$span(icon("download"), " Hasil Cluster (.csv)"),
+                         tags$span(icon("download"), " Cluster Results (.csv)"),
                          class = "btn-info btn-block"),
           tags$br(),
           downloadButton("dl_fgwc_map_png",
-                         tags$span(icon("map"), " Peta FGWC (.png)"),
+                         tags$span(icon("map"), " FGWC Map (.png)"),
                          class = "btn-success btn-block")
         )
       )
@@ -410,24 +410,24 @@ fgwc_tab_ui <- function() {
           tabsetPanel(
 
             # Tab 1: Ringkasan
-            tabPanel(tags$span(icon("info-circle"), " Ringkasan"),
+            tabPanel(tags$span(icon("info-circle"), " Summary"),
                      tags$br(),
                      uiOutput("fgwc_summary")),
 
             # Tab 2: Validasi + Konvergensi
-            tabPanel(tags$span(icon("chart-bar"), " Validasi"),
+            tabPanel(tags$span(icon("chart-bar"), " Validation"),
                      tags$br(),
                      div(class = "step-header", "Cluster Validation Index"),
                      tags$p(style = "font-size:12px; color:#78909c;",
-                            "PC & IFV: nilai besar lebih baik.",
-                            " CE, SC, SI, XB, Kwon: nilai kecil lebih baik."),
+                            "PC & IFV: higher is better.",
+                            " CE, SC, SI, XB, Kwon: lower is better."),
                      DT::DTOutput("fgwc_val_table"),
                      tags$hr(),
-                     div(class = "step-header", "Konvergensi Objective Function"),
+                     div(class = "step-header", "Objective Function Convergence"),
                      plotOutput("fgwc_conv_plot", height = "260px")),
 
             # Tab 3: Peta Interaktif
-            tabPanel(tags$span(icon("map"), " Peta Interaktif"),
+            tabPanel(tags$span(icon("map"), " Interactive Map"),
                      tags$br(),
                      leaflet::leafletOutput("fgwc_map", height = "500px")),
 
@@ -436,7 +436,7 @@ fgwc_tab_ui <- function() {
                      tags$br(),
                      fluidRow(
                        column(7,
-                              div(class = "step-header", "Plot Silhouette"),
+                              div(class = "step-header", "Silhouette Plot"),
                               plotOutput("fgwc_sil_plot", height = "300px")),
                        column(5,
                               div(class = "step-header", "Avg. Silhouette Width"),
@@ -446,12 +446,12 @@ fgwc_tab_ui <- function() {
                      )),
 
             # Tab 5: Profil Cluster
-            tabPanel(tags$span(icon("th"), " Profil Cluster"),
+            tabPanel(tags$span(icon("th"), " Cluster Profile"),
                      tags$br(),
-                     div(class = "step-header", "Tabel Profil (Mean per Cluster)"),
+                     div(class = "step-header", "Cluster Profile Table (Mean per Cluster)"),
                      DT::DTOutput("fgwc_profile_table"),
                      tags$hr(),
-                     div(class = "step-header", "Heatmap Profil"),
+                     div(class = "step-header", "Profile Heatmap"),
                      plotOutput("fgwc_heatmap", height = "320px"),
                      div(style = "text-align:right; margin-top:6px;",
                          downloadButton("dl_fgwc_heatmap",
@@ -466,7 +466,7 @@ fgwc_tab_ui <- function() {
                                         class = "btn-sm btn-default"))),
 
             # Tab 6: Data Cluster
-            tabPanel(tags$span(icon("list-ol"), " Data Cluster"),
+            tabPanel(tags$span(icon("list-ol"), " Cluster Data"),
                      tags$br(),
                      DT::DTOutput("fgwc_result_table")),
 
@@ -476,11 +476,11 @@ fgwc_tab_ui <- function() {
                      fluidRow(
                        column(3,
                               wellPanel(
-                                tags$strong("Parameter Sammon"),
+                                tags$strong("Sammon Parameters"),
                                 tags$hr(style = "margin-top:5px; margin-bottom:10px;"),
-                                numericInput("fgwc_sammon_iter",  "Maks Iterasi:",    value = 500,  min = 100,  step = 100),
+                                numericInput("fgwc_sammon_iter",  "Max. Iterations:",    value = 500,  min = 100,  step = 100),
                                 numericInput("fgwc_sammon_magic", "Magic (Step Size):", value = 0.2, min = 0.01, step = 0.05),
-                                sliderInput("fgwc_sammon_pt",    "Ukuran Titik:",    min = 1, max = 5, value = 2, step = 0.5),
+                                sliderInput("fgwc_sammon_pt",    "Point Size:",    min = 1, max = 5, value = 2, step = 0.5),
                                 tags$hr(style = "margin-top:10px; margin-bottom:8px;"),
                                 downloadButton("dl_fgwc_sammon",
                                                tags$span(icon("download"), " Download (.png)"),
@@ -499,11 +499,11 @@ fgwc_tab_ui <- function() {
                      fluidRow(
                        column(3,
                               wellPanel(
-                                tags$strong("Parameter t-SNE"),
+                                tags$strong("t-SNE Parameters"),
                                 tags$hr(style = "margin-top:5px; margin-bottom:10px;"),
                                 numericInput("fgwc_tsne_perp", "Perplexity:",    value = 15,   min = 2,   step = 1),
-                                numericInput("fgwc_tsne_iter", "Maks Iterasi:",  value = 1000, min = 500, step = 100),
-                                sliderInput("fgwc_tsne_pt",   "Ukuran Titik:",  min = 1, max = 5, value = 2, step = 0.5),
+                                numericInput("fgwc_tsne_iter", "Max. Iterations:",  value = 1000, min = 500, step = 100),
+                                sliderInput("fgwc_tsne_pt",   "Point Size:",  min = 1, max = 5, value = 2, step = 0.5),
                                 tags$hr(style = "margin-top:10px; margin-bottom:8px;"),
                                 downloadButton("dl_fgwc_tsne",
                                                tags$span(icon("download"), " Download (.png)"),
@@ -522,11 +522,11 @@ fgwc_tab_ui <- function() {
                      fluidRow(
                        column(3,
                               wellPanel(
-                                tags$strong("Parameter UMAP"),
+                                tags$strong("UMAP Parameters"),
                                 tags$hr(style = "margin-top:5px; margin-bottom:10px;"),
                                 numericInput("fgwc_umap_nn", "n_neighbors:", value = 15,  min = 2,    step = 1),
                                 numericInput("fgwc_umap_md", "min_dist:",    value = 0.1, min = 0.01, step = 0.05),
-                                sliderInput("fgwc_umap_pt",  "Ukuran Titik:", min = 1, max = 5, value = 2, step = 0.5),
+                                sliderInput("fgwc_umap_pt",  "Point Size:", min = 1, max = 5, value = 2, step = 0.5),
                                 tags$hr(style = "margin-top:10px; margin-bottom:8px;"),
                                 downloadButton("dl_fgwc_umap",
                                                tags$span(icon("download"), " Download (.png)"),

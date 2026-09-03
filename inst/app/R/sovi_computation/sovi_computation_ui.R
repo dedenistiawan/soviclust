@@ -2,7 +2,7 @@
 # R/sovi_computation/sovi_computation_ui.R
 # UI Tab SoVI Computation
 #
-# DIPANGGIL DARI: ui.R via sovi_computation_tab_ui()
+# CALLED FROM: ui.R via sovi_computation_tab_ui()
 # =============================================================================
 
 sovi_computation_tab_ui <- function() {
@@ -40,7 +40,7 @@ sovi_computation_tab_ui <- function() {
                                                    "Oblimin"             = "oblimin",
                                                    "Promax"              = "promax",
                                                    "Quartimax"           = "quartimax",
-                                                   "None (tanpa rotasi)" = "none"
+                                                   "None (no rotation)"  = "none"
                                                  ),
                                                  selected = "varimax"
                                      ),
@@ -94,9 +94,9 @@ sovi_computation_tab_ui <- function() {
                                          DT::DTOutput("pca_communality")
                                        ),
                                        
-                                       # Tab 2: Variansi & Loading
+                                       # Tab 2: Variance & Loadings
                                        tabPanel(
-                                         title = tags$span(icon("layer-group"), " Variansi & Loading"),
+                                         title = tags$span(icon("layer-group"), " Variance & Loadings"),
                                          tags$br(),
                                          div(class = "step-header", "Variance Explained"),
                                          DT::DTOutput("pca_variance"),
@@ -112,14 +112,14 @@ sovi_computation_tab_ui <- function() {
                                          DT::DTOutput("sovi_assignment")
                                        ),
                                        
-                                       # Tab 4: Skor SoVI
+                                       # Tab 4: SoVI Scores
                                        tabPanel(
-                                         title = tags$span(icon("list-ol"), " Skor SoVI"),
+                                         title = tags$span(icon("list-ol"), " SoVI Scores"),
                                          tags$br(),
                                          DT::DTOutput("sovi_table")
                                        ),
                                        
-                                       # Tab 5: Distribusi Kelas
+                                       # Tab 5: Class Distribution
                                        tabPanel(
                                          title = tags$span(icon("chart-pie"), " Class Distribution"),
                                          tags$br(),
@@ -129,9 +129,9 @@ sovi_computation_tab_ui <- function() {
                                          )
                                        ),
                                        
-                                       # Tab 6: Peta SoVI
+                                       # Tab 6: SoVI Map
                                        tabPanel(
-                                         title = tags$span(icon("map"), " Peta SoVI"),
+                                         title = tags$span(icon("map"), " SoVI Map"),
                                          tags$br(),
                                          leaflet::leafletOutput("sovi_map", height = "500px")
                                        ),

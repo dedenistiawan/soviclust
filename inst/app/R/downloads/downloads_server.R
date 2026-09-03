@@ -44,7 +44,7 @@ downloads_server <- function(input, output, session, rv) {
         return()
       }
 
-      withProgress(message = "Membuat laporan...", value = 0, {
+      withProgress(message = "Generating report...", value = 0, {
 
         # ── 1. Ekstrak sovi_df ────────────────────────────────────────────────
         incProgress(0.15, detail = "Preparing SoVI data...")

@@ -22,29 +22,29 @@ clustgeo_tab_ui <- function() {
                                      solidHeader = TRUE,
                                      width       = 12,
                                      
-                                     # ── 1. Sumber Data ────────────────────────────────────────────────
+                                     # ── 1. Data Source ────────────────────────────────────────────────
                                      div(class = "step-header", "1. Data Source"),
                                      radioButtons("cga_data_source", NULL,
                                                   choices = c(
-                                                    "Data Asli (tanpa transformasi)"   = "raw",
-                                                    "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
-                                                    "Data Ter-standardisasi (Z-score)" = "standardized",
-                                                    "SoVI Score"                       = "sovi",
-                                                    "Skor RC (komponen PCA)"           = "rc"
+                                                    "Original Data (no transformation)" = "raw",
+                                                    "Normalized Data (0\u20131)"          = "raw_norm",
+                                                    "Standardized Data (Z-score)"       = "standardized",
+                                                    "SoVI Score"                        = "sovi",
+                                                    "RC Scores (PCA components)"        = "rc"
                                                   ),
                                                   selected = "rc"
                                      ),
                                      
-                                     # Pilihan variabel (muncul jika raw/raw_norm/standardized)
+                                     # Variable selection (appears if raw/raw_norm/standardized)
                                      conditionalPanel(
                                        "input.cga_data_source == 'raw' ||
              input.cga_data_source == 'raw_norm' ||
              input.cga_data_source == 'standardized'",
-                                       div(class = "step-header", "Pilih Variabel"),
+                                       div(class = "step-header", "Select Variables"),
                                        uiOutput("cga_var_selector")
                                      ),
                                      
-                                     # Info sumber data (sovi/rc)
+                                     # Data source info (sovi/rc)
                                      conditionalPanel(
                                        "input.cga_data_source == 'sovi' ||
              input.cga_data_source == 'rc'",
@@ -53,11 +53,11 @@ clustgeo_tab_ui <- function() {
                                      
                                      tags$hr(),
                                      
-                                     # ── 2. Jumlah Cluster (k) ─────────────────────────────────────────
+                                     # ── 2. Number of Clusters (k) ─────────────────────────────────────────
                                      div(class = "step-header", "2. Number of Clusters (k)"),
                                      radioButtons("cga_k_mode", NULL,
                                                   choices  = c("Manual" = "manual",
-                                                               "Otomatis (Silhouette)" = "auto"),
+                                                               "Automatic (Silhouette)" = "auto"),
                                                   selected = "manual",
                                                   inline   = TRUE
                                      ),
@@ -76,28 +76,28 @@ clustgeo_tab_ui <- function() {
                                            style = "background:#e3f2fd; border-left-color:#1a73c1;
                          font-size:12px;",
                                            icon("info-circle"),
-                                           " k optimal dipilih berdasarkan nilai mean silhouette tertinggi.")
+                                           " Optimal k is selected based on the highest mean silhouette value.")
                                      ),
                                      
                                      tags$hr(),
                                      
-                                     # ── 3. Alpha (bobot spasial) ──────────────────────────────────────
-                                     div(class = "step-header", "3. Alpha (\u03b1) \u2014 Bobot Spasial"),
+                                     # ── 3. Alpha (\u03b1) \u2014 Spatial Weight ──────────────────────────────────────
+                                     div(class = "step-header", "3. Alpha (\u03b1) \u2014 Spatial Weight"),
                                      radioButtons("cga_alpha_mode", NULL,
                                                   choices  = c("Manual" = "manual",
-                                                               "Otomatis (chooseAlpha)" = "auto"),
+                                                               "Automatic (chooseAlpha)" = "auto"),
                                                   selected = "manual",
                                                   inline   = TRUE
                                      ),
                                      
                                      conditionalPanel(
                                        "input.cga_alpha_mode == 'manual'",
-                                       sliderInput("cga_alpha", "Nilai Alpha (\u03b1)",
+                                       sliderInput("cga_alpha", "Alpha Value (\u03b1)",
                                                    min = 0.0, max = 1.0, value = 0.2, step = 0.05),
                                        div(class = "progress-box",
                                            style = "background:#f8f9fa; border-left-color:#adb5bd;
                          font-size:12px;",
-                                           "\u03b1 = 0 \u2192 hanya atribut | \u03b1 = 1 \u2192 hanya spasial")
+                                           "\u03b1 = 0 \u2192 attribute only | \u03b1 = 1 \u2192 spatial only")
                                      ),
                                      
                                      conditionalPanel(
@@ -106,13 +106,13 @@ clustgeo_tab_ui <- function() {
                                            style = "background:#e3f2fd; border-left-color:#1a73c1;
                          font-size:12px;",
                                            icon("info-circle"),
-                                           " \u03b1 optimal dipilih pada titik trade-off terbaik
-                  antara homogenitas atribut (Q1) dan spasial (Q2).")
+                                           " Optimal \u03b1 is selected at the best trade-off point
+                  between attribute (Q1) and spatial (Q2) homogeneity.")
                                      ),
                                      
                                      tags$hr(),
                                      
-                                     # ── Tombol Run ────────────────────────────────────────────────────
+                                     # ── Run Button ────────────────────────────────────────────────────
                                      actionButton("run_clustgeo_adv",
                                                   tags$span(icon("play"), " Run ClustGeo"),
                                                   class = "btn-primary btn-lg btn-block"),
@@ -124,17 +124,17 @@ clustgeo_tab_ui <- function() {
                                      # ── Download ──────────────────────────────────────────────────────
                                      div(class = "step-header", "Download Results"),
                                      downloadButton("dl_cga_csv",
-                                                    tags$span(icon("download"), " Hasil Cluster (.csv)"),
+                                                    tags$span(icon("download"), " Cluster Results (.csv)"),
                                                     class = "btn-info btn-block"),
                                      tags$br(),
                                      downloadButton("dl_cga_map_png",
-                                                    tags$span(icon("map"), " Peta Cluster (.png)"),
+                                                    tags$span(icon("map"), " Cluster Map (.png)"),
                                                     class = "btn-success btn-block")
                                    )
                             ),
                             
                             # ════════════════════════════════════════════════════════════════════════
-                            # PANEL KANAN — Output Tabs
+                            # RIGHT PANEL — Output Tabs
                             # ════════════════════════════════════════════════════════════════════════
                             column(9,
                                    shinydashboard::box(
@@ -145,16 +145,16 @@ clustgeo_tab_ui <- function() {
                                      
                                      tabsetPanel(
                                        
-                                       # ── Tab 1: Ringkasan Parameter ──────────────────────────────────
+                                       # ── Tab 1: Parameter Summary ──────────────────────────────────
                                        tabPanel(
                                          title = tags$span(icon("info-circle"), " Parameter"),
                                          tags$br(),
                                          uiOutput("cga_summary_params")
                                        ),
                                        
-                                       # ── Tab 2: Peta Interaktif ──────────────────────────────────────
+                                       # ── Tab 2: Interactive Map ──────────────────────────────────────
                                        tabPanel(
-                                         title = tags$span(icon("map"), " Peta Interaktif"),
+                                         title = tags$span(icon("map"), " Interactive Map"),
                                          tags$br(),
                                          leaflet::leafletOutput("cga_map", height = "520px")
                                        ),
@@ -165,21 +165,21 @@ clustgeo_tab_ui <- function() {
                                          tags$br(),
                                          fluidRow(
                                            column(6,
-                                                  div(class = "step-header", "Plot Silhouette per Cluster"),
+                                                  div(class = "step-header", "Silhouette Plot per Cluster"),
                                                   plotOutput("cga_plot_silhouette", height = "320px")
                                            ),
                                            column(6,
-                                                  div(class = "step-header", "Tabel Avg. Silhouette Width"),
+                                                  div(class = "step-header", "Avg. Silhouette Width Table"),
                                                   DT::DTOutput("cga_table_silhouette"),
                                                   tags$br(),
                                                   uiOutput("cga_silhouette_interp")
                                            )
                                          ),
-                                         # Plot k optimal — hanya muncul jika mode auto
+                                         # Optimal k plot — only shown in auto mode
                                          conditionalPanel(
                                            "input.cga_k_mode == 'auto'",
                                            tags$hr(),
-                                           div(class = "step-header", "Pencarian k Optimal"),
+                                           div(class = "step-header", "Optimal k Search"),
                                            plotOutput("cga_plot_kopt", height = "260px")
                                          )
                                        ),
@@ -195,7 +195,7 @@ clustgeo_tab_ui <- function() {
                                        
                                        # ── Tab 5: Profil Cluster ───────────────────────────────────────
                                        tabPanel(
-                                         title = tags$span(icon("th"), " Profil Cluster"),
+                                         title = tags$span(icon("th"), " Cluster Profile"),
                                          tags$br(),
                                          div(class = "step-header", "Tabel Profil (Mean per Cluster)"),
                                          DT::DTOutput("cga_table_profile"),
@@ -207,13 +207,13 @@ clustgeo_tab_ui <- function() {
                                          tags$hr(),
                                          div(class = "step-header", "Radar Chart per Cluster"),
                                          tags$p(style = "font-size:12px; color:#78909c;",
-                                                "Nilai ternormalisasi 0\u20131. Luas area = intensitas profil cluster."),
+                                                "Values normalized 0\u20131. Area size = cluster profile intensity."),
                                          plotOutput("cga_plot_radar", height = "420px")
                                        ),
                                        
                                        # ── Tab 6: Data Cluster ─────────────────────────────────────────
                                        tabPanel(
-                                         title = tags$span(icon("list-ol"), " Data Cluster"),
+                                         title = tags$span(icon("list-ol"), " Cluster Data"),
                                          tags$br(),
                                          DT::DTOutput("cga_table_result")
                                        )

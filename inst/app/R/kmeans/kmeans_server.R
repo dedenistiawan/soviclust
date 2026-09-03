@@ -23,13 +23,13 @@ kmeans_server <- function(input, output, session, rv) {
     note <- switch(src,
       "raw"          = div(class = "progress-box",
                            style = "background:#fff8e1;border-left-color:#f39c12;font-size:11px;",
-                           icon("exclamation-triangle"), " Nilai mentah tanpa transformasi."),
+                           icon("exclamation-triangle"), " Raw values without transformation."),
       "raw_norm"     = div(class = "progress-box",
                            style = "background:#fff8e1;border-left-color:#f39c12;font-size:11px;",
-                           icon("info-circle"), " Akan dinormalisasi min-max 0\u20131."),
+                           icon("info-circle"), " Will be min-max normalized 0\u20131."),
       "standardized" = div(class = "progress-box",
                            style = "background:#e3f2fd;border-left-color:#1a73c1;font-size:11px;",
-                           icon("info-circle"), " Z-score dari proses SoVI."),
+                           icon("info-circle"), " Z-scores from SoVI process."),
       NULL
     )
     tagList(note, checkboxGroupInput("km_selected_vars", NULL,
@@ -44,8 +44,8 @@ kmeans_server <- function(input, output, session, rv) {
     src <- input$km_data_source
     if (is.null(src)) return(NULL)
     info <- switch(src,
-      "sovi" = "Using single SoVI Score (0\u20131) sebagai fitur clustering.",
-      "rc"   = "Menggunakan skor komponen RC (PCA Varimax, ternormalisasi 0\u20131).",
+      "sovi" = "Using single SoVI Score (0\u20131) as clustering feature.",
+      "rc"   = "Using RC component scores (PCA Varimax, normalized 0\u20131).",
       NULL
     )
     if (is.null(info)) return(NULL)
@@ -100,7 +100,7 @@ kmeans_server <- function(input, output, session, rv) {
       incProgress(0.2, detail = "Preparing data...")
 
       # ── Tentukan k ─────────────────────────────────────────────────────────
-      incProgress(0.4, detail = "Menentukan k...")
+      incProgress(0.4, detail = "Determining k...")
       if (input$km_k_mode == "auto") {
         k_max <- input$km_k_max
         wss   <- sapply(2:k_max, function(k) {
@@ -126,7 +126,7 @@ kmeans_server <- function(input, output, session, rv) {
                           algorithm = input$km_algorithm)
 
       # ── Hitung Silhouette ────────────────────────────────────────────────────
-      incProgress(0.8, detail = "Menghitung silhouette...")
+      incProgress(0.8, detail = "Computing silhouette...")
       sil <- tryCatch(
         cluster::silhouette(km_result$cluster, dist(X)),
         error = function(e) NULL

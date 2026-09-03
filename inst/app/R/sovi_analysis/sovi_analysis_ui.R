@@ -26,11 +26,11 @@ sovi_analysis_tab_ui <- function() {
                                        inputId  = "sa_data_source",
                                        label    = NULL,
                                        choices  = c(
-                                         "Data Asli (tanpa transformasi)"   = "raw",
-                                         "Data Asli Ternormalisasi (0-1)"   = "raw_norm",
-                                         "Data Ter-standardisasi (Z-score)" = "standardized",
+                                         "Original Data (no transformation)" = "raw",
+                                         "Normalized Data (0-1)"            = "raw_norm",
+                                         "Standardized Data (Z-score)"      = "standardized",
                                          "SoVI Score"                       = "sovi",
-                                         "Skor RC (Komponen PCA)"           = "rc"
+                                         "RC Scores (PCA components)"       = "rc"
                                        ),
                                        selected = "raw"
                                      ),
@@ -41,7 +41,7 @@ sovi_analysis_tab_ui <- function() {
                                    
                                    # ── Pilih Variabel ───────────────────────────────────────────────
                                    shinydashboard::box(
-                                     title       = tags$span(icon("list-ul"), " Variabel"),
+                                     title       = tags$span(icon("list-ul"), " Variable"),
                                      status      = "primary",
                                      solidHeader = TRUE,
                                      width       = 12,
@@ -60,7 +60,7 @@ sovi_analysis_tab_ui <- function() {
                                      tags$p(
                                        style = "font-size:12px; color:#78909c; margin-bottom:6px;",
                                        icon("info-circle"),
-                                       " Digunakan di Tab Side-by-Side. Sumber data sama."
+                                       " Used in the Side-by-Side Tab. Same data source."
                                      ),
                                      selectInput(
                                        inputId  = "sa_var2",
@@ -92,7 +92,7 @@ sovi_analysis_tab_ui <- function() {
                                      div(class = "step-header", "5. Auto GVF"),
                                      tags$p(
                                        style = "font-size:12px; color:#78909c; margin-bottom:8px;",
-                                       "Cari jumlah kelas optimal secara otomatis (GVF \u2265 0.85)."
+                                       "Automatically find optimal number of classes (GVF \u2265 0.85)."
                                      ),
                                      fluidRow(
                                        column(6,
@@ -129,7 +129,7 @@ sovi_analysis_tab_ui <- function() {
                                        inputId = "sa_show_centroid",
                                        label   = tags$span(
                                          icon("map-marker-alt"),
-                                         " Tampilkan centroid (warna = kelas SoVI)"
+                                         " Show centroids (color = SoVI class)"
                                        ),
                                        value   = FALSE
                                      ),
@@ -141,14 +141,14 @@ sovi_analysis_tab_ui <- function() {
                                        column(6,
                                               checkboxInput(
                                                 inputId = "sa_show_centroid_left",
-                                                label   = tags$span(icon("map-marker-alt"), " Peta Atas"),
+                                                label   = tags$span(icon("map-marker-alt"), " Top Map"),
                                                 value   = FALSE
                                               )
                                        ),
                                        column(6,
                                               checkboxInput(
                                                 inputId = "sa_show_centroid_right",
-                                                label   = tags$span(icon("map-marker-alt"), " Peta Bawah"),
+                                                label   = tags$span(icon("map-marker-alt"), " Bottom Map"),
                                                 value   = FALSE
                                               )
                                        )
@@ -158,7 +158,7 @@ sovi_analysis_tab_ui <- function() {
                                      
                                      actionButton(
                                        inputId = "sa_run",
-                                       label   = tags$span(icon("map"), " Tampilkan Peta"),
+                                       label   = tags$span(icon("map"), " Generate Map"),
                                        class   = "btn-primary btn-lg btn-block"
                                      ),
                                      tags$br(),
@@ -173,7 +173,7 @@ sovi_analysis_tab_ui <- function() {
                             column(9,
                                    
                                    shinydashboard::box(
-                                     title       = tags$span(icon("map-marked-alt"), " SoVI Analysis — Visualisasi Spasial"),
+                                     title       = tags$span(icon("map-marked-alt"), " SoVI Analysis \u2014 Spatial Visualization"),
                                      status      = "info",
                                      solidHeader = TRUE,
                                      width       = 12,
@@ -183,7 +183,7 @@ sovi_analysis_tab_ui <- function() {
                                        
                                        # ── Tab 1: Peta Tunggal ─────────────────────────────────────
                                        tabPanel(
-                                         title = tags$span(icon("map"), " Peta Tunggal"),
+                                         title = tags$span(icon("map"), " Single Map"),
                                          tags$br(),
                                          
                                          # Info bar variabel aktif
@@ -208,7 +208,7 @@ sovi_analysis_tab_ui <- function() {
                                        
                                        # ── Tab 3: Ringkasan ────────────────────────────────────────
                                        tabPanel(
-                                         title = tags$span(icon("table"), " Ringkasan"),
+                                         title = tags$span(icon("table"), " Summary"),
                                          tags$br(),
                                          
                                          uiOutput("sa_summary_header"),

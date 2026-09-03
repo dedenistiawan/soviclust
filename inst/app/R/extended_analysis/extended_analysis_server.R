@@ -197,9 +197,9 @@ extended_analysis_server <- function(input, output, session, rv) {
                                     name      = "Mean Score") +
       ggplot2::labs(
         title    = "Component Profile per Vulnerability Class",
-        subtitle = "Rata-rata skor RC ternormalisasi (0=rendah, 1=tinggi)",
-        x        = "Dimensi RC",
-        y        = "Kelas Kerentanan"
+        subtitle = "Mean normalized RC score (0=low, 1=high)",
+        x        = "RC Dimension",
+        y        = "Vulnerability Class"
       ) +
       ggplot2::theme_minimal(base_size = 11)
   })
@@ -232,7 +232,7 @@ extended_analysis_server <- function(input, output, session, rv) {
     
     plot.new()
     legend("center", legend = cls, col = pal_rad, lwd = 2,
-           bty = "n", title = "Kelas Kerentanan", cex = 0.9)
+           bty = "n", title = "Vulnerability Class", cex = 0.9)
   })
   
   # ==========================================================================
@@ -251,11 +251,11 @@ extended_analysis_server <- function(input, output, session, rv) {
     
     moran_i <- mg$estimate["Moran I statistic"]
     if      (mg$p.value < 0.05 && moran_i > 0)
-      cat("\u2192 POSITIF SIGNIFIKAN \u2014 kerentanan tinggi mengelompok spasial \u2713")
+      cat("\u2192 POSITIVE SIGNIFICANT \u2014 high vulnerability spatially clustered \u2713")
     else if (mg$p.value < 0.05 && moran_i < 0)
-      cat("\u2192 NEGATIF SIGNIFIKAN \u2014 pola dispersal spasial")
+      cat("\u2192 NEGATIVE SIGNIFICANT \u2014 spatial dispersal pattern")
     else
-      cat("\u2192 TIDAK SIGNIFIKAN \u2014 pola acak spasial")
+      cat("\u2192 NOT SIGNIFICANT \u2014 random spatial pattern")
   })
   
   output$table_lisa <- DT::renderDT({
@@ -263,7 +263,7 @@ extended_analysis_server <- function(input, output, session, rv) {
     DT::datatable(rv$moran_res$lisa_table,
                   options  = list(dom = "t"),
                   rownames = FALSE,
-                  caption  = "Klasifikasi LISA")
+                  caption  = "LISA Classification")
   })
   
   output$map_lisa <- leaflet::renderLeaflet({
@@ -289,12 +289,12 @@ extended_analysis_server <- function(input, output, session, rv) {
     for (key in names(s$sens_info)) {
       info <- s$sens_info[[key]]
       if (!is.null(info$error)) {
-        cat(sprintf("\u03c4 = %.1f : GAGAL\n", info$threshold))
+        cat(sprintf("\u03c4 = %.1f : FAILED\n", info$threshold))
       } else {
-        cat(sprintf("\u03c4 = %.1f : %d variabel masuk, %d keluar\n",
+        cat(sprintf("\u03c4 = %.1f : %d variables included, %d excluded\n",
                     info$threshold, info$n_assigned, info$n_unassigned))
         if (info$n_unassigned > 0)
-          cat("         Keluar:", paste(info$unassigned, collapse = ", "), "\n")
+          cat("         Excluded:", paste(info$unassigned, collapse = ", "), "\n")
       }
     }
     
@@ -302,10 +302,10 @@ extended_analysis_server <- function(input, output, session, rv) {
     print(round(corr, 4))
     
     min_r <- min(corr[upper.tri(corr)], na.rm = TRUE)
-    cat("\nInterpretasi: ")
-    if      (min_r >= 0.90) cat("ROBUST \u2014 hasil konsisten antar threshold \u2713")
+    cat("\nInterpretation: ")
+    if      (min_r >= 0.90) cat("ROBUST \u2014 results consistent across thresholds \u2713")
     else if (min_r >= 0.70) cat("MODERATELY ROBUST")
-    else                    cat("SENSITIVE \u2014 justifikasi threshold diperlukan")
+    else                    cat("SENSITIVE \u2014 threshold justification required")
   })
   
   output$plot_sensitivity <- renderPlot({
@@ -339,10 +339,10 @@ extended_analysis_server <- function(input, output, session, rv) {
       ) +
       ggplot2::labs(
         title    = "Sensitivity Analysis: SoVI Score by Loading Threshold",
-        subtitle = "Titik di diagonal = hasil konsisten",
+        subtitle = "Points on diagonal = consistent results",
         x        = "SoVI Score (\u03c4 = 0.5)",
         y        = "SoVI Score (\u03c4 = 0.6 / 0.7)",
-        color    = "Perbandingan"
+        color    = "Comparison"
       ) +
       ggplot2::theme_minimal(base_size = 12) +
       ggplot2::theme(legend.position = "bottom")
@@ -360,11 +360,11 @@ extended_analysis_server <- function(input, output, session, rv) {
         format(rv$cutter_df$spearman_p, scientific = TRUE, digits = 4), "\n\n")
     rho <- rv$cutter_df$spearman_r
     if      (abs(rho) >= 0.90)
-      cat("\u2192 HIGHLY CORRELATED \u2014 ranking sangat mirip dengan Cutter original")
+      cat("\u2192 HIGHLY CORRELATED \u2014 ranking very similar to original Cutter")
     else if (abs(rho) >= 0.70)
-      cat("\u2192 MODERATELY CORRELATED \u2014 terdapat perbedaan ranking bermakna")
+      cat("\u2192 MODERATELY CORRELATED \u2014 meaningful ranking differences exist")
     else
-      cat("\u2192 SUBSTANTIALLY DIFFERENT \u2014 perbedaan signifikan dengan Cutter")
+      cat("\u2192 SUBSTANTIALLY DIFFERENT \u2014 significant difference from Cutter")
   })
   
   output$plot_cutter <- renderPlot({
@@ -382,10 +382,10 @@ extended_analysis_server <- function(input, output, session, rv) {
                         label = paste0("Spearman \u03c1 = ", rho),
                         size = 4, hjust = 0, color = "grey30") +
       ggplot2::labs(
-        title    = "Metode yang Diusulkan vs. Cutter (2003)",
-        subtitle = "Garis putus-putus = kesepakatan sempurna",
+        title    = "Proposed Method vs. Cutter (2003)",
+        subtitle = "Dashed line = perfect agreement",
         x        = "SoVI Score \u2014 Cutter (2003)",
-        y        = "SoVI Score \u2014 Metode Diusulkan"
+        y        = "SoVI Score \u2014 Proposed Method"
       ) +
       ggplot2::theme_minimal(base_size = 12)
   })
