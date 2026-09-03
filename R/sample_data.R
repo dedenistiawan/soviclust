@@ -1,22 +1,22 @@
-# R/sample_data.R
+﻿# R/sample_data.R
 # =============================================================================
-# Fungsi pembantu untuk mengakses dataset sampel soviclust langsung dari R
-# tanpa harus membuka aplikasi Shiny
+# Helper functions to access soviclust sample datasets directly from R
+# without opening the Shiny application
 # =============================================================================
 
 
-#' Baca Data SoVI 514 Kabupaten/Kota Indonesia (2015)
+#' Read SoVI Data for 514 Indonesian Districts (2015)
 #'
 #' @description
-#' Membaca dataset sampel SoVI 514 Kabupaten/Kota Indonesia tahun 2015
-#' yang disertakan dalam package. Dataset ini siap digunakan untuk
-#' eksplorasi atau sebagai template format data untuk analisis Anda sendiri.
+#' Reads the bundled SoVI sample dataset for 514 Indonesian districts (year 2015)
+#' included in the package. This dataset is ready to use for exploration
+#' or as a data format template for your own analysis.
 #'
-#' @return `data.frame` dengan 514 baris dan 17 kolom:
+#' @return A `data.frame` with 514 rows and 17 columns:
 #'   \describe{
-#'     \item{DISTRICTCODE}{Kode unik wilayah (ID).}
-#'     \item{KABUPATEN}{Nama Kabupaten/Kota.}
-#'     \item{AGE014, FEMPOP, AGE65P, ...}{Indikator SoVI (15 variabel).}
+#'     \item{DISTRICTCODE}{Unique district ID code.}
+#'     \item{KABUPATEN}{District name.}
+#'     \item{AGE014, FEMPOP, AGE65P, ...}{SoVI indicator variables (15 variables).}
 #'   }
 #'
 #' @examples
@@ -24,10 +24,10 @@
 #' head(df[, 1:5])
 #' dim(df)
 #'
-#' # Lihat nama semua variabel
+#' # View all variable names
 #' names(df)
 #'
-#' # Statistik deskriptif variabel numerik
+#' # Descriptive statistics for numeric variables
 #' summary(df[, -(1:2)])
 #'
 #' @export
@@ -36,8 +36,8 @@ sovi_sample_data <- function() {
                       package = "soviclust")
   if (path == "") {
     stop(
-      "File 'sovi_data_kab_514_15.xlsx' tidak ditemukan.\n",
-      "Pastikan package 'soviclust' terinstall dengan benar.",
+      "File 'sovi_data_kab_514_15.xlsx' not found.\n",
+      "Please ensure the 'soviclust' package is installed correctly.",
       call. = FALSE
     )
   }
@@ -45,15 +45,15 @@ sovi_sample_data <- function() {
 }
 
 
-#' Baca Shapefile 514 Kabupaten/Kota Indonesia
+#' Read Shapefile for 514 Indonesian Districts
 #'
 #' @description
-#' Membaca shapefile batas wilayah 514 Kabupaten/Kota Indonesia
-#' yang disertakan dalam package sebagai objek `sf`.
+#' Reads the bundled administrative boundary shapefile for 514 Indonesian
+#' districts included in the package as an `sf` object.
 #'
-#' @return Objek `sf` dengan 514 fitur (Polygon/MultiPolygon).
-#'   Kolom ID wilayah: `idkab`.
-#'   Sistem koordinat: WGS84 (EPSG:4326).
+#' @return An `sf` object with 514 features (Polygon/MultiPolygon).
+#'   District ID column: `idkab`.
+#'   Coordinate reference system: WGS84 (EPSG:4326).
 #'
 #' @examples
 #' shp <- sovi_sample_shapefile()
@@ -61,10 +61,10 @@ sovi_sample_data <- function() {
 #' names(shp)
 #' nrow(shp)
 #'
-#' # Tampilkan peta sederhana
+#' # Display a simple map
 #' plot(sf::st_geometry(shp))
 #'
-#' # Gabungkan dengan data SoVI
+#' # Join with SoVI data
 #' df  <- sovi_sample_data()
 #' shp_sovi <- merge(shp, df, by.x = "idkab", by.y = "DISTRICTCODE")
 #'
@@ -74,8 +74,8 @@ sovi_sample_shapefile <- function() {
                           package = "soviclust")
   if (shp_path == "") {
     stop(
-      "Shapefile '514_kabupaten.shp' tidak ditemukan.\n",
-      "Pastikan package 'soviclust' terinstall dengan benar.",
+      "Shapefile '514_kabupaten.shp' not found.\n",
+      "Please ensure the 'soviclust' package is installed correctly.",
       call. = FALSE
     )
   }
@@ -84,41 +84,41 @@ sovi_sample_shapefile <- function() {
 }
 
 
-#' Baca Koordinat Centroid 514 Kabupaten/Kota
+#' Read Centroid Coordinates for 514 Indonesian Districts
 #'
 #' @description
-#' Membaca data koordinat geografis (longitude dan latitude) titik centroid
-#' 514 Kabupaten/Kota Indonesia. Berguna untuk menghitung matriks jarak
-#' Haversine secara manual atau untuk visualisasi.
+#' Reads the geographic centroid coordinates (longitude and latitude) for
+#' 514 Indonesian districts included in the package. Useful for computing
+#' Haversine distance matrices manually or for visualization.
 #'
-#' @return `data.frame` dengan 514 baris dan 3 kolom:
+#' @return A `data.frame` with 514 rows and 3 columns:
 #'   \describe{
-#'     \item{DISTRICTCODE}{Kode unik wilayah.}
-#'     \item{longitude}{Koordinat bujur (derajat desimal, WGS84).}
-#'     \item{latitude}{Koordinat lintang (derajat desimal, WGS84).}
+#'     \item{DISTRICTCODE}{Unique district ID code.}
+#'     \item{longitude}{Longitude in decimal degrees (WGS84).}
+#'     \item{latitude}{Latitude in decimal degrees (WGS84).}
 #'   }
 #'
 #' @examples
 #' coord <- sovi_sample_coords()
 #' head(coord)
 #'
-#' # Rentang koordinat
+#' # Coordinate ranges
 #' range(coord$longitude)  # ~[95, 141]
 #' range(coord$latitude)   # ~[-11, 6]
 #'
-#' # Plot lokasi centroid
+#' # Plot centroid locations
 #' plot(coord$longitude, coord$latitude,
 #'      pch = 20, cex = 0.5, col = "steelblue",
 #'      xlab = "Longitude", ylab = "Latitude",
-#'      main = "Centroid 514 Kabupaten/Kota Indonesia")
+#'      main = "Centroids of 514 Indonesian Districts")
 #'
 #' @export
 sovi_sample_coords <- function() {
   path <- system.file("extdata", "Koordinat.xlsx", package = "soviclust")
   if (path == "") {
     stop(
-      "File 'Koordinat.xlsx' tidak ditemukan.\n",
-      "Pastikan package 'soviclust' terinstall dengan benar.",
+      "File 'Koordinat.xlsx' not found.\n",
+      "Please ensure the 'soviclust' package is installed correctly.",
       call. = FALSE
     )
   }
@@ -127,24 +127,24 @@ sovi_sample_coords <- function() {
 }
 
 
-#' Baca Data Populasi 514 Kabupaten/Kota
+#' Read Population Data for 514 Indonesian Districts
 #'
 #' @description
-#' Membaca data jumlah penduduk 514 Kabupaten/Kota Indonesia
-#' yang disertakan dalam package. Data ini digunakan sebagai bobot
-#' populasi pada analisis FGWC, LFGWC, dan ALFGWC.
+#' Reads the population data for 514 Indonesian districts included in the
+#' package. This data is used as a population weight in FGWC, LFGWC,
+#' and ALFGWC clustering analyses.
 #'
-#' @return `data.frame` dengan 514 baris dan minimal 2 kolom (ID + populasi).
+#' @return A `data.frame` with 514 rows and at least 2 columns (ID + population).
 #'
 #' @examples
 #' pop_df <- sovi_sample_pop()
 #' head(pop_df)
 #'
-#' # Ambil vektor populasi
+#' # Extract population vector
 #' pop <- pop_df[[which(sapply(pop_df, is.numeric))[1]]]
 #' summary(pop)
-#' hist(pop / 1e6, main = "Distribusi Populasi (juta jiwa)",
-#'      xlab = "Populasi (juta)", col = "steelblue")
+#' hist(pop / 1e6, main = "Population Distribution (millions)",
+#'      xlab = "Population (millions)", col = "steelblue")
 #'
 #' @export
 sovi_sample_pop <- function() {
@@ -152,8 +152,8 @@ sovi_sample_pop <- function() {
                       package = "soviclust")
   if (path == "") {
     stop(
-      "File 'sovi_data_pop_514.xlsx' tidak ditemukan.\n",
-      "Pastikan package 'soviclust' terinstall dengan benar.",
+      "File 'sovi_data_pop_514.xlsx' not found.\n",
+      "Please ensure the 'soviclust' package is installed correctly.",
       call. = FALSE
     )
   }
@@ -161,25 +161,25 @@ sovi_sample_pop <- function() {
 }
 
 
-#' Baca Matriks Jarak 514 Kabupaten/Kota
+#' Read Distance Matrix for 514 Indonesian Districts
 #'
 #' @description
-#' Membaca matriks jarak simetris 514 × 514 antar Kabupaten/Kota Indonesia
-#' yang disertakan dalam package.
+#' Reads the symmetric 514 x 514 inter-district distance matrix for
+#' Indonesian districts included in the package.
 #'
-#' @return Matriks numerik 514 × 514. Nilai diagonal = 0.
+#' @return A numeric matrix of dimensions 514 x 514. Diagonal values = 0.
 #'
 #' @note
-#' File ini berukuran ~3.8 MB dan mungkin memerlukan beberapa saat untuk dibaca.
+#' This file is approximately 3.8 MB and may take a moment to load.
 #'
 #' @examples
 #' mat <- sovi_sample_distmat()
 #' dim(mat)        # [1] 514 514
 #' diag(mat)[1:5]  # [1] 0 0 0 0 0
 #'
-#' # Jarak dari wilayah pertama ke semua wilayah lain
-#' hist(mat[1, -1], main = "Distribusi Jarak dari Wilayah 1",
-#'      xlab = "Jarak", col = "coral")
+#' # Distance from the first district to all others
+#' hist(mat[1, -1], main = "Distance Distribution from District 1",
+#'      xlab = "Distance", col = "coral")
 #'
 #' @export
 sovi_sample_distmat <- function() {
@@ -187,8 +187,8 @@ sovi_sample_distmat <- function() {
                       package = "soviclust")
   if (path == "") {
     stop(
-      "File 'Distance_matrix_514.xlsx' tidak ditemukan.\n",
-      "Pastikan package 'soviclust' terinstall dengan benar.",
+      "File 'Distance_matrix_514.xlsx' not found.\n",
+      "Please ensure the 'soviclust' package is installed correctly.",
       call. = FALSE
     )
   }

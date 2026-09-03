@@ -1,42 +1,42 @@
-# R/data.R
+﻿# R/data.R
 # =============================================================================
-# Dokumentasi dataset sampel yang disertakan dalam package soviclust
-# Dataset berada di inst/extdata/ dan diakses via system.file()
+# Documentation for sample datasets included in the soviclust package
+# Datasets are stored in inst/extdata/ and accessed via system.file()
 # =============================================================================
 
-#' Data SoVI 514 Kabupaten/Kota Indonesia (2015)
+#' SoVI Data for 514 Indonesian Districts (2015)
 #'
 #' @description
-#' Dataset Social Vulnerability Index (SoVI) untuk 514 Kabupaten/Kota
-#' di Indonesia tahun 2015, berisi 15 indikator sosial-ekonomi dan kerentanan.
+#' Social Vulnerability Index (SoVI) dataset for 514 Indonesian districts
+#' (Kabupaten/Kota) in 2015, containing 15 socioeconomic and vulnerability indicators.
 #'
-#' @format Data frame dengan 514 baris dan 17 kolom:
+#' @format A data frame with 514 rows and 17 columns:
 #' \describe{
-#'   \item{DISTRICTCODE}{Kode unik wilayah Kabupaten/Kota (ID wilayah).}
-#'   \item{KABUPATEN}{Nama Kabupaten/Kota.}
-#'   \item{AGE014}{Persentase penduduk usia 0--14 tahun (\%).}
-#'   \item{FEMPOP}{Persentase penduduk perempuan (\%).}
-#'   \item{AGE65P}{Persentase penduduk usia 65 tahun ke atas (\%).}
-#'   \item{FEMHH}{Persentase rumah tangga dengan kepala keluarga perempuan (\%).}
-#'   \item{HHSIZE}{Rata-rata jumlah anggota rumah tangga (jiwa).}
-#'   \item{NOELEC}{Persentase rumah tangga tanpa akses listrik (\%).}
-#'   \item{LOWEDUC}{Persentase penduduk dengan pendidikan rendah (\%).}
-#'   \item{POPGRW}{Tingkat pertumbuhan penduduk (\%).}
-#'   \item{POOR}{Persentase penduduk miskin (\%).}
-#'   \item{ILLIT}{Tingkat buta huruf (\%).}
-#'   \item{NOTRAIN}{Persentase penduduk tanpa pelatihan kerja formal (\%).}
-#'   \item{DISAREA}{Persentase luas wilayah rawan bencana (\%).}
-#'   \item{RENTHH}{Persentase rumah tangga yang menyewa tempat tinggal (\%).}
-#'   \item{NOSAN}{Persentase rumah tangga tanpa fasilitas sanitasi layak (\%).}
-#'   \item{NOWATER}{Persentase rumah tangga tanpa akses air bersih (\%).}
+#'   \item{DISTRICTCODE}{Unique district ID code.}
+#'   \item{KABUPATEN}{District name.}
+#'   \item{AGE014}{Percentage of population aged 0--14 years (\%).}
+#'   \item{FEMPOP}{Percentage of female population (\%).}
+#'   \item{AGE65P}{Percentage of population aged 65 years and above (\%).}
+#'   \item{FEMHH}{Percentage of households with female head of household (\%).}
+#'   \item{HHSIZE}{Average household size (persons).}
+#'   \item{NOELEC}{Percentage of households without electricity access (\%).}
+#'   \item{LOWEDUC}{Percentage of population with low education level (\%).}
+#'   \item{POPGRW}{Population growth rate (\%).}
+#'   \item{POOR}{Percentage of population living in poverty (\%).}
+#'   \item{ILLIT}{Illiteracy rate (\%).}
+#'   \item{NOTRAIN}{Percentage of population without formal job training (\%).}
+#'   \item{DISAREA}{Percentage of district area classified as disaster-prone (\%).}
+#'   \item{RENTHH}{Percentage of households renting their dwelling (\%).}
+#'   \item{NOSAN}{Percentage of households without adequate sanitation (\%).}
+#'   \item{NOWATER}{Percentage of households without clean water access (\%).}
 #' }
 #'
 #' @source
-#' Data diolah dari Badan Pusat Statistik (BPS) Indonesia, tahun 2015.
-#' Metodologi mengacu pada Cutter et al. (2003).
+#' Data compiled from Statistics Indonesia (BPS), 2015.
+#' Methodology follows Cutter et al. (2003).
 #'
 #' @examples
-#' # Akses dataset sampel
+#' # Access the sample dataset
 #' path <- system.file("extdata", "sovi_data_kab_514_15.xlsx",
 #'                     package = "soviclust")
 #' df <- readxl::read_excel(path)
@@ -53,29 +53,29 @@
 NULL
 
 
-#' Koordinat Centroid 514 Kabupaten/Kota Indonesia
+#' Centroid Coordinates for 514 Indonesian Districts
 #'
 #' @description
-#' Dataset koordinat geografis (longitude dan latitude) titik centroid
-#' 514 Kabupaten/Kota di Indonesia. Digunakan untuk menghitung matriks
-#' jarak Haversine pada analisis FGWC, LFGWC, dan ALFGWC.
+#' Geographic centroid coordinates (longitude and latitude) for 514 Indonesian
+#' districts. Used to compute Haversine distance matrices for FGWC, LFGWC,
+#' and ALFGWC clustering analyses.
 #'
-#' @format Data frame dengan 514 baris dan minimal 3 kolom:
+#' @format A data frame with 514 rows and at least 3 columns:
 #' \describe{
-#'   \item{DISTRICTCODE}{Kode unik wilayah Kabupaten/Kota.}
-#'   \item{longitude}{Koordinat bujur (derajat desimal, WGS84).
-#'     Rentang: 95--141 (wilayah Indonesia).}
-#'   \item{latitude}{Koordinat lintang (derajat desimal, WGS84).
-#'     Rentang: -11 hingga 6 (wilayah Indonesia).}
+#'   \item{DISTRICTCODE}{Unique district ID code.}
+#'   \item{longitude}{Longitude in decimal degrees (WGS84).
+#'     Range: 95--141 (Indonesian territory).}
+#'   \item{latitude}{Latitude in decimal degrees (WGS84).
+#'     Range: -11 to 6 (Indonesian territory).}
 #' }
 #'
 #' @details
-#' Jarak antar wilayah dihitung otomatis menggunakan formula
-#' \strong{Haversine Distance} (satuan: kilometer) ketika memilih opsi
-#' "Upload Longitude & Latitude" pada tab Cluster Analysis.
+#' Inter-district distances are computed automatically using the
+#' \strong{Haversine Distance} formula (unit: kilometers) when selecting
+#' the "Upload Longitude & Latitude" option in the Cluster Analysis tab.
 #'
 #' @examples
-#' # Akses koordinat sampel
+#' # Access sample coordinates
 #' path <- system.file("extdata", "Koordinat.xlsx", package = "soviclust")
 #' coord <- readxl::read_excel(path)
 #' head(coord)
@@ -85,33 +85,33 @@ NULL
 NULL
 
 
-#' Matriks Jarak 514 Kabupaten/Kota Indonesia
+#' Distance Matrix for 514 Indonesian Districts
 #'
 #' @description
-#' Matriks jarak simetris berukuran 514 × 514 antar Kabupaten/Kota Indonesia.
-#' Nilai diagonal adalah 0 (jarak suatu wilayah ke dirinya sendiri).
-#' Digunakan sebagai input matriks jarak pada analisis FGWC, LFGWC, dan ALFGWC.
+#' A symmetric 514 x 514 inter-district distance matrix for Indonesian districts.
+#' Diagonal values are 0 (distance from a district to itself).
+#' Used as the distance matrix input for FGWC, LFGWC, and ALFGWC analyses.
 #'
-#' @format Matriks numerik (514 × 514) atau data frame dengan 514 baris dan
-#' 514+ kolom (kolom pertama mungkin berisi label wilayah):
+#' @format A numeric matrix (514 x 514) or data frame with 514 rows and
+#' 514+ columns (the first column may contain district labels):
 #' \describe{
-#'   \item{[baris i, kolom j]}{Jarak antara Kabupaten/Kota ke-i dan ke-j.
-#'     Satuan mengikuti sumber data (dapat berupa km atau unit lain).}
+#'   \item{[row i, column j]}{Distance between district i and district j.
+#'     Units follow the source data (may be km or other units).}
 #' }
 #'
 #' @details
-#' Matriks ini bersifat simetris: \eqn{d(i,j) = d(j,i)}.
-#' Nilai diagonal: \eqn{d(i,i) = 0}.
+#' The matrix is symmetric: \eqn{d(i,j) = d(j,i)}.
+#' Diagonal values: \eqn{d(i,i) = 0}.
 #'
-#' Sebagai alternatif, gunakan \code{Koordinat.xlsx} dan biarkan aplikasi
-#' menghitung jarak Haversine secara otomatis.
+#' As an alternative, use \code{Koordinat.xlsx} and let the application
+#' compute Haversine distances automatically.
 #'
 #' @examples
-#' # Akses matriks jarak sampel
+#' # Access the sample distance matrix
 #' path <- system.file("extdata", "Distance_matrix_514.xlsx",
 #'                     package = "soviclust")
 #' df  <- readxl::read_excel(path)
-#' # Buang kolom label jika ada
+#' # Remove label column if present
 #' if (!is.numeric(df[[1]])) df <- df[, -1]
 #' mat <- data.matrix(df)
 #' dim(mat)  # [1] 514 514
@@ -121,25 +121,24 @@ NULL
 NULL
 
 
-#' Data Populasi 514 Kabupaten/Kota Indonesia
+#' Population Data for 514 Indonesian Districts
 #'
 #' @description
-#' Dataset jumlah penduduk untuk 514 Kabupaten/Kota di Indonesia.
-#' Digunakan sebagai vektor bobot populasi pada analisis FGWC, LFGWC,
-#' dan ALFGWC.
+#' Population count data for 514 Indonesian districts. Used as a population
+#' weight vector in FGWC, LFGWC, and ALFGWC clustering analyses.
 #'
-#' @format Data frame dengan 514 baris dan minimal 2 kolom:
+#' @format A data frame with 514 rows and at least 2 columns:
 #' \describe{
-#'   \item{DISTRICTCODE}{Kode unik wilayah Kabupaten/Kota.}
-#'   \item{POPULATION}{Jumlah penduduk (jiwa). Semua nilai positif.}
+#'   \item{DISTRICTCODE}{Unique district ID code.}
+#'   \item{POPULATION}{Total population (persons). All values are positive.}
 #' }
 #'
 #' @examples
-#' # Akses data populasi sampel
+#' # Access sample population data
 #' path <- system.file("extdata", "sovi_data_pop_514.xlsx",
 #'                     package = "soviclust")
 #' pop_df <- readxl::read_excel(path)
-#' # Ekstrak vektor populasi (kolom numerik pertama)
+#' # Extract population vector (first numeric column)
 #' pop <- as.numeric(pop_df[[which(sapply(pop_df, is.numeric))[1]]])
 #' summary(pop)
 #'
