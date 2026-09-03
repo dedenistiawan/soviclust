@@ -1,0 +1,6 @@
+devtools::install("d:/00 Programming/01 R/07_Packages/soviclust", upgrade = "never")
+
+remotes::install_github(
+  "dedenistiawan/soviclust",
+  upgrade = "never"   # skip reinstall semua dependensi
+)

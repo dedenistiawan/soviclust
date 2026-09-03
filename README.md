@@ -108,34 +108,6 @@ The application is organized into eight sequential steps:
 
 ---
 
-## SoVI Formula
-
-The SoVI score is computed using proportional weighting of PCA components:
-
-```
-RC_k  = sum_i ( w_ik * d_i * z_i ),   w_ik = |lambda_ik| / sum_j |lambda_jk|
-SoVI  = sum_k RC_k
-SoVI* = (SoVI - min) / (max - min)  in [0, 1]
-```
-
-Where values close to **1** indicate **high vulnerability** and values close to **0** indicate **low vulnerability**.
-
----
-
-## Bundled Sample Data
-
-The package includes ready-to-use sample data for 514 Indonesian districts (Kabupaten/Kota):
-
-| File | Description | Rows | Columns |
-|------|-------------|------|---------|
-| `sovi_data_kab_514_15.xlsx` | SoVI dataset — 514 districts, 15 variables (2015) | 514 | 17 |
-| `Koordinat.xlsx` | Centroid coordinates (lon/lat) | 514 | 3 |
-| `Distance_matrix_514.xlsx` | Inter-district distance matrix (km) | 514 | 514 |
-| `sovi_data_pop_514.xlsx` | District population data | 514 | 2 |
-| `514_kabupaten.shp` | Administrative boundary shapefile | — | — |
-
----
-
 ## Clustering Optimization Algorithms
 
 FGWC, LFGWC, and ALFGWC support nine metaheuristic optimizers for centroid initialization:
