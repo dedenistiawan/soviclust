@@ -202,7 +202,7 @@ clustgeo_tab_ui <- function() {
                                          tags$hr(),
                                          div(class = "step-header", "Heatmap Profil"),
                                          tags$p(style = "font-size:12px; color:#78909c;",
-                                                "Warna merah = nilai tinggi, biru = nilai rendah."),
+                                                "Red = high value, blue = low value.."),
                                          plotOutput("cga_plot_heatmap", height = "340px"),
                                          tags$hr(),
                                          div(class = "step-header", "Radar Chart per Cluster"),

@@ -32,7 +32,7 @@ fgwc_server <- function(input, output, session, rv) {
       } else {
         df_d <- as.data.frame(readxl::read_excel(file.path(extdata, "Distance_matrix_514.xlsx")))
         mat  <- parse_distance_matrix(df_d)
-        attr(mat, "dist_mode") <- "matrix"; attr(mat, "dist_unit") <- "unit asli"
+        attr(mat, "dist_mode") <- "matrix"; attr(mat, "dist_unit") <- "original unit"
       }
       rv_fgwc_sample_dist(mat)
       incProgress(0.7)

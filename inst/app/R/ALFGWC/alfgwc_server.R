@@ -26,7 +26,7 @@ alfgwc_server <- function(input, output, session, rv) {
       } else {
         df_d <- as.data.frame(readxl::read_excel(file.path(extdata, "Distance_matrix_514.xlsx")))
         mat  <- parse_distance_matrix(df_d)
-        attr(mat, "dist_mode") <- "matrix"; attr(mat, "dist_unit") <- "unit asli"
+        attr(mat, "dist_mode") <- "matrix"; attr(mat, "dist_unit") <- "original unit"
       }
       rv_alfgwc_sample_dist(mat)
       incProgress(0.7)
@@ -491,14 +491,14 @@ alfgwc_server <- function(input, output, session, rv) {
     
     algo_labels <- c(
       classic = "Classic ALFGWC",
-      abc     = "ABC — Artificial Bee Colony",
-      fpa     = "FPA — Flower Pollination Algorithm",
-      gsa     = "GSA — Gravitational Search Algorithm",
-      hho     = "HHO — Harris-Hawk Optimization",
-      ifa     = "IFA — Intelligent Firefly Algorithm",
-      pso     = "PSO — DALFGWC-PSO (Grekousis 2020)",
-      tlbo    = "TLBO — Teaching-Learning Based Optimization",
-      woa     = "WOA — Whale Optimization Algorithm"
+      abc     = "ABC (Artificial Bee Colony)",
+      fpa     = "FPA (Flower Pollination Algorithm)",
+      gsa     = "GSA (Gravitational Search Algorithm)",
+      hho     = "HHO (Harris-Hawk Optimization)",
+      ifa     = "IFA (Intelligent Firefly Algorithm)",
+      pso     = "PSO (DALFGWC-PSO) (Grekousis 2020)",
+      tlbo    = "TLBO (Teaching-Learning Based Optimization)",
+      woa     = "WOA (Whale Optimization Algorithm)"
     )
     
     div(

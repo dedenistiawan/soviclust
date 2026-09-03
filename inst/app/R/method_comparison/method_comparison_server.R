@@ -118,7 +118,7 @@ method_comparison_server <- function(input, output, session, rv) {
       # ── Judul & info ─────────────────────────────────────────────────────
       div(style = "margin-bottom:14px;",
           tags$h4(style = "color:#1a73c1; font-weight:700; margin-bottom:4px;",
-                  icon("ruler-combined"), " Ringkasan Metrik Evaluasi"),
+                  icon("ruler-combined"), " Summary of Evaluation Metrics"),
           tags$p(style = "font-size:12.5px; color:#78909c; margin:0;",
                  "n = ", n, " area units  |  ",
                  "Threshold loading = ", input$comp_threshold, "  |  ",
@@ -818,7 +818,7 @@ method_comparison_server <- function(input, output, session, rv) {
         div(class = "progress-box",
             style = "background:#e3f2fd; border-left-color:#1a73c1; font-size:12.5px;",
             icon("arrow-right"),
-            " Setelah menentukan method, lanjut ke ",
+            " After determining the method, proceed to ",
             tags$strong("SoVI Computation"), ".")
       )
     )

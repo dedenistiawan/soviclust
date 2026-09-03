@@ -354,7 +354,7 @@ extended_analysis_server <- function(input, output, session, rv) {
   
   output$cutter_result <- renderPrint({
     req(rv$cutter_df)
-    cat("=== Perbandingan dengan Metode Cutter (2003) ===\n\n")
+    cat("=== Comparison with the Cutter (2003) Method ===\n\n")
     cat("Spearman \u03c1 =", rv$cutter_df$spearman_r, "\n")
     cat("p-value    =",
         format(rv$cutter_df$spearman_p, scientific = TRUE, digits = 4), "\n\n")
@@ -400,7 +400,7 @@ extended_analysis_server <- function(input, output, session, rv) {
     DT::datatable(df,
                   options  = list(pageLength = 10, scrollX = TRUE),
                   rownames = FALSE,
-                  caption  = "Top 20 Distrik \u2014 Perbedaan Ranking Terbesar")
+                  caption  = "Top 20 Districts \u2014 Largest Ranking Difference")
   })
   
 } # end extended_analysis_server()
