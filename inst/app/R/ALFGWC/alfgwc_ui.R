@@ -184,15 +184,15 @@ alfgwc_tab_ui <- function() {
           radioButtons("alfgwc_algorithm", NULL,
                        choices = c(
                          "Classic ALFGWC"                         = "classic",
-                         "ABC \u2014 Artificial Bee Colony"       = "abc",
-                         "FPA \u2014 Flower Pollination"          = "fpa",
-                         "GSA \u2014 Gravitational Search"        = "gsa",
-                         "GWO \u2014 Grey Wolf Optimizer"         = "gwo",
-                         "HHO \u2014 Harris-Hawk Optimization"    = "hho",
-                         "IFA \u2014 Intelligent Firefly"         = "ifa",
-                         "PSO \u2014 Particle Swarm"              = "pso",
-                         "TLBO \u2014 Teaching-Learning Based"    = "tlbo",
-                         "WOA \u2014 Whale Optimization"          = "woa"
+                         "ABC (Artificial Bee Colony)"       = "abc",
+                         "FPA (Flower Pollination)"          = "fpa",
+                         "GSA (Gravitational Search)"        = "gsa",
+                         "GWO (Grey Wolf Optimizer)"         = "gwo",
+                         "HHO (Harris-Hawk Optimization)"    = "hho",
+                         "IFA (Intelligent Firefly)"         = "ifa",
+                         "PSO (Particle Swarm)"              = "pso",
+                         "TLBO (Teaching-Learning Based)"    = "tlbo",
+                         "WOA (Whale Optimization)"          = "woa"
                        ),
                        selected = "classic")
         )

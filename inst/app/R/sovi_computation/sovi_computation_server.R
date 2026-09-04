@@ -357,7 +357,7 @@ sovi_computation_server <- function(input, output, session, rv, unlock_tab) {
     DT::datatable(top10,
                   options = list(dom = "t"),
                   rownames = FALSE,
-                  caption  = "Top 10 Distrik Paling Rentan")
+                  caption  = "Top 10 Most Vulnerable Districts")
   })
   
 } # end sovi_computation_server()

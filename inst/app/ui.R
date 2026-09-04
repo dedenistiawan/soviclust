@@ -106,7 +106,7 @@ upload_tab_ui <- function() shinydashboard::tabItem("tab_upload",
             style = "margin:0; color:#546e7a; font-size:13px;",
             icon("info-circle"), " Dataset: ",
             tags$strong("514 Indonesian Regencies/Cities"),
-            " (15 SoVI variables, year 2015) + Administrative shapefile.",
+            " (15 SoVI variables) + Administrative shapefile.",
             tags$br(),
             "Suitable for exploration and demo before using your own data."
           )
@@ -329,7 +329,7 @@ ui <- shinydashboard::dashboardPage(
       # Disimpan dari ui.R lama tanpa perubahan
       shinydashboard::tabItem("tab_workflow",
                               fluidRow(column(12, shinydashboard::box(
-                                title = tags$span(icon("project-diagram"), " SoVI Pipeline \u2014 7 Phases"),
+                                title = tags$span(icon("project-diagram"), " SoVI Pipeline 7 Phases"),
                                 status = "primary", solidHeader = TRUE, width = 12,
                                 tags$p(style = "color:#37474f; font-size:13.5px;",
                                        "Pipeline follows ", tags$strong("Cutter et al. (2003)"),
@@ -390,7 +390,7 @@ ui <- shinydashboard::dashboardPage(
                                               tags$h4(icon("book", style="color:#42a5f5"), " Cutter's Method"),
                                               tags$p(style="font-size:13px; color:#37474f;",
                                                      "Component direction from ", tags$strong("dominant variable"),
-                                                     " (largest absolute loading) per component — original Cutter et al. (2003) method.")
+                                                     " (largest absolute loading) per component, original Cutter et al. (2003) method.")
                                 ))
                               ),
                               
@@ -577,11 +577,11 @@ ui <- shinydashboard::dashboardPage(
                                              tags$thead(tags$tr(tags$th("Column"), tags$th("Type"), tags$th("Description"))),
                                              tags$tbody(
                                                tags$tr(tags$td(tags$code("DISTRICTCODE")), tags$td("Chr/Num"),
-                                                       tags$td("Unique ID \u2014 must match shapefile")),
+                                                       tags$td("Unique ID must match shapefile")),
                                                tags$tr(tags$td(tags$code("KABUPATEN")), tags$td("Character"),
                                                        tags$td("Region name")),
                                                tags$tr(tags$td(tags$code("VAR_1...n")), tags$td("Numeric"),
-                                                       tags$td("SoVI Variables in % (0\u2013100)"))
+                                                       tags$td("SoVI Variables"))
                                              )
                                   )
                                 )),
@@ -594,11 +594,11 @@ ui <- shinydashboard::dashboardPage(
                                              tags$thead(tags$tr(tags$th("Extension"), tags$th("Description"), tags$th("Status"))),
                                              tags$tbody(
                                                tags$tr(tags$td(tags$code(".shp")), tags$td("Area geometry"),
-                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\\u2713 Required"))),
+                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","Required"))),
                                                tags$tr(tags$td(tags$code(".dbf")), tags$td("Data attributes"),
-                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\\u2713 Required"))),
+                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","Required"))),
                                                tags$tr(tags$td(tags$code(".shx")), tags$td("Geometry index"),
-                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","\\u2713 Required"))),
+                                                       tags$td(tags$span(style="color:#27ae60;font-weight:bold;","Required"))),
                                                tags$tr(tags$td(tags$code(".prj")), tags$td("CRS projection"), tags$td("Recommended")),
                                                tags$tr(tags$td(tags$code(".cpg")), tags$td("Character encoding"), tags$td("Optional"))
                                              )

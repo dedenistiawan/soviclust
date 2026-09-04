@@ -583,7 +583,7 @@ method_comparison_server <- function(input, output, session, rv) {
       
     } else {
       conf_status <- "warning"
-      conf_label  <- "Confirmed \u2014 Variable Direction Requires Investigation"
+      conf_label  <- "Confirmed, Variable Direction Requires Investigation"
       conf_color  <- "#e74c3c"
       conf_icon   <- icon("exclamation-triangle")
       warning_box <- div(

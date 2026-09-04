@@ -173,10 +173,10 @@ find_optimal_alpha <- function(D0, D1, k,
   }
   
   q_df <- data.frame(
-    alpha      = range_alpha,
-    Q1_atribut = round(Q1_vec, 4),
-    Q2_spasial = round(Q2_vec, 4),
-    diff_abs   = round(abs(Q1_vec - Q2_vec), 4)
+    alpha       = range_alpha,
+    Q1_attribute = round(Q1_vec, 4),
+    Q2_spatial   = round(Q2_vec, 4),
+    diff_abs     = round(abs(Q1_vec - Q2_vec), 4)
   )
   
   # Alpha optimal: |Q1 - Q2| minimum

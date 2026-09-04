@@ -388,15 +388,15 @@ fgwc_server <- function(input, output, session, rv) {
     
     algo_labels <- c(
       classic = "Classic FGWC",
-      abc     = "ABC \u2014 Artificial Bee Colony",
-      fpa     = "FPA \u2014 Flower Pollination Algorithm",
-      gsa     = "GSA \u2014 Gravitational Search Algorithm",
-      gwo     = "GWO \u2014 Grey Wolf Optimizer",
-      hho     = "HHO \u2014 Harris-Hawk Optimization",
-      ifa     = "IFA \u2014 Intelligent Firefly Algorithm",
-      pso     = "PSO \u2014 Particle Swarm Optimization",
-      tlbo    = "TLBO \u2014 Teaching-Learning Based Optimization",
-      woa     = "WOA \u2014 Whale Optimization Algorithm"
+      abc     = "ABC (Artificial Bee Colony)",
+      fpa     = "FPA (Flower Pollination Algorithm)",
+      gsa     = "GSA (Gravitational Search Algorithm)",
+      gwo     = "GWO (Grey Wolf Optimizer)",
+      hho     = "HHO (Harris-Hawk Optimization)",
+      ifa     = "IFA (Intelligent Firefly Algorithm)",
+      pso     = "PSO (Particle Swarm Optimization)",
+      tlbo    = "TLBO (Teaching-Learning Based Optimization)",
+      woa     = "WOA (Whale Optimization Algorithm)"
     )
     
     sil_color <- if (!is.na(res$sil_mean) && res$sil_mean >= 0.5)
