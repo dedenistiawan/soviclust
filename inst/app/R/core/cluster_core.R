@@ -463,4 +463,4 @@ build_leaflet_clustgeo_adv <- function(result_df, shp, join_shp, join_df,
     )
 }
 
-message("[cluster_core.R] Fungsi ClustGeo dimuat.")
+message("[cluster_core.R] Fungsi ClustGeo loaded.")

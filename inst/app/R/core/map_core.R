@@ -210,4 +210,4 @@ build_leaflet_lisa <- function(peta,
     )
 }
 
-message("[map_core.R] Leaflet builder functions dimuat.")
+message("[map_core.R] Leaflet builder functions loaded.")

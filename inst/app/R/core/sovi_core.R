@@ -479,4 +479,4 @@ run_sovi_core <- function(data,
   ))
 }
 
-message("[sovi_core.R] Pipeline SoVI (Fase 2-6) dimuat.")
+message("[sovi_core.R] Pipeline SoVI (Fase 2-6) loaded.")

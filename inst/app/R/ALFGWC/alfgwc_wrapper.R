@@ -603,4 +603,4 @@ build_leaflet_alfgwc_membership <- function(result_df, shp, join_shp, join_df,
     )
 }
 
-message("[alfgwc_wrapper] ALFGWC berhasil dimuat. Siap digunakan di Shiny.")
+message("[alfgwc_wrapper] ALFGWC successfully loaded. Ready for use in Shiny.")

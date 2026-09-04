@@ -500,4 +500,4 @@ build_leaflet_fgwc <- function(result_df, shp, join_shp, join_df,
     )
 }
 
-message("[fgwc_wrapper.R] FGWC helper functions dimuat.")
+message("[fgwc_wrapper.R] FGWC helper functions loaded")
