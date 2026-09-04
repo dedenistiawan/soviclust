@@ -1425,7 +1425,7 @@ lfgwc_server <- function(input, output, session, rv) {
             n_runs     = n_runs,
             seed_start = seed0,
             module     = "lfgwc",
-            progress   = shiny::getDefaultReactiveDomain()
+            progress_fn = function(amount, detail) incProgress(amount, detail = detail)
           ),
           error = function(e) {
             showNotification(paste("Stability error:", e$message),

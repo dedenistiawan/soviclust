@@ -111,32 +111,34 @@
 #' Menjalankan fungsi clustering N kali dengan seed berbeda dan
 #' melaporkan statistik deskriptif untuk setiap validity index.
 #'
-#' @param run_fn     Fungsi run: run_fgwc_shiny | run_lfgwc_shiny | run_alfgwc_shiny
-#' @param base_args  List semua argumen untuk run_fn (kecuali seed)
-#' @param n_runs     Jumlah independent runs (default 30)
-#' @param seed_start Seed awal; run ke-i menggunakan seed = seed_start + i - 1
-#' @param module     "fgwc" | "lfgwc" | "alfgwc"
-#' @param progress   Shiny progress object (opsional, untuk update progress bar)
+#' @param run_fn      Fungsi run: run_fgwc_shiny | run_lfgwc_shiny | run_alfgwc_shiny
+#' @param base_args   List semua argumen untuk run_fn (kecuali seed)
+#' @param n_runs      Jumlah independent runs (default 30)
+#' @param seed_start  Seed awal; run ke-i menggunakan seed = seed_start + i - 1
+#' @param module      "fgwc" | "lfgwc" | "alfgwc"
+#' @param progress_fn Callback function(amount, detail) untuk update progress bar.
+#'                    Contoh: function(amount, detail) incProgress(amount, detail = detail)
+#'                    Biarkan NULL jika tidak perlu update progress.
 #'
 #' @return List berisi:
-#'   - summary_df   : data.frame statistik (Index × Mean/SD/Best/Worst/Median)
-#'   - detail_df    : data.frame nilai per run (Run × Seed × semua index)
+#'   - summary_df   : data.frame statistik (Index x Mean/SD/Best/Worst/Median)
+#'   - detail_df    : data.frame nilai per run (Run x Seed x semua index)
 #'   - n_success    : jumlah run yang berhasil
 #'   - n_failed     : jumlah run yang gagal
 #'   - elapsed_sec  : total waktu (detik)
 run_stability_test <- function(run_fn,
                                base_args,
-                               n_runs     = 30,
-                               seed_start = 1,
-                               module     = "fgwc",
-                               progress   = NULL) {
+                               n_runs      = 30,
+                               seed_start  = 1,
+                               module      = "fgwc",
+                               progress_fn = NULL) {
 
   stopifnot(is.function(run_fn))
   stopifnot(module %in% c("fgwc", "lfgwc", "alfgwc"))
   n_runs     <- max(2L, as.integer(n_runs))
   seed_start <- as.integer(seed_start)
 
-  message(sprintf("[stability_test] Starting %d runs for %s (seeds %d–%d)...",
+  message(sprintf("[stability_test] Starting %d runs for %s (seeds %d-%d)...",
                   n_runs, toupper(module), seed_start, seed_start + n_runs - 1))
 
   t_start   <- proc.time()
@@ -147,11 +149,14 @@ run_stability_test <- function(run_fn,
   for (i in seq_len(n_runs)) {
     seed_i <- seed_start + i - 1L
 
-    # Update progress bar jika tersedia
-    if (!is.null(progress)) {
-      progress$inc(
-        amount  = 1 / n_runs,
-        detail  = sprintf("Run %d / %d (seed = %d)...", i, n_runs, seed_i)
+    # Update progress bar via callback jika tersedia
+    if (is.function(progress_fn)) {
+      tryCatch(
+        progress_fn(
+          amount = 1 / n_runs,
+          detail = sprintf("Run %d / %d (seed = %d)...", i, n_runs, seed_i)
+        ),
+        error = function(e) NULL  # jangan hentikan loop jika progress gagal
       )
     }
 
