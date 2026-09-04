@@ -715,7 +715,7 @@ lfgwc_tab_ui <- function() {
                        column(12,
                          shinydashboard::box(
                            title       = tags$span(icon("list-alt"), " Detail per Run"),
-                           status      = "default",
+                           status      = "info",
                            solidHeader = FALSE,
                            width       = 12,
                            collapsible = TRUE,
