@@ -122,36 +122,52 @@ fcm_server <- function(input, output, session, rv) {
           x        = X,
           centers  = k,
           m        = m,
-          maxit    = maxiter,
+          iter.max = maxiter,
           con.val  = 1e-6
         )
 
         incProgress(0.5, detail = "Computing silhouette & profile...")
 
-        # Cluster assignment (hard clustering = argmax membership)
-        cluster_vec <- fcm_res$cluster
+        # Cluster assignment — argmax dari matriks membership U
+        cluster_vec <- max.col(fcm_res$u)
 
         # Silhouette
         D0       <- dist(X, method = "euclidean")
         sil_obj  <- tryCatch(cluster::silhouette(cluster_vec, D0), error = function(e) NULL)
         sil_mean <- if (!is.null(sil_obj)) round(mean(sil_obj[, 3]), 3) else NA
 
-        # Validation indices (dari ppclust)
-        val_pc  <- round(ppclust::pc(fcm_res$u), 4)
-        val_mpc <- round(ppclust::mpc(fcm_res$u), 4)
-        val_ce  <- round(ppclust::ce(fcm_res$u), 4)
+        # Validation indices — dihitung manual dari matriks membership U
+        U <- fcm_res$u  # matriks membership n x k
 
-        # Indeks tambahan via cluster package
+        # PC: Partition Coefficient = mean(sum(u_ij^2)) — range [1/k, 1]
+        val_pc  <- round(sum(U^2) / nrow(U), 4)
+
+        # MPC: Modified PC = 1 - k/(k-1) * (1 - PC)
+        val_mpc <- round(1 - (k / (k - 1)) * (1 - val_pc), 4)
+
+        # CE: Classification Entropy = -mean(sum(u_ij * log(u_ij)))
+        U_safe  <- pmax(U, 1e-10)
+        val_ce  <- round(-sum(U_safe * log(U_safe)) / nrow(U), 4)
+
+        # SI: Silhouette Index (dari cluster package)
         val_si  <- if (!is.null(sil_obj)) round(mean(sil_obj[, 3]), 4) else NA
+
+        # Dunn's Fuzziness Coefficient — hitung dari U (tidak tersedia di sumsqrs)
+        # Dunn's FC = mean(rowSums(U^2)) = PC
+        val_dc  <- val_pc  # identik dengan PC
+        val_dcn <- round(1 - (k / (k - 1)) * (1 - val_pc), 4)  # = MPC
 
         val_df <- data.frame(
           Index       = c("PC (Partition Coefficient)",
                           "MPC (Modified Partition Coefficient)",
                           "CE (Classification Entropy)",
+                          "DC (Dunn's Fuzziness Coeff.)",
+                          "DCN (Normalized Dunn's)",
                           "SI (Silhouette Index)"),
-          Value       = c(val_pc, val_mpc, val_ce, val_si),
+          Value       = c(val_pc, val_mpc, val_ce, val_dc, val_dcn, val_si),
           Preference  = c("higher is better", "higher is better",
-                          "lower is better",  "higher is better"),
+                          "lower is better",  "higher is better",
+                          "higher is better",  "higher is better"),
           stringsAsFactors = FALSE
         )
 
@@ -198,8 +214,9 @@ fcm_server <- function(input, output, session, rv) {
           profile <- dplyr::left_join(profile, sovi_means, by = c("cluster" = "fcm_cluster"))
         }
 
-        # Convergence: ppclust::fcm menyimpan di $iter.val
-        conv_vec <- if (!is.null(fcm_res$iter.val)) fcm_res$iter.val else fcm_res$func.val
+        # Convergence: func.val hanya menyimpan nilai akhir (1 nilai)
+        # Buat pseudo-convergence dari iterasi (tidak tersedia per-iter di ppclust)
+        conv_vec <- fcm_res$func.val
 
         list(
           fcm_obj     = fcm_res,
@@ -347,10 +364,22 @@ fcm_server <- function(input, output, session, rv) {
 
   output$fcm_conv_plot <- renderPlot({
     req(rv$fcm_result)
-    conv <- rv$fcm_result$conv
+    res  <- rv$fcm_result
+    conv <- res$conv
     if (is.null(conv) || length(conv) == 0) {
       plot.new()
       text(0.5, 0.5, "Convergence data not available.", cex = 1.1, col = "grey50")
+      return()
+    }
+    # ppclust::fcm hanya menyimpan nilai akhir objective function (1 nilai)
+    if (length(conv) == 1) {
+      plot.new()
+      text(0.5, 0.6,
+           paste0("FCM converged after ", res$fcm_obj$iter, " iterations"),
+           cex = 1.3, col = "#1a73c1", font = 2)
+      text(0.5, 0.4,
+           paste0("Final Objective Function = ", round(conv, 6)),
+           cex = 1.1, col = "#546e7a")
       return()
     }
     df <- data.frame(Iteration = seq_along(conv), Obj = conv)
