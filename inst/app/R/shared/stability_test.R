@@ -211,21 +211,31 @@ run_stability_test <- function(run_fn,
 
     if (length(vals_ok) == 0) {
       return(data.frame(
-        Index  = idx,
+        Index     = idx,
         Direction = paste0("(", dir, ")"),
-        Mean   = NA, SD = NA, Best = NA, Worst = NA, Median = NA,
+        Mean_SD   = NA_character_,
+        Mean      = NA_real_,
+        SD        = NA_real_,
+        Best      = NA_real_,
+        Worst     = NA_real_,
+        Median    = NA_real_,
         stringsAsFactors = FALSE
       ))
     }
 
-    best  <- if (dir == "max") max(vals_ok)  else min(vals_ok)
-    worst <- if (dir == "max") min(vals_ok)  else max(vals_ok)
+    mean_val <- round(mean(vals_ok), 6)
+    sd_val   <- round(sd(vals_ok),   6)
+    best     <- if (dir == "max") max(vals_ok) else min(vals_ok)
+    worst    <- if (dir == "max") min(vals_ok) else max(vals_ok)
 
     data.frame(
       Index     = idx,
       Direction = ifelse(dir == "max", "\u2191 higher is better", "\u2193 lower is better"),
-      Mean      = round(mean(vals_ok),   6),
-      SD        = round(sd(vals_ok),     6),
+      Mean_SD   = sprintf("%s \u00b1 %s",
+                          formatC(mean_val, format = "f", digits = 6),
+                          formatC(sd_val,   format = "f", digits = 6)),
+      Mean      = mean_val,
+      SD        = sd_val,
       Best      = round(best,            6),
       Worst     = round(worst,           6),
       Median    = round(median(vals_ok), 6),

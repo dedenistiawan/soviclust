@@ -1463,11 +1463,13 @@ lfgwc_server <- function(input, output, session, rv) {
     df <- rv$stability_lfgwc$summary_df
     DT::datatable(
       df,
-      rownames = FALSE,
-      options  = list(dom = "t", pageLength = 10, ordering = FALSE),
-      caption  = htmltools::tags$caption(
+      rownames  = FALSE,
+      colnames  = c("Index", "Direction", "Mean \u00b1 SD",
+                    "Mean", "SD", "Best", "Worst", "Median"),
+      options   = list(dom = "t", pageLength = 10, ordering = FALSE),
+      caption   = htmltools::tags$caption(
         style = "caption-side:top; text-align:left; font-weight:bold;",
-        sprintf("Validity Index Summary — %d independent runs (LFGWC %s, k=%d)",
+        sprintf("Validity Index Summary \u2014 %d independent runs (LFGWC %s, k=%d)",
                 rv$stability_lfgwc$n_success + rv$stability_lfgwc$n_failed,
                 toupper(isolate(rv$cga_result_lfgwc$algorithm)),
                 isolate(rv$cga_result_lfgwc$k))
@@ -1475,8 +1477,13 @@ lfgwc_server <- function(input, output, session, rv) {
     ) |>
       DT::formatRound(columns = c("Mean","SD","Best","Worst","Median"), digits = 6) |>
       DT::formatStyle(
+        "Mean_SD",
+        fontWeight = "bold",
+        color      = "#1a73c1"
+      ) |>
+      DT::formatStyle(
         "Direction",
-        target = "row",
+        target          = "row",
         backgroundColor = DT::styleEqual(
           c("\u2191 higher is better", "\u2193 lower is better"),
           c("#f0fff4", "#fff8f0")
