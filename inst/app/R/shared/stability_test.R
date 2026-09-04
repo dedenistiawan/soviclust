@@ -135,7 +135,7 @@ run_stability_test <- function(run_fn,
 
   stopifnot(is.function(run_fn))
   stopifnot(module %in% c("fgwc", "lfgwc", "alfgwc"))
-  n_runs     <- max(2L, as.integer(n_runs))
+  n_runs     <- as.integer(n_runs)
   seed_start <- as.integer(seed_start)
 
   message(sprintf("[stability_test] Starting %d runs for %s (seeds %d-%d)...",

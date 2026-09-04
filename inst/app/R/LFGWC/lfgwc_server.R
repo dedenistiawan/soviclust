@@ -1341,7 +1341,7 @@ lfgwc_server <- function(input, output, session, rv) {
     }
 
     res    <- rv$cga_result_lfgwc
-    n_runs <- max(5L, as.integer(input$lfgwc_nruns   %||% 30))
+    n_runs <- max(2L, as.integer(input$lfgwc_nruns   %||% 30))
     seed0  <- as.integer(input$lfgwc_seed_start %||% 1)
 
     output$lfgwc_stability_progress <- renderUI({
