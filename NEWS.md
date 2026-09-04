@@ -1,7 +1,25 @@
-﻿# NEWS.md - soviclust Changelog
+# NEWS.md - soviclust Changelog
 
 Follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+# soviclust 0.7.0
+
+### Added
+- **Stability Analysis Module**:
+  - Independent multiple-runs stability testing for FGWC, LFGWC, and ALFGWC algorithms (`stability_test.R`).
+  - Customizable number of runs (default 10, minimum 2) and starting random seed.
+  - Non-blocking real-time Shiny progress notification using callback-based progress reporting.
+  - Multi-run summary table displaying `Mean ± SD` prominently alongside `Mean`, `SD`, `Best`, `Worst`, and `Median` across validation indices (PC, CE, SC, S, XB, IFV).
+  - Visual validation metric distributions using interactive boxplots (Plotly).
+  - Detailed run-by-run results datatable with per-run execution times, iterations, and metric values.
+- **Package Startup & Helpers**:
+  - Informative package startup banner in `zzz.R` upon `library(soviclust)`.
+  - Core data loading and shapefile processing helper functions.
+
+### Fixed
+- Replaced invalid `status = "default"` with `status = "info"` in `shinydashboard::box()` components across stability tabs.
+- Corrected input run count constraint preventing override of user parameters in stability analysis.
 
 ---
 

@@ -47,7 +47,7 @@ remotes::install_github("dedenistiawan/soviclust")
 To install a specific version:
 
 ```r
-remotes::install_github("dedenistiawan/soviclust@v0.6.0")
+remotes::install_github("dedenistiawan/soviclust@v0.7.0")
 ```
 
 To skip reinstalling existing dependencies:
@@ -86,7 +86,7 @@ The application will open automatically in your default web browser.
 To start the app, please run:
   soviclust::run_app()
 
-Version: 0.6.0
+Version: 0.7.0
 ```
 
 ---
@@ -102,7 +102,7 @@ The application is organized into eight sequential steps:
 | 3 | **Method Comparison** | Compare three direction methods using Spearman ρ, Kendall τ, MARD, RMSD, and Cohen's κ |
 | 4 | **SoVI Computation** | Run the full SoVI pipeline and view the choropleth map |
 | 5 | **Extended Analysis** | Dominant component, radar profiles, Moran's I, LISA, sensitivity analysis |
-| 6 | **Cluster Analysis** | Run spatial clustering (ClustGeo / FGWC / LFGWC / ALFGWC) |
+| 6 | **Cluster Analysis** | Run spatial clustering (ClustGeo / FGWC / LFGWC / ALFGWC) & multi-run stability analysis |
 | 7 | **SoVI Analysis** | Variable-level choropleth maps with Jenks classification |
 | 8 | **Downloads** | Export results as CSV and PNG |
 
@@ -148,7 +148,7 @@ If you use **soviclust** in your research, please cite:
   title   = {{soviclust}: An Interactive R Shiny Package for Social Vulnerability
              Index Analysis and Spatial Clustering},
   year    = {2024},
-  version = {0.6.0},
+  version = {0.7.0},
   url     = {https://github.com/dedenistiawan/soviclust}
 }
 ```
