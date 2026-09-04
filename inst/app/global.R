@@ -48,6 +48,7 @@ library(Rtsne)     # t-SNE
 library(uwot)      # UMAP
 library(shiny.i18n)
 library(digest)    # Cache key hashing untuk PCA caching
+library(ppclust)   # Fuzzy C-Means (FCM)
 library(future)
 library(promises)
 
@@ -111,7 +112,11 @@ local({
 source("R/cluster_geo/clustgeo_ui.R")     # clustgeo_tab_ui()
 source("R/cluster_geo/clustgeo_server.R") # clustgeo_server()
 
-# ── FGWC ──────────────────────────────────────────────────────────────────────
+# ── FCM ──────────────────────────────────────────────────────────────────────────────
+source("R/FCM/fcm_ui.R")         # fcm_tab_ui()
+source("R/FCM/fcm_server.R")     # fcm_server()
+
+# ── FGWC ─────────────────────────────────────────────────────────────────────────────
 source("R/FGWC/fgwc_wrapper.R")    # run_fgwc_shiny, build_leaflet_fgwc,
                                    # build_fgwc_feature_matrix, dsb.
 source("R/FGWC/fgwc_ui.R")         # fgwc_tab_ui()

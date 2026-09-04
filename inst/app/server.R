@@ -51,7 +51,8 @@ server <- function(input, output, session) {
     cga_result_fgwc   = NULL,
     cga_result_lfgwc  = NULL,
     km_result         = NULL,   # K-Means
-    dbs_result        = NULL    # DBSCAN
+    dbs_result        = NULL,   # DBSCAN
+    fcm_result        = NULL    # FCM
   )
   
   # ============================================================================
@@ -81,7 +82,7 @@ server <- function(input, output, session) {
   observe({
     shinyjs::runjs("
       ['tab_varconfig','tab_comparison','tab_sovi','tab_analysis',
-       'tab_clustgeo_adv','tab_fgwc','tab_lfgwc','tab_alfgwc',
+       'tab_clustgeo_adv','tab_fcm','tab_fgwc','tab_lfgwc','tab_alfgwc',
        'tab_kmeans','tab_dbscan',
        'tab_sovi_analysis','tab_download']
         .forEach(function(t) {
@@ -96,7 +97,7 @@ server <- function(input, output, session) {
         if (submenu) {
           var subItems = submenu.querySelectorAll('a[data-value]');
           var allLocked = Array.from(subItems).every(function(si) {
-            return ['tab_clustgeo_adv','tab_fgwc','tab_lfgwc','tab_alfgwc']
+            return ['tab_clustgeo_adv','tab_fcm','tab_fgwc','tab_lfgwc','tab_alfgwc']
                      .indexOf(si.getAttribute('data-value')) >= 0;
           });
           if (allLocked && subItems.length > 0) {
@@ -359,6 +360,7 @@ server <- function(input, output, session) {
   
   # ── Cluster Analysis ───────────────────────────────────────────────────────
   clustgeo_server(input, output, session, rv)
+  fcm_server(input, output, session, rv)
   fgwc_server(input, output, session, rv)
   lfgwc_server(input, output, session, rv)
   alfgwc_server(input, output, session, rv)

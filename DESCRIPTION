@@ -11,8 +11,9 @@ Description: An interactive R Shiny platform for computing, visualizing, and ana
     the Social Vulnerability Index (SoVI) at the administrative unit level. Implements
     the methodology of Cutter et al. (2003) with proportional PCA-based weighting, three
     variable direction methods, spatial analysis (Moran's I, LISA), and four spatial
-    clustering algorithms: ClustGeo, FGWC (Fuzzy Geographically Weighted Clustering),
-    LFGWC, and ALFGWC with nine metaheuristic optimizers for centroid initialization.
+    clustering algorithms: ClustGeo, FCM (Fuzzy C-Means), FGWC (Fuzzy Geographically
+    Weighted Clustering), LFGWC, and ALFGWC with nine metaheuristic optimizers for
+    centroid initialization.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
@@ -47,6 +48,7 @@ Imports:
     uwot,
     shiny.i18n,
     digest,
+    ppclust,
     dbscan
 Suggests:
     devtools,

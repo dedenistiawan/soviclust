@@ -96,7 +96,9 @@ dbscan_server <- function(input, output, session, rv) {
     k <- min(input$dbs_knn_k, nrow(X) - 1)
 
     knn_dists <- dbscan::kNNdist(X, k = k)
-    sorted_d  <- sort(knn_dists[, k], decreasing = FALSE)
+    # kNNdist() returns a matrix; if ncol == 1 (k=1), extract as vector
+    d_col     <- if (is.matrix(knn_dists)) knn_dists[, k] else as.numeric(knn_dists)
+    sorted_d  <- sort(d_col, decreasing = FALSE)
 
     df <- data.frame(
       Rank     = seq_along(sorted_d),
@@ -242,7 +244,7 @@ dbscan_server <- function(input, output, session, rv) {
     sovi_df <- rv$dbs_result$sovi_df
     sovi_df$Cluster <- ifelse(sovi_df$dbs_cluster == 0, "Noise",
                               paste0("Cluster ", sovi_df$dbs_cluster))
-    n_cls <- length(unique(sovi_df$Klaster))
+    n_cls <- length(unique(sovi_df$Cluster))
     pal   <- if (n_cls <= 8) {
       RColorBrewer::brewer.pal(max(3, n_cls), "Set2")[seq_len(n_cls)]
     } else {
@@ -250,7 +252,7 @@ dbscan_server <- function(input, output, session, rv) {
     }
 
     ggplot2::ggplot(sovi_df,
-                    ggplot2::aes(x = Klaster, y = sovi_score, fill = Klaster)) +
+                    ggplot2::aes(x = Cluster, y = sovi_score, fill = Cluster)) +
       ggplot2::geom_boxplot(alpha = 0.75, outlier.shape = 21) +
       ggplot2::scale_fill_manual(values = pal) +
       ggplot2::labs(title = "SoVI Score Distribution per DBSCAN Cluster",
@@ -273,7 +275,7 @@ dbscan_server <- function(input, output, session, rv) {
 
     ggplot2::ggplot(sovi_df,
                     ggplot2::aes(x = .data[[x_var]], y = .data[[y_var]],
-                                 color = Klaster,
+                                 color = Cluster,
                                  shape = ifelse(Cluster == "Noise", 4, 16))) +
       ggplot2::geom_point(alpha = 0.6, size = 2) +
       ggplot2::scale_color_brewer(palette = "Set2") +
@@ -339,7 +341,7 @@ dbscan_server <- function(input, output, session, rv) {
         color       = "#fff",
         weight      = 0.5,
         popup       = popup,
-        label       = ~paste0(cluster_label, ": ", nm)
+        label       = ~paste0(klaster_label, ": ", nm)
       ) |>
       leaflet::addLegend(
         position = "bottomright",

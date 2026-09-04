@@ -274,6 +274,8 @@ ui <- shinydashboard::dashboardPage(
                                icon = icon("object-group"), startExpanded = FALSE,
                                shinydashboard::menuSubItem("ClustGeo",  tabName = "tab_clustgeo_adv",
                                                            icon = icon("globe-asia")),
+                               shinydashboard::menuSubItem("FCM",       tabName = "tab_fcm",
+                                                           icon = icon("layer-group")),
                                shinydashboard::menuSubItem("FGWC",      tabName = "tab_fgwc",
                                                            icon = icon("hubspot")),
                                shinydashboard::menuSubItem("LFGWC",     tabName = "tab_lfgwc",
@@ -688,6 +690,7 @@ ui <- shinydashboard::dashboardPage(
       
       # Cluster Analysis
       clustgeo_tab_ui(),
+      fcm_tab_ui(),
       fgwc_tab_ui(),
       lfgwc_tab_ui(),
       alfgwc_tab_ui(),
