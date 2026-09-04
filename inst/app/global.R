@@ -103,6 +103,9 @@ local({
   src("woafgwc.R")        # Whale Optimization Algorithm
 })
 
+# ── Stability Analysis (Multiple Independent Runs) ───────────────────────────
+source("R/shared/stability_test.R")  # run_stability_test(), plot_stability_boxplot()
+
 # =============================================================================
 # TAHAP 3: MODUL CLUSTER ANALYSIS
 # ClustGeo, FGWC, LFGWC — masing-masing 3 file (wrapper/ui/server)

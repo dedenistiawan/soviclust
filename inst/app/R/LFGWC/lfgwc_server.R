@@ -1319,5 +1319,201 @@ lfgwc_server <- function(input, output, session, rv) {
     )
   })
 
-} # end lfgwc_server()
+  # ==========================================================================
+  # STABILITY ANALYSIS — Multiple Independent Runs
+  # ==========================================================================
 
+  output$lfgwc_stability_progress <- renderUI({ NULL })
+
+  observeEvent(input$lfgwc_run_stability, {
+
+    if (is.null(rv$cga_result_lfgwc)) {
+      showNotification(
+        "Run LFGWC first (main tab) before stability analysis.",
+        type = "warning", duration = 6
+      )
+      return()
+    }
+    if (is.null(rv_lfgwc_dist()) || is.null(rv_lfgwc_pop())) {
+      showNotification("Distance matrix and population data required.",
+                       type = "warning", duration = 6)
+      return()
+    }
+
+    res    <- rv$cga_result_lfgwc
+    n_runs <- max(5L, as.integer(input$lfgwc_nruns   %||% 30))
+    seed0  <- as.integer(input$lfgwc_seed_start %||% 1)
+
+    output$lfgwc_stability_progress <- renderUI({
+      div(class = "progress-box", style = "background:#cce5ff;",
+          icon("spinner", class = "fa-spin"),
+          sprintf(" Running %d independent LFGWC runs (seed %d\u2013%d)...",
+                  n_runs, seed0, seed0 + n_runs - 1))
+    })
+
+    sel_vars <- if (res$data_source %in% c("raw","raw_norm","standardized"))
+      res$feat_cols else NULL
+
+    lfgwc_params_base <- list(
+      m        = input$lfgwc_m        %||% 2,
+      alpha    = input$lfgwc_alpha    %||% 0.8,
+      a        = input$lfgwc_a        %||% 1,
+      b        = input$lfgwc_b        %||% 1,
+      max_iter = input$lfgwc_maxiter  %||% 100,
+      error    = input$lfgwc_error    %||% 0.001,
+      dthr     = input$lfgwc_dthr     %||% -99,
+      si       = as.logical(input$lfgwc_si %||% FALSE),
+      exp_d    = input$lfgwc_exp_d    %||% 2
+      # randomN diinjeksi oleh run_stability_test()
+    )
+
+    opt_params_base <- list(
+      npar       = input$lfgwc_npar          %||% 10,
+      same       = input$lfgwc_same          %||% 10,
+      vi_dist    = input$lfgwc_vi_dist       %||% "uniform",
+      n_onlooker = input$lfgwc_abc_onlooker  %||% 5,
+      limit      = input$lfgwc_abc_limit     %||% 5,
+      p          = input$lfgwc_fpa_p         %||% 0.7,
+      gamma      = input$lfgwc_fpa_gamma     %||% 1.2,
+      lambda     = input$lfgwc_fpa_lambda    %||% 1.5,
+      ei_distr   = input$lfgwc_fpa_ei        %||% "logchaotic",
+      chaos      = 3,
+      G          = input$lfgwc_gsa_G         %||% 1,
+      vmax       = input$lfgwc_pso_vmax      %||% 0.8,
+      new        = input$lfgwc_gsa_new       %||% FALSE,
+      hho_algo   = input$lfgwc_hho_algo      %||% "bairathi",
+      a1         = input$lfgwc_hho_a1        %||% 3,
+      a2         = input$lfgwc_hho_a2        %||% 1,
+      a3         = input$lfgwc_hho_a3        %||% 0.4,
+      par_no     = input$lfgwc_ifa_parno     %||% 3,
+      beta       = input$lfgwc_ifa_beta      %||% 1,
+      c1         = input$lfgwc_pso_c1        %||% 0.7,
+      c2         = input$lfgwc_pso_c2        %||% 0.6,
+      type       = input$lfgwc_pso_type      %||% "chaotic",
+      wmax       = input$lfgwc_pso_wmax      %||% 0.8,
+      wmin       = input$lfgwc_pso_wmin      %||% 0.3,
+      map        = 0.3,
+      nselection = input$lfgwc_tlbo_nselect  %||% 10,
+      elitism    = input$lfgwc_tlbo_elitism  %||% FALSE,
+      n_elite    = input$lfgwc_tlbo_nelite   %||% 2,
+      woa_b      = input$lfgwc_woa_b         %||% 1
+    )
+
+    base_args <- list(
+      data_source   = res$data_source,
+      raw_data      = rv$data,
+      sovi_result   = rv$sovi_result,
+      selected_vars = sel_vars,
+      pop_vec       = rv_lfgwc_pop(),
+      dist_mat      = rv_lfgwc_dist(),
+      algorithm     = res$algorithm,
+      ncluster      = res$k,
+      lfgwc_params  = lfgwc_params_base,
+      opt_params    = opt_params_base,
+      id_col        = res$id_col,
+      name_col      = res$name_col
+    )
+
+    stab <- withProgress(
+      message = sprintf("Stability Analysis — %d runs...", n_runs),
+      value   = 0,
+      {
+        tryCatch(
+          run_stability_test(
+            run_fn     = run_lfgwc_shiny,
+            base_args  = base_args,
+            n_runs     = n_runs,
+            seed_start = seed0,
+            module     = "lfgwc",
+            progress   = shiny::getDefaultReactiveDomain()
+          ),
+          error = function(e) {
+            showNotification(paste("Stability error:", e$message),
+                             type = "error", duration = 15)
+            NULL
+          }
+        )
+      }
+    )
+
+    rv$stability_lfgwc <- stab
+
+    if (!is.null(stab)) {
+      output$lfgwc_stability_progress <- renderUI({
+        div(class = "progress-box status-ok",
+            icon("check-circle"),
+            sprintf(" Completed: %d/%d runs succeeded (%.1f sec) — Algorithm: %s, k=%d",
+                    stab$n_success, n_runs, stab$elapsed_sec,
+                    toupper(res$algorithm), res$k))
+      })
+      showNotification(
+        sprintf("Stability analysis done: %d runs, %d succeeded.", n_runs, stab$n_success),
+        type = "message", duration = 6
+      )
+    } else {
+      output$lfgwc_stability_progress <- renderUI({
+        div(class = "progress-box status-err",
+            icon("times-circle"), " Stability analysis failed. Check console.")
+      })
+    }
+  })
+
+  output$lfgwc_stability_summary <- DT::renderDT({
+    req(rv$stability_lfgwc)
+    df <- rv$stability_lfgwc$summary_df
+    DT::datatable(
+      df,
+      rownames = FALSE,
+      options  = list(dom = "t", pageLength = 10, ordering = FALSE),
+      caption  = htmltools::tags$caption(
+        style = "caption-side:top; text-align:left; font-weight:bold;",
+        sprintf("Validity Index Summary — %d independent runs (LFGWC %s, k=%d)",
+                rv$stability_lfgwc$n_success + rv$stability_lfgwc$n_failed,
+                toupper(isolate(rv$cga_result_lfgwc$algorithm)),
+                isolate(rv$cga_result_lfgwc$k))
+      )
+    ) |>
+      DT::formatRound(columns = c("Mean","SD","Best","Worst","Median"), digits = 6) |>
+      DT::formatStyle(
+        "Direction",
+        target = "row",
+        backgroundColor = DT::styleEqual(
+          c("\u2191 higher is better", "\u2193 lower is better"),
+          c("#f0fff4", "#fff8f0")
+        )
+      )
+  })
+
+  output$lfgwc_stability_boxplot <- renderPlot({
+    req(rv$stability_lfgwc)
+    plot_stability_boxplot(
+      rv$stability_lfgwc,
+      title_prefix = sprintf("LFGWC %s (k=%d)",
+                             toupper(isolate(rv$cga_result_lfgwc$algorithm)),
+                             isolate(rv$cga_result_lfgwc$k))
+    )
+  })
+
+  output$lfgwc_stability_detail <- DT::renderDT({
+    req(rv$stability_lfgwc)
+    df <- rv$stability_lfgwc$detail_df
+    DT::datatable(df, rownames = FALSE,
+                  options = list(pageLength = 15, scrollX = TRUE)) |>
+      DT::formatRound(columns = c("PC","CE","SC","XB","IFV","Kwon",
+                                  "Silhouette","F_obj"), digits = 6)
+  })
+
+  output$dl_lfgwc_stability <- downloadHandler(
+    filename = function() {
+      sprintf("lfgwc_stability_%s_k%d_%druns.csv",
+              isolate(rv$cga_result_lfgwc$algorithm),
+              isolate(rv$cga_result_lfgwc$k),
+              isolate(rv$stability_lfgwc$n_success + rv$stability_lfgwc$n_failed))
+    },
+    content = function(file) {
+      req(rv$stability_lfgwc)
+      write.csv(rv$stability_lfgwc$detail_df, file, row.names = FALSE)
+    }
+  )
+
+} # end lfgwc_server()

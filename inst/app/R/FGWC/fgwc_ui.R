@@ -537,7 +537,112 @@ fgwc_tab_ui <- function() {
                               plotOutput("fgwc_umap_plot", height = "600px")
                        )
                      )
-            )
+            ),
+
+            # ── Tab 10: Stability Analysis (Multiple Independent Runs) ─────────
+            tabPanel(tags$span(icon("sync-alt"), " Stability Analysis"),
+                     tags$br(),
+
+                     # Settings panel
+                     fluidRow(
+                       column(12,
+                         shinydashboard::box(
+                           title       = tags$span(icon("flask"), " Stability Analysis Settings"),
+                           status      = "primary",
+                           solidHeader = TRUE,
+                           width       = 12,
+                           collapsible = TRUE,
+
+                           tags$p(style = "font-size:12.5px; color:#546e7a; margin-bottom:12px;",
+                             icon("info-circle"),
+                             " Run the clustering algorithm multiple times with different random seeds to ",
+                             tags$strong("assess robustness"),
+                             ". Reports Mean, SD, Best, Worst, and Median for each validity index.",
+                             tags$br(),
+                             tags$span(style = "color:#e74c3c; font-weight:600;",
+                               icon("exclamation-triangle"),
+                               " Run FGWC (main tab) first before starting stability analysis."
+                             )
+                           ),
+
+                           fluidRow(
+                             column(3,
+                               numericInput("fgwc_nruns",
+                                 label = tags$span(icon("redo"), " Number of Runs:"),
+                                 value = 30, min = 5, max = 100, step = 5)
+                             ),
+                             column(3,
+                               numericInput("fgwc_seed_start",
+                                 label = tags$span(icon("random"), " Seed Start:"),
+                                 value = 1, min = 0, step = 1)
+                             ),
+                             column(3,
+                               tags$br(),
+                               actionButton("fgwc_run_stability",
+                                 label = tags$span(icon("play-circle"), " Run Stability Test"),
+                                 class = "btn-primary btn-block",
+                                 style = "margin-top:6px;"
+                               )
+                             ),
+                             column(3,
+                               tags$br(),
+                               downloadButton("dl_fgwc_stability",
+                                 label = tags$span(icon("download"), " Download Detail (.csv)"),
+                                 class = "btn-default btn-block",
+                                 style = "margin-top:6px;"
+                               )
+                             )
+                           ),
+
+                           tags$div(style = "margin-top:10px;",
+                             uiOutput("fgwc_stability_progress")
+                           )
+                         )
+                       )
+                     ),
+
+                     # Summary statistics table
+                     fluidRow(
+                       column(12,
+                         shinydashboard::box(
+                           title       = tags$span(icon("table"), " Summary Statistics — Validity Index across Runs"),
+                           status      = "success",
+                           solidHeader = TRUE,
+                           width       = 12,
+                           DT::dataTableOutput("fgwc_stability_summary")
+                         )
+                       )
+                     ),
+
+                     # Boxplot distribution
+                     fluidRow(
+                       column(12,
+                         shinydashboard::box(
+                           title       = tags$span(icon("chart-bar"), " Distribution Boxplot across Runs"),
+                           status      = "warning",
+                           solidHeader = TRUE,
+                           width       = 12,
+                           plotOutput("fgwc_stability_boxplot", height = "420px")
+                         )
+                       )
+                     ),
+
+                     # Detail per-run table
+                     fluidRow(
+                       column(12,
+                         shinydashboard::box(
+                           title       = tags$span(icon("list-alt"), " Detail per Run"),
+                           status      = "default",
+                           solidHeader = FALSE,
+                           width       = 12,
+                           collapsible = TRUE,
+                           collapsed   = TRUE,
+                           DT::dataTableOutput("fgwc_stability_detail")
+                         )
+                       )
+                     )
+
+            ) # end Tab 10
 
           ) # end tabsetPanel
         )   # end box Hasil FGWC

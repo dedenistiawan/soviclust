@@ -458,6 +458,14 @@ alfgwc_server <- function(input, output, session, rv) {
         )
         
         rv_alfgwc_result(res)
+        # Store spatial inputs for reuse in Stability Analysis
+        rv$alfgwc_nb_list  <- nb_list
+        rv$alfgwc_lisa_p   <- lisa_p
+        rv$alfgwc_lisa_I   <- lisa_I
+        rv$alfgwc_pop_vec  <- pop_vec
+        rv$alfgwc_dist_mat <- dist_mat
+        rv$alfgwc_id_col   <- id_col
+        rv$alfgwc_name_col <- name_col
         showNotification("ALFGWC completed successfully!", type = "message")
         
       }, error = function(e) {
@@ -1353,5 +1361,205 @@ alfgwc_server <- function(input, output, session, rv) {
     )
   })
 
-} # end alfgwc_server()
+  # ==========================================================================
+  # STABILITY ANALYSIS — Multiple Independent Runs
+  # CATATAN ALFGWC: randomN adalah argumen langsung (bukan dalam lfgwc_params).
+  # nb_list, lisa_p, lisa_I, pop_vec, dist_mat tersimpan di rv$alfgwc_* dari run utama.
+  # ==========================================================================
 
+  output$alfgwc_stability_progress <- renderUI({ NULL })
+
+  observeEvent(input$alfgwc_run_stability, {
+
+    if (is.null(rv_alfgwc_result())) {
+      showNotification(
+        "Run ALFGWC first (main tab) before stability analysis.",
+        type = "warning", duration = 6
+      )
+      return()
+    }
+    if (is.null(rv$alfgwc_nb_list) || is.null(rv$alfgwc_pop_vec)) {
+      showNotification("Spatial data not available. Re-run ALFGWC first.",
+                       type = "warning", duration = 6)
+      return()
+    }
+
+    res    <- rv_alfgwc_result()
+    n_runs <- max(5L, as.integer(input$alfgwc_nruns   %||% 30))
+    seed0  <- as.integer(input$alfgwc_seed_start %||% 1)
+
+    output$alfgwc_stability_progress <- renderUI({
+      div(class = "progress-box", style = "background:#cce5ff;",
+          icon("spinner", class = "fa-spin"),
+          sprintf(" Running %d independent ALFGWC runs (seed %d\u2013%d)...",
+                  n_runs, seed0, seed0 + n_runs - 1))
+    })
+
+    sel_vars <- if (res$data_source %in% c("raw","raw_norm","standardized"))
+      res$feat_cols else NULL
+
+    opt_params_base <- list(
+      npar       = input$alfgwc_npar          %||% 10,
+      same       = input$alfgwc_same          %||% 10,
+      vi_dist    = input$alfgwc_vi_dist       %||% "uniform",
+      n_onlooker = input$alfgwc_abc_onlooker  %||% 5,
+      limit      = input$alfgwc_abc_limit     %||% 5,
+      p          = input$alfgwc_fpa_p         %||% 0.7,
+      gamma      = input$alfgwc_fpa_gamma     %||% 1.2,
+      lambda     = input$alfgwc_fpa_lambda    %||% 1.5,
+      ei_distr   = input$alfgwc_fpa_ei        %||% "logchaotic",
+      chaos      = 3,
+      G          = input$alfgwc_gsa_G         %||% 1,
+      vmax       = input$alfgwc_pso_vmax      %||% 0.8,
+      new        = input$alfgwc_gsa_new       %||% FALSE,
+      hho_algo   = input$alfgwc_hho_algo      %||% "bairathi",
+      a1         = input$alfgwc_hho_a1        %||% 3,
+      a2         = input$alfgwc_hho_a2        %||% 1,
+      a3         = input$alfgwc_hho_a3        %||% 0.4,
+      par_no     = input$alfgwc_ifa_parno     %||% 3,
+      beta       = input$alfgwc_ifa_beta      %||% 1,
+      c1         = input$alfgwc_pso_c1        %||% 0.7,
+      c2         = input$alfgwc_pso_c2        %||% 0.6,
+      type       = input$alfgwc_pso_type      %||% "chaotic",
+      wmax       = input$alfgwc_pso_wmax      %||% 0.8,
+      wmin       = input$alfgwc_pso_wmin      %||% 0.3,
+      map        = 0.3,
+      nselection = input$alfgwc_tlbo_nselect  %||% 10,
+      elitism    = input$alfgwc_tlbo_elitism  %||% FALSE,
+      n_elite    = input$alfgwc_tlbo_nelite   %||% 2,
+      woa_b      = input$alfgwc_woa_b         %||% 1
+    )
+
+    # ALFGWC: randomN sebagai argumen langsung (bukan dalam fgwc_params)
+    base_args <- list(
+      data_source   = res$data_source,
+      raw_data      = rv$data,
+      sovi_result   = rv$sovi_result,
+      selected_vars = sel_vars,
+      pop_vec       = rv$alfgwc_pop_vec,
+      dist_mat      = rv$alfgwc_dist_mat,
+      nb_list       = rv$alfgwc_nb_list,
+      lisa_p        = rv$alfgwc_lisa_p,
+      lisa_I        = rv$alfgwc_lisa_I,
+      algorithm     = res$algorithm,
+      opt_params    = opt_params_base,
+      ncluster      = res$k,
+      tw            = res$tw    %||% "SPATIAL_INTERACTION",
+      gamma         = res$gamma %||% 2,
+      alpha_high    = input$alfgwc_alpha_high %||% 0.8,
+      alpha_mid     = input$alfgwc_alpha_mid  %||% 0.5,
+      alpha_low     = input$alfgwc_alpha_low  %||% 0.2,
+      m             = input$alfgwc_m          %||% 2,
+      max_iter      = input$alfgwc_maxiter    %||% 100,
+      error         = input$alfgwc_error      %||% 0.001,
+      # randomN diinjeksi oleh run_stability_test() via module="alfgwc"
+      id_col        = rv$alfgwc_id_col,
+      name_col      = rv$alfgwc_name_col
+    )
+
+    stab <- withProgress(
+      message = sprintf("Stability Analysis — %d runs...", n_runs),
+      value   = 0,
+      {
+        tryCatch(
+          run_stability_test(
+            run_fn     = run_alfgwc_shiny,
+            base_args  = base_args,
+            n_runs     = n_runs,
+            seed_start = seed0,
+            module     = "alfgwc",
+            progress   = shiny::getDefaultReactiveDomain()
+          ),
+          error = function(e) {
+            showNotification(paste("Stability error:", e$message),
+                             type = "error", duration = 15)
+            NULL
+          }
+        )
+      }
+    )
+
+    rv$stability_alfgwc <- stab
+
+    if (!is.null(stab)) {
+      output$alfgwc_stability_progress <- renderUI({
+        div(class = "progress-box status-ok",
+            icon("check-circle"),
+            sprintf(" Completed: %d/%d runs succeeded (%.1f sec) — Algorithm: %s, k=%d",
+                    stab$n_success, n_runs, stab$elapsed_sec,
+                    toupper(res$algorithm), res$k))
+      })
+      showNotification(
+        sprintf("Stability analysis done: %d runs, %d succeeded.", n_runs, stab$n_success),
+        type = "message", duration = 6
+      )
+    } else {
+      output$alfgwc_stability_progress <- renderUI({
+        div(class = "progress-box status-err",
+            icon("times-circle"), " Stability analysis failed. Check console.")
+      })
+    }
+  })
+
+  output$alfgwc_stability_summary <- DT::renderDT({
+    req(rv$stability_alfgwc)
+    df <- rv$stability_alfgwc$summary_df
+    res <- rv_alfgwc_result()
+    DT::datatable(
+      df,
+      rownames = FALSE,
+      options  = list(dom = "t", pageLength = 10, ordering = FALSE),
+      caption  = htmltools::tags$caption(
+        style = "caption-side:top; text-align:left; font-weight:bold;",
+        sprintf("Validity Index Summary — %d independent runs (ALFGWC %s, k=%d)",
+                rv$stability_alfgwc$n_success + rv$stability_alfgwc$n_failed,
+                toupper(isolate(res$algorithm)),
+                isolate(res$k))
+      )
+    ) |>
+      DT::formatRound(columns = c("Mean","SD","Best","Worst","Median"), digits = 6) |>
+      DT::formatStyle(
+        "Direction",
+        target = "row",
+        backgroundColor = DT::styleEqual(
+          c("\u2191 higher is better", "\u2193 lower is better"),
+          c("#f0fff4", "#fff8f0")
+        )
+      )
+  })
+
+  output$alfgwc_stability_boxplot <- renderPlot({
+    req(rv$stability_alfgwc)
+    res <- rv_alfgwc_result()
+    plot_stability_boxplot(
+      rv$stability_alfgwc,
+      title_prefix = sprintf("ALFGWC %s (k=%d)",
+                             toupper(isolate(res$algorithm)),
+                             isolate(res$k))
+    )
+  })
+
+  output$alfgwc_stability_detail <- DT::renderDT({
+    req(rv$stability_alfgwc)
+    df <- rv$stability_alfgwc$detail_df
+    DT::datatable(df, rownames = FALSE,
+                  options = list(pageLength = 15, scrollX = TRUE)) |>
+      DT::formatRound(columns = c("PC","CE","SC","XB","IFV","Kwon",
+                                  "Silhouette","F_obj"), digits = 6)
+  })
+
+  output$dl_alfgwc_stability <- downloadHandler(
+    filename = function() {
+      res <- rv_alfgwc_result()
+      sprintf("alfgwc_stability_%s_k%d_%druns.csv",
+              isolate(res$algorithm),
+              isolate(res$k),
+              isolate(rv$stability_alfgwc$n_success + rv$stability_alfgwc$n_failed))
+    },
+    content = function(file) {
+      req(rv$stability_alfgwc)
+      write.csv(rv$stability_alfgwc$detail_df, file, row.names = FALSE)
+    }
+  )
+
+} # end alfgwc_server()

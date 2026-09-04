@@ -1142,4 +1142,211 @@ fgwc_server <- function(input, output, session, rv) {
   })
 
 
+
+  # ==========================================================================
+  # STABILITY ANALYSIS — Multiple Independent Runs
+  # Merespons catatan reviewer: algoritma stokastik harus dilaporkan
+  # dengan mean, SD, best, worst, dan median validity index dari N runs.
+  # ==========================================================================
+
+  output$fgwc_stability_progress <- renderUI({ NULL })
+
+  observeEvent(input$fgwc_run_stability, {
+
+    # ── Prasyarat: run utama harus sudah ada ─────────────────────────────────
+    if (is.null(rv$cga_result_fgwc)) {
+      showNotification(
+        "Run FGWC first (main tab) before stability analysis.",
+        type = "warning", duration = 6
+      )
+      return()
+    }
+    if (is.null(rv_fgwc_dist()) || is.null(rv_fgwc_pop())) {
+      showNotification("Distance matrix and population data required.",
+                       type = "warning", duration = 6)
+      return()
+    }
+
+    res    <- rv$cga_result_fgwc
+    n_runs <- max(5L, as.integer(input$fgwc_nruns   %||% 30))
+    seed0  <- as.integer(input$fgwc_seed_start %||% 1)
+
+    output$fgwc_stability_progress <- renderUI({
+      div(class = "progress-box", style = "background:#cce5ff;",
+          icon("spinner", class = "fa-spin"),
+          sprintf(" Running %d independent FGWC runs (seed %d–%d)...",
+                  n_runs, seed0, seed0 + n_runs - 1))
+    })
+
+    # ── Susun base_args dari parameter run utama yang sudah dikonfigurasi ────
+    sel_vars <- if (res$data_source %in% c("raw","raw_norm","standardized"))
+      res$feat_cols else NULL
+
+    fgwc_params_base <- list(
+      m        = input$fgwc_m        %||% 2,
+      distance = "euclidean",
+      order    = 3,
+      alpha    = input$fgwc_alpha    %||% 0.5,
+      a        = input$fgwc_a        %||% 1.2,
+      b        = input$fgwc_b        %||% 1.2,
+      max.iter = input$fgwc_maxiter  %||% 500,
+      error    = 1e-6
+      # randomN akan diinjeksi oleh run_stability_test()
+    )
+
+    opt_params_base <- list(
+      npar       = input$fgwc_npar          %||% 10,
+      same       = input$fgwc_same          %||% 10,
+      vi_dist    = input$fgwc_vi_dist       %||% "uniform",
+      n_onlooker = input$fgwc_abc_onlooker  %||% 5,
+      limit      = input$fgwc_abc_limit     %||% 5,
+      p          = input$fgwc_fpa_p         %||% 0.7,
+      gamma      = input$fgwc_fpa_gamma     %||% 1.2,
+      lambda     = input$fgwc_fpa_lambda    %||% 1.5,
+      ei_distr   = input$fgwc_fpa_ei        %||% "logchaotic",
+      chaos      = 3,
+      G          = input$fgwc_gsa_G         %||% 1,
+      vmax       = input$fgwc_pso_vmax      %||% 0.8,
+      new        = input$fgwc_gsa_new       %||% FALSE,
+      hho_algo   = input$fgwc_hho_algo      %||% "bairathi",
+      a1         = input$fgwc_hho_a1        %||% 3,
+      a2         = input$fgwc_hho_a2        %||% 1,
+      a3         = input$fgwc_hho_a3        %||% 0.4,
+      par_no     = input$fgwc_ifa_parno     %||% 3,
+      beta       = input$fgwc_ifa_beta      %||% 1,
+      c1         = input$fgwc_pso_c1        %||% 0.7,
+      c2         = input$fgwc_pso_c2        %||% 0.6,
+      type       = input$fgwc_pso_type      %||% "chaotic",
+      wmax       = input$fgwc_pso_wmax      %||% 0.8,
+      wmin       = input$fgwc_pso_wmin      %||% 0.3,
+      map        = 0.3,
+      nselection = input$fgwc_tlbo_nselect  %||% 10,
+      elitism    = input$fgwc_tlbo_elitism  %||% FALSE,
+      n_elite    = input$fgwc_tlbo_nelite   %||% 2,
+      woa_b      = input$fgwc_woa_b         %||% 1
+    )
+
+    base_args <- list(
+      data_source   = res$data_source,
+      raw_data      = rv$data,
+      sovi_result   = rv$sovi_result,
+      selected_vars = sel_vars,
+      pop_vec       = rv_fgwc_pop(),
+      dist_mat      = rv_fgwc_dist(),
+      algorithm     = res$algorithm,
+      ncluster      = res$k,
+      fgwc_params   = fgwc_params_base,
+      opt_params    = opt_params_base,
+      id_col        = res$id_col,
+      name_col      = res$name_col
+    )
+
+    # ── Jalankan stability test ───────────────────────────────────────────────
+    stab <- withProgress(
+      message = sprintf("Stability Analysis — %d runs...", n_runs),
+      value   = 0,
+      {
+        tryCatch(
+          run_stability_test(
+            run_fn     = run_fgwc_shiny,
+            base_args  = base_args,
+            n_runs     = n_runs,
+            seed_start = seed0,
+            module     = "fgwc",
+            progress   = shiny::getDefaultReactiveDomain()
+          ),
+          error = function(e) {
+            showNotification(paste("Stability error:", e$message),
+                             type = "error", duration = 15)
+            NULL
+          }
+        )
+      }
+    )
+
+    rv$stability_fgwc <- stab
+
+    if (!is.null(stab)) {
+      output$fgwc_stability_progress <- renderUI({
+        div(class = "progress-box status-ok",
+            icon("check-circle"),
+            sprintf(" Completed: %d/%d runs succeeded (%.1f sec) — Algorithm: %s, k=%d",
+                    stab$n_success, n_runs, stab$elapsed_sec,
+                    toupper(res$algorithm), res$k))
+      })
+      showNotification(
+        sprintf("Stability analysis done: %d runs, %d succeeded.", n_runs, stab$n_success),
+        type = "message", duration = 6
+      )
+    } else {
+      output$fgwc_stability_progress <- renderUI({
+        div(class = "progress-box status-err",
+            icon("times-circle"), " Stability analysis failed. Check console.")
+      })
+    }
+  })
+
+  # ── Render: tabel summary statistik ────────────────────────────────────────
+  output$fgwc_stability_summary <- DT::renderDT({
+    req(rv$stability_fgwc)
+    df <- rv$stability_fgwc$summary_df
+
+    DT::datatable(
+      df,
+      rownames = FALSE,
+      options  = list(dom = "t", pageLength = 10, ordering = FALSE),
+      caption  = htmltools::tags$caption(
+        style = "caption-side:top; text-align:left; font-weight:bold;",
+        sprintf("Validity Index Summary — %d independent runs (FGWC %s, k=%d)",
+                rv$stability_fgwc$n_success + rv$stability_fgwc$n_failed,
+                toupper(isolate(rv$cga_result_fgwc$algorithm)),
+                isolate(rv$cga_result_fgwc$k))
+      )
+    ) |>
+      DT::formatRound(columns = c("Mean","SD","Best","Worst","Median"), digits = 6) |>
+      DT::formatStyle(
+        "Direction",
+        target     = "row",
+        backgroundColor = DT::styleEqual(
+          c("\u2191 higher is better", "\u2193 lower is better"),
+          c("#f0fff4", "#fff8f0")
+        )
+      )
+  })
+
+  # ── Render: boxplot distribusi ────────────────────────────────────────────
+  output$fgwc_stability_boxplot <- renderPlot({
+    req(rv$stability_fgwc)
+    plot_stability_boxplot(
+      rv$stability_fgwc,
+      title_prefix = sprintf("FGWC %s (k=%d)",
+                             toupper(isolate(rv$cga_result_fgwc$algorithm)),
+                             isolate(rv$cga_result_fgwc$k))
+    )
+  })
+
+  # ── Render: tabel detail per run ──────────────────────────────────────────
+  output$fgwc_stability_detail <- DT::renderDT({
+    req(rv$stability_fgwc)
+    df <- rv$stability_fgwc$detail_df
+    DT::datatable(df, rownames = FALSE,
+                  options = list(pageLength = 15, scrollX = TRUE)) |>
+      DT::formatRound(columns = c("PC","CE","SC","XB","IFV","Kwon",
+                                  "Silhouette","F_obj"), digits = 6)
+  })
+
+  # ── Download: CSV detail per run ──────────────────────────────────────────
+  output$dl_fgwc_stability <- downloadHandler(
+    filename = function() {
+      sprintf("fgwc_stability_%s_k%d_%druns.csv",
+              isolate(rv$cga_result_fgwc$algorithm),
+              isolate(rv$cga_result_fgwc$k),
+              isolate(rv$stability_fgwc$n_success + rv$stability_fgwc$n_failed))
+    },
+    content = function(file) {
+      req(rv$stability_fgwc)
+      write.csv(rv$stability_fgwc$detail_df, file, row.names = FALSE)
+    }
+  )
+
 } # end fgwc_server()
