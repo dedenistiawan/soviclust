@@ -1,131 +1,213 @@
+# =============================================================================
+# Cluster validity indices for FGWC-family algorithms
+#
+# Portions of the original implementation were adapted from the GPL-3-licensed
+# naspaclust package and subsequently corrected/extended in soviclust.
+# =============================================================================
 
-##penghitungan index
-index_fgwc <- function(data,cluster,uij,vi,m,a=exp(1)) {
-  result<-list()
-  result$PC <- PC1(uij)
-  result$CE <- CE1(uij,a)
-  result$SC <- SC1(data,cluster,uij,vi,m)
-  result$SI <- SI1(data,uij,vi)
-  result$XB <- XB1(data,uij,vi,m)
-  result$IFV <- IFV1(data,uij,vi,m)
-  result$Kwon <- Kwon1(data,uij,vi,m)
-  return(result)
+index_fgwc <- function(data, cluster, uij, vi, m, a = exp(1)) {
+  list(
+    PC = PC1(uij),
+    CE = CE1(uij, a),
+    SC = SC1(data, cluster, uij, vi, m),
+    SI = SI1(data, uij, vi),
+    XB = XB1(data, uij, vi, m),
+    IFV = IFV1(data, uij, vi, m),
+    Kwon = Kwon1(data, uij, vi, m)
+  )
 }
 
-########################################################
-#################VALIDATION MEASUREMENT#################
-########################################################
 
-##kelompok yang optimum dinyatakan dengan nilai PC yang maksimum.
+# Partition Coefficient: larger is better.
 PC1 <- function(uij) {
-  return(sum(uij^2)/nrow(uij))
+  uij <- as.matrix(uij)
+  sum(uij^2) / nrow(uij)
 }
 
-##kelompok yang optimum dinyatakan dengan nilai indeks CE yang minimum.
-CE1 <- function(uij,a=exp(1)) {##
-  return(sum(uij*log(uij,a))/(-nrow(uij)))
+
+# Classification Entropy: smaller is better.
+# Zero memberships contribute zero to u * log(u).
+CE1 <- function(uij, a = exp(1)) {
+  uij <- as.matrix(uij)
+
+  if (!is.numeric(a) || length(a) != 1L || !is.finite(a) ||
+      a <= 0 || a == 1) {
+    stop("`a` must be a finite logarithm base > 0 and != 1.", call. = FALSE)
+  }
+
+  positive <- uij > 0
+  if (!any(positive)) {
+    return(0)
+  }
+
+  -sum(uij[positive] * log(uij[positive], base = a)) / nrow(uij)
 }
 
-##Partisi yang optimum dinyatakan dengan nilai indeks SC yang minimum.
-SC1 <- function(data,cluster,uij,vi,m) {
-  d <- matrix(0,nrow(data),nrow(vi))
-  for (i in 1:nrow(data)) {
-    for (j in 1:nrow(vi)) {
-      d[i,j] <- sum((vi[j,]-data[i,])^2)
+
+# Separation Coefficient / Partition Index: smaller is better.
+SC1 <- function(data, cluster, uij, vi, m) {
+  data <- as.matrix(data)
+  uij <- as.matrix(uij)
+  vi <- as.matrix(vi)
+
+  d <- matrix(0, nrow(data), nrow(vi))
+  for (i in seq_len(nrow(data))) {
+    for (j in seq_len(nrow(vi))) {
+      d[i, j] <- sum((vi[j, ] - data[i, ])^2)
     }
   }
-  pt1 <- colSums((uij^m)*d)
-  vkvi <- matrix(0,nrow(vi),nrow(vi))
-  for (i in 1:nrow(vi)) {
-    for (k in 1:nrow(vi)) {
-      vkvi[i,k] <- sum((vi[i,]-vi[k,])^2)
+
+  pt1 <- colSums((uij^m) * d)
+
+  vkvi <- matrix(0, nrow(vi), nrow(vi))
+  for (i in seq_len(nrow(vi))) {
+    for (k in seq_len(nrow(vi))) {
+      vkvi[i, k] <- sum((vi[i, ] - vi[k, ])^2)
     }
-    Ni <- length(which(cluster==i))
-    vkvi[i,]<-Ni*vkvi[i,]
+
+    Ni <- sum(cluster == i)
+    vkvi[i, ] <- Ni * vkvi[i, ]
   }
+
   pt2 <- colSums(vkvi)
-  return(sum(pt1/pt2))
+
+  # Undefined separation (e.g., empty/duplicated clusters) is penalized.
+  if (any(!is.finite(pt2)) || any(pt2 <= 0)) {
+    return(Inf)
+  }
+
+  sum(pt1 / pt2)
 }
 
-##Jumlah kelompok yang optimum dinyatakan dengan nilai indeks S yang minimum.
-SI1 <- function(data,uij,vi) {
-  d <- matrix(0,nrow(data),nrow(vi))
-  for (i in 1:nrow(data)) {
-    for (j in 1:nrow(vi)) {
-      d[i,j] <- sum((vi[j,]-data[i,])^2)
+
+# Separation Index: smaller is better.
+SI1 <- function(data, uij, vi) {
+  data <- as.matrix(data)
+  uij <- as.matrix(uij)
+  vi <- as.matrix(vi)
+
+  d <- matrix(0, nrow(data), nrow(vi))
+  for (i in seq_len(nrow(data))) {
+    for (j in seq_len(nrow(vi))) {
+      d[i, j] <- sum((vi[j, ] - data[i, ])^2)
     }
   }
-  vkvi <- matrix(0,nrow(vi),nrow(vi))
-  for (i in 1:nrow(vi)) {
-    for (k in 1:nrow(vi)) {
-      vkvi[i,k] <- sum((vi[k,]-vi[i,])^2)
-    }
-  }
+
+  vkvi <- as.matrix(stats::dist(vi))^2
   diag(vkvi) <- Inf
-  pt1 <- sum((uij^2)*d)
-  pt2 <- nrow(data)*min(vkvi)
-  return(sum(pt1/pt2))
+
+  min_sep <- min(vkvi)
+  if (!is.finite(min_sep) || min_sep <= 0) {
+    return(Inf)
+  }
+
+  sum((uij^2) * d) / (nrow(data) * min_sep)
 }
 
-##Jumlah kelompok yang optimal dinyatakan dengan nilai XB yang minimum.
-XB1 <- function(data,uij,vi,m) {
-  d <- matrix(0,nrow(data),nrow(vi))
-  for (i in 1:nrow(data)) {
-    for (j in 1:nrow(vi)) {
-      d[i,j] <- sum((vi[j,]-data[i,])^2)
-      if (d[i,j]==0) {
-        d[i,j]==Inf
-      }
+
+# Xie-Beni Index: smaller is better.
+#
+# XB = sum_i sum_k u_ik^m ||x_i-v_k||^2 /
+#      (n * min_{k != h} ||v_k-v_h||^2)
+XB1 <- function(data, uij, vi, m) {
+  data <- as.matrix(data)
+  uij <- as.matrix(uij)
+  vi <- as.matrix(vi)
+
+  d <- matrix(0, nrow(data), nrow(vi))
+  for (i in seq_len(nrow(data))) {
+    for (j in seq_len(nrow(vi))) {
+      d[i, j] <- sum((vi[j, ] - data[i, ])^2)
     }
   }
-  pt1 <- sum((uij^m)*d)
-  pt2 <- nrow(data)*min(d)
-  return(pt1/pt2)
+
+  centroid_dist <- as.matrix(stats::dist(vi))^2
+  diag(centroid_dist) <- Inf
+
+  min_sep <- min(centroid_dist)
+
+  if (!is.finite(min_sep) || min_sep <= 0) {
+    return(Inf)
+  }
+
+  numerator <- sum((uij^m) * d)
+  numerator / (nrow(data) * min_sep)
 }
 
-##Ketika nilai IFV maksimum maka kualitas cluster semakin baik.
-IFV1 <- function(data,uij,vi,m) {
-  vkvi <- matrix(0,nrow(vi),nrow(vi))
-  for (i in 1:nrow(vi)) {
-    for (k in 1:nrow(vi)) {
-      vkvi[i,k] <- sum((vi[k,]-vi[i,])^2)
+
+# IFV: larger is better.
+#
+# A very small positive floor is used only inside log() so exact zero
+# memberships do not produce -Inf/NaN.
+IFV1 <- function(data, uij, vi, m) {
+  data <- as.matrix(data)
+  uij <- as.matrix(uij)
+  vi <- as.matrix(vi)
+
+  vkvi <- as.matrix(stats::dist(vi))^2
+
+  d <- matrix(0, nrow(data), nrow(vi))
+  for (i in seq_len(nrow(data))) {
+    for (j in seq_len(nrow(vi))) {
+      d[i, j] <- sum((vi[j, ] - data[i, ])^2)
     }
   }
-  d <- matrix(0,nrow(data),nrow(vi))
-  for (i in 1:nrow(data)) {
-    for (j in 1:nrow(vi)) {
-      d[i,j] <- sum((vi[j,]-data[i,])^2)
-    }
-  }
-  sigmaD <- sum(d)/(nrow(data)*nrow(vi))
+
+  sigmaD <- mean(d)
   SDmax <- max(vkvi)
-  log2u <- colSums(log(uij,2))/nrow(data)
+
+  if (!is.finite(sigmaD) || sigmaD <= 0 ||
+      !is.finite(SDmax) || SDmax <= 0) {
+    return(NA_real_)
+  }
+
+  u_safe <- pmax(uij, .Machine$double.eps)
+  log2u <- colSums(log(u_safe, base = 2)) / nrow(data)
   u2ij <- colSums(uij^2)
-  inside <- sum(u2ij*(log(nrow(vi),2)-log2u))
-  return(sum(u2ij*((log(nrow(vi),2)-log2u)^2)/nrow(data)*(SDmax/sigmaD)))
+
+  sum(
+    u2ij *
+      ((log(nrow(vi), base = 2) - log2u)^2) /
+      nrow(data) *
+      (SDmax / sigmaD)
+  )
 }
 
-##Ketika nilai Kwon minimum maka kualitas cluster semakin baik.
-Kwon1 <- function(data,uij,vi,m) {
-  d <- matrix(0,nrow(data),nrow(vi))
-  s <- matrix(0,nrow(vi))
-  vivj <- matrix(0,nrow(vi),nrow(vi))
-  for (j in 1:nrow(vi)) {
-    s[j,] <- (sum(vi[j,]-colMeans(data))^2)
-  }
-  for (i in 1:nrow(data)) {
-    for (j in 1:nrow(vi)) {
-      d[i,j] <- sum((vi[j,]-data[i,])^2)
+
+# Kwon Index: smaller is better.
+#
+# Kwon = [sum_i sum_k u_ik^m ||x_i-v_k||^2
+#         + (1/c) sum_k ||v_k - x_bar||^2] /
+#        min_{k != h} ||v_k-v_h||^2
+Kwon1 <- function(data, uij, vi, m) {
+  data <- as.matrix(data)
+  uij <- as.matrix(uij)
+  vi <- as.matrix(vi)
+
+  d <- matrix(0, nrow(data), nrow(vi))
+  for (i in seq_len(nrow(data))) {
+    for (j in seq_len(nrow(vi))) {
+      d[i, j] <- sum((vi[j, ] - data[i, ])^2)
     }
   }
-  for (i in 1:nrow(vi)) {
-    for (j in 1:nrow(vi)) {
-      vivj[i,j] <- sum((vi[i,]-vi[j,])^2)
-    }
+
+  global_mean <- colMeans(data)
+  centroid_penalty <- vapply(
+    seq_len(nrow(vi)),
+    function(j) sum((vi[j, ] - global_mean)^2),
+    numeric(1)
+  )
+
+  centroid_dist <- as.matrix(stats::dist(vi))^2
+  diag(centroid_dist) <- Inf
+  min_sep <- min(centroid_dist)
+
+  if (!is.finite(min_sep) || min_sep <= 0) {
+    return(Inf)
   }
-  diag(vivj) <- Inf
-  pt1 <- colSums((uij^m)*d)
-  pt2 <- sum(s)/nrow(vi)
-  pt3 <- min(vivj)
-  return(sum((pt1+pt2)/pt3))
+
+  compactness <- sum((uij^m) * d)
+  penalty <- sum(centroid_penalty) / nrow(vi)
+
+  (compactness + penalty) / min_sep
 }
