@@ -16,3 +16,5 @@
 ^inst/app/map/.*\.(shp|dbf|prj|qpj|shx|cpg)$
 ^plan\.md$
 ^note$
+^validation$
+^validation_results$
