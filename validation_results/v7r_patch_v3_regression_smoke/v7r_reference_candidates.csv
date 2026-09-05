@@ -1,0 +1,4 @@
+"reference","spatial_XB","feasible","occupied"
+"Shared initial feasible best",52.3054889197615,TRUE,4
+"Collapsed centroid reference",Inf,FALSE,1
+"KMeans centroid reference",1.313876731582,TRUE,4

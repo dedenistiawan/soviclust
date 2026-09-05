@@ -101,6 +101,7 @@ local({
   src("psofgwc.R")        # Particle Swarm Optimization
   src("tlbofgwc.R")       # Teaching-Learning Based Optimization
   src("woafgwc.R")        # Whale Optimization Algorithm
+  src("optimizer_v3.R")   # Patch v3: canonical operators + unified spatial fitness
 })
 
 # ── Stability Analysis (Multiple Independent Runs) ───────────────────────────

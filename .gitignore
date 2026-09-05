@@ -33,3 +33,9 @@ inst/app/map/*.prj
 inst/app/map/*.qpj
 inst/app/map/*.shx
 inst/app/map/*.cpg
+
+# Local validation patch backups / temporary patch installers
+validation/patch_backups/
+validation/patch_v3/
+validation/patch_v3_*_fix/
+validation/patch_v3_test_isolation/

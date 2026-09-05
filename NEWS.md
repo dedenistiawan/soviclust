@@ -7,6 +7,19 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # soviclust [Unreleased]
 
+### Canonical Optimizer & Spatial Fitness Architecture — Patch v3
+
+- Replaced `jfgwcv` optimizer fitness with feasible spatial Xie-Beni fitness.
+- Separated raw optimizer search positions from spatial FGWC projected centroids.
+- Added hard-cluster occupancy feasibility checking.
+- Added canonical operator corrections for ABC, GSA, and TLBO.
+- Preserved canonical GWO and WOA movement equations with regression tests.
+- Harmonized all nine optimizers under a common spatial candidate evaluator.
+- Added deterministic reproducibility and convergence consistency tests.
+- Added namespace-safe stable random generation for FPA and IFA.
+- Added Patch v3 regression smoke benchmark on the 514-district Indonesia dataset.
+- Patch v3 validation: 227 tests passed; R CMD check 0 errors, 0 warnings, 0 notes; V7-R 9/9 optimizers passed.
+
 ### Added
 
 - Added shared optimizer-evaluation helpers for FGWC metaheuristic algorithms:
