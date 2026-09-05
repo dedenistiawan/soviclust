@@ -7,22 +7,14 @@
 sovi_sample_distmat()
 }
 \value{
-A numeric matrix of dimensions 514 x 514. Diagonal values = 0.
+A numeric 514 x 514 matrix.
 }
 \description{
-Reads the symmetric 514 x 514 inter-district distance matrix for
-Indonesian districts included in the package.
-}
-\note{
-This file is approximately 3.8 MB and may take a moment to load.
+Reads the bundled inter-district distance matrix.
 }
 \examples{
 mat <- sovi_sample_distmat()
-dim(mat)        # [1] 514 514
-diag(mat)[1:5]  # [1] 0 0 0 0 0
-
-# Distance from the first district to all others
-hist(mat[1, -1], main = "Distance Distribution from District 1",
-     xlab = "Distance", col = "coral")
+dim(mat)
+diag(mat)[1:5]
 
 }

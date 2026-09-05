@@ -7,30 +7,14 @@
 sovi_sample_coords()
 }
 \value{
-A `data.frame` with 514 rows and 3 columns:
-  \describe{
-    \item{DISTRICTCODE}{Unique district ID code.}
-    \item{longitude}{Longitude in decimal degrees (WGS84).}
-    \item{latitude}{Latitude in decimal degrees (WGS84).}
-  }
+A `data.frame` with 514 rows.
 }
 \description{
-Reads the geographic centroid coordinates (longitude and latitude) for
-514 Indonesian districts included in the package. Useful for computing
-Haversine distance matrices manually or for visualization.
+Reads bundled centroid longitude and latitude data.
 }
 \examples{
 coord <- sovi_sample_coords()
 head(coord)
-
-# Coordinate ranges
-range(coord$longitude)  # ~[95, 141]
-range(coord$latitude)   # ~[-11, 6]
-
-# Plot centroid locations
-plot(coord$longitude, coord$latitude,
-     pch = 20, cex = 0.5, col = "steelblue",
-     xlab = "Longitude", ylab = "Latitude",
-     main = "Centroids of 514 Indonesian Districts")
+dim(coord)
 
 }

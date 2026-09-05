@@ -2,30 +2,22 @@
 % Please edit documentation in R/sample_data.R
 \name{sovi_sample_shapefile}
 \alias{sovi_sample_shapefile}
-\title{Read Shapefile for 514 Indonesian Districts}
+\title{Read Administrative Boundaries for 514 Indonesian Districts}
 \usage{
 sovi_sample_shapefile()
 }
 \value{
-An `sf` object with 514 features (Polygon/MultiPolygon).
-  District ID column: `idkab`.
-  Coordinate reference system: WGS84 (EPSG:4326).
+An `sf` object with 514 spatial features.
 }
 \description{
-Reads the bundled administrative boundary shapefile for 514 Indonesian
-districts included in the package as an `sf` object.
+Reads the bundled administrative-boundary object for 514 Indonesian
+regencies/cities. The spatial object is stored internally as an RDS file
+to reduce package size.
 }
 \examples{
 shp <- sovi_sample_shapefile()
 class(shp)
-names(shp)
 nrow(shp)
-
-# Display a simple map
-plot(sf::st_geometry(shp))
-
-# Join with SoVI data
-df  <- sovi_sample_data()
-shp_sovi <- merge(shp, df, by.x = "idkab", by.y = "DISTRICTCODE")
+names(shp)
 
 }

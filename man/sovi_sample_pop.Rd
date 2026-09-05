@@ -7,21 +7,14 @@
 sovi_sample_pop()
 }
 \value{
-A `data.frame` with 514 rows and at least 2 columns (ID + population).
+A `data.frame` with 514 rows.
 }
 \description{
-Reads the population data for 514 Indonesian districts included in the
-package. This data is used as a population weight in FGWC, LFGWC,
-and ALFGWC clustering analyses.
+Reads the bundled population data used by spatial-interaction weighting.
 }
 \examples{
-pop_df <- sovi_sample_pop()
-head(pop_df)
-
-# Extract population vector
-pop <- pop_df[[which(sapply(pop_df, is.numeric))[1]]]
-summary(pop)
-hist(pop / 1e6, main = "Population Distribution (millions)",
-     xlab = "Population (millions)", col = "steelblue")
+pop <- sovi_sample_pop()
+head(pop)
+nrow(pop)
 
 }
