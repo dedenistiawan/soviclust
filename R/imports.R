@@ -77,10 +77,10 @@
 # Asynchronous execution
 # -----------------------------------------------------------------------------
 
-# future and promises are loaded by inst/app/global.R and are required for
-# asynchronous/non-blocking Shiny workflows.
-#' @import future
-#' @import promises
+# Import only selected symbols to avoid importing future::reset, which conflicts
+# with shinyjs::reset.
+#' @importFrom future plan multisession
+#' @importFrom promises promise
 
 # -----------------------------------------------------------------------------
 # Packages imported selectively to avoid namespace conflicts
@@ -127,25 +127,19 @@
 #' @importFrom digest digest
 
 # -----------------------------------------------------------------------------
-# Intentionally not imported into NAMESPACE
+# Additional packages used by the Shiny application
 # -----------------------------------------------------------------------------
-#
-# The following packages remain in DESCRIPTION Imports but are called with
-# explicit namespace prefixes (package::function) in the application:
-#
-# - dbscan     -> dbscan::dbscan(), dbscan::kNNdist()
-# - ppclust    -> ppclust::fcm()
-# - shiny.i18n -> shiny.i18n::Translator$new()
-#
-# Keeping these calls namespaced reduces the risk of function-name conflicts.
-#
+
+# These packages remain explicitly namespaced in inst/app/, but importing one
+# public symbol from each keeps DESCRIPTION and NAMESPACE consistent during
+# R CMD check without importing their complete namespaces.
+#' @importFrom dbscan dbscan kNNdist
+#' @importFrom ppclust fcm
+#' @importFrom shiny.i18n Translator
+
 # After editing this file, regenerate NAMESPACE with:
 #
 #   devtools::document()
-#
-# or:
-#
-#   roxygen2::roxygenise()
 #
 # Do not edit NAMESPACE manually.
 # -----------------------------------------------------------------------------
