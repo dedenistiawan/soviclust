@@ -147,9 +147,9 @@ The SoVI workflow follows the general framework introduced by Cutter, Boruff, an
 
 For indicator $x_{ij}$, standardization begins with:
 
-$$
+```math
 z_{ij} = \frac{x_{ij} - \bar{x}_{j}}{s_j}
-$$
+```
 
 where $z_{ij}$ is the standardized value of indicator $j$ for spatial unit $i$.
 
@@ -244,21 +244,21 @@ Together, these extensions allow both the **strength of neighborhood influence**
 
 The current implementation first computes the neighborhood-membership component
 
-$$
+```math
 G_{ik}
 =
 \sum_{j \in N_i} W_{ij}U_{jk},
-$$
+```
 
 and then updates fuzzy membership as
 
-$$
+```math
 U_{ik}^{*}
 =
 (1-\alpha_i)U_{ik}
 +
 \alpha_i G_{ik},
-$$
+```
 
 where:
 
@@ -305,13 +305,13 @@ Two local weighting schemes are available.
 
 **1. Distance decay**
 
-$$
+```math
 f_{ij}=\frac{1}{d_{ij}^{\gamma}},
 \qquad
 W_{ij}=
 \frac{f_{ij}}
 {\sum_{j\in N_i}f_{ij}},
-$$
+```
 
 where $d_{ij}$ is the distance between spatial units $i$ and $j$, and $\gamma$ controls the strength of distance decay.
 
@@ -319,21 +319,21 @@ where $d_{ij}$ is the distance between spatial units $i$ and $j$, and $\gamma$ c
 
 The current implementation uses a population-distance interaction term
 
-$$
+```math
 \phi_{ij}=\frac{P_j}{d_{ij}},
 \qquad
 W_{ij}=
 \frac{\phi_{ij}}
 {\sum_{j\in N_i}\phi_{ij}},
-$$
+```
 
 where $P_j$ is the population of neighboring spatial unit $j$.
 
 Both schemes are row-standardized so that
 
-$$
+```math
 \sum_{j\in N_i}W_{ij}=1.
-$$
+```
 
 #### Adaptive $\alpha_i$ mechanism
 
@@ -544,9 +544,9 @@ FGWC, LFGWC, and ALFGWC produce **membership values**, not only hard cluster lab
 
 For spatial unit $i$:
 
-$$
+```math
 \sum_{k=1}^{K} U_{ik}=1
-$$
+```
 
 A hard cluster label can be obtained from the maximum membership value, but the complete membership vector should be retained whenever possible because it provides information about:
 
