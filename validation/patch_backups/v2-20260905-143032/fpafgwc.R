@@ -109,26 +109,27 @@ fpafgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
     flow.other <- lapply(1:nflow, function(x) uij(data,flow.swarm[[x]],m,distance,order))
   	flow.other <- lapply(1:nflow, function(x) renew_uij(data,flow.other[[x]]$u,mi.mj,distmat,alpha,beta,a,b))
   	flow.swarm <- lapply(1:nflow, function(x) vi(data,flow.other[[x]],m))
-  	flow.fit <- sapply(1:nflow, function(x) optimizer_fitness(data,flow.swarm[[x]],m,distance,order))
+  	flow.fit <- sapply(1:nflow, function(x) jfgwcv(data,flow.swarm[[x]],m,distance,order))
     best <- which(flow.fit==min(flow.fit))[1]
     flow.curbest <- flow.swarm[[best]]
     flow.curbest.other <- flow.other[[best]]
     flow.fit.curbest <- flow.fit[best]
+    conv <- c(conv,flow.fit.finalbest)
+    iter <- iter+1
+    if (abs(conv[iter+1]-conv[iter])<error) same <- same+1
+    else same <- 0
     if (flow.fit.curbest<=flow.fit.finalbest) {
       flow.finalpos <- flow.curbest
       flow.finalpos.other <- flow.curbest.other
       flow.fit.finalbest <- flow.fit.curbest
     }
-    iter <- iter + 1L
-    conv <- c(conv, flow.fit.finalbest)
-    if (abs(conv[length(conv)] - conv[length(conv) - 1L]) < error) same <- same + 1L
-    else same <- 0L
     randomN <- randomN+nflow
-    if (iter>=max.iter || same>=flow.same) break
+    if (iter==max.iter || same==flow.same) break
   }
   finaldata=determine_cluster(datax,flow.finalpos.other)
   cluster=finaldata[,ncol(finaldata)]
-  fpa <- list("converg"=conv,"f_obj"=optimizer_fitness(data,flow.finalpos,m,distance,order),"fitness_type"="jfgwcv","spatial_obj"=optimizer_spatial_objective(data, flow.finalpos.other, flow.finalpos, m, distance, order),"membership"=flow.finalpos.other,"centroid"=flow.finalpos,
+  print(c(order, ncluster,m, randomN))
+  fpa <- list("converg"=conv,"f_obj"=jfgwcv(data,flow.finalpos,m,distance,order),"membership"=flow.finalpos.other,"centroid"=flow.finalpos,
               "validation"=index_fgwc(data,cluster,flow.finalpos.other,flow.finalpos,m,exp(1)), "cluster"=cluster,
               "finaldata"=finaldata, "call"=match.call(),"iteration"=iter,"same"=same,"time"=proc.time()-ptm)
   class(fpa) <- 'fgwc'

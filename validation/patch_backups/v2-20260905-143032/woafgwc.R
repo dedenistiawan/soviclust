@@ -67,7 +67,9 @@ woafgwc <- function(data, pop = NA, distmat = NA,
   wh.fit <- vapply(
     seq_len(nwhale),
     function(i) {
-      optimizer_fitness(data, wh.swarm[[i]], m, distance, order)
+      fgwc_objective(
+        data, wh.other[[i]], wh.swarm[[i]], m, distance, order
+      )
     },
     numeric(1)
   )
@@ -127,7 +129,9 @@ woafgwc <- function(data, pop = NA, distmat = NA,
     wh.fit <- vapply(
       seq_len(nwhale),
       function(i) {
-        optimizer_fitness(data, wh.swarm[[i]], m, distance, order)
+        fgwc_objective(
+          data, wh.other[[i]], wh.swarm[[i]], m, distance, order
+        )
       },
       numeric(1)
     )
@@ -163,8 +167,6 @@ woafgwc <- function(data, pop = NA, distmat = NA,
   result <- list(
     converg = conv,
     f_obj = wh.fit.finalbest,
-    fitness_type = "jfgwcv",
-    spatial_obj = optimizer_spatial_objective(data, wh.finalpos.other, wh.finalpos, m, distance, order),
     membership = wh.finalpos.other,
     centroid = wh.finalpos,
     validation = index_fgwc(

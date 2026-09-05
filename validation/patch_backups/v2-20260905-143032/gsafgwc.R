@@ -115,7 +115,7 @@ gsafgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
     par.other <- lapply(1:npar, function(x) uij(data,par.swarm[[x]],m,distance,order))
   	par.other <- par$membership <- lapply(1:npar, function(x) renew_uij(data,par.other[[x]]$u,mi.mj,distmat,alpha,beta,a,b))
   	par.swarm <- par$centroid <- lapply(1:npar, function(x) vi(data,par.other[[x]],m))
-    par.fit <- par$I <- sapply(1:npar, function(x) optimizer_fitness(data,par.swarm[[x]],m,distance,order))
+    par.fit <- par$I <- sapply(1:npar, function(x) jfgwcv(data,par.swarm[[x]],m,distance,order))
 
     if(new==TRUE){ 
       pbest.ind <- which(par.fit<pfit)
@@ -131,21 +131,22 @@ gsafgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
     par.curbest <- par.swarm[[best]]
     par.curbest.other <- par.other[[best]]
     par.fit.curbest <- par.fit[best]
+    conv <- c(conv,par.fit.finalbest)
+    iter <- iter+1
+    if (abs(conv[iter+1]-conv[iter])<error) same <- same+1
+    else same <- 0
     if (par.fit.curbest<=par.fit.finalbest) {
       par.finalpos <- par.curbest
       par.finalpos.other <- par.curbest.other
       par.fit.finalbest <- par.fit.curbest
     }
-    iter <- iter + 1L
-    conv <- c(conv, par.fit.finalbest)
-    if (abs(conv[length(conv)] - conv[length(conv) - 1L]) < error) same <- same + 1L
-    else same <- 0L
     randomN <- randomN+npar
-    if (iter>=max.iter || same>=gsa.same) break
+    if (iter==max.iter || same==gsa.same) break
   }
   finaldata=determine_cluster(datax,par.finalpos.other)
   cluster=finaldata[,ncol(finaldata)]
-  gsa <- list("converg"=conv,"f_obj"=optimizer_fitness(data,par.finalpos,m,distance,order),"fitness_type"="jfgwcv","spatial_obj"=optimizer_spatial_objective(data, par.finalpos.other, par.finalpos, m, distance, order),"membership"=par.finalpos.other,"centroid"=par.finalpos,
+  print(c(order, ncluster,m, randomN))
+  gsa <- list("converg"=conv,"f_obj"=jfgwcv(data,par.finalpos,m,distance,order),"membership"=par.finalpos.other,"centroid"=par.finalpos,
               "validation"=index_fgwc(data,cluster,par.finalpos.other,par.finalpos,m,exp(1)), "cluster"=cluster,
               "finaldata"=finaldata, "call"=match.call(),"iteration"=iter,"same"=same,"time"=proc.time()-ptm)
   class(gsa) <- 'fgwc'
@@ -155,16 +156,8 @@ gsafgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
 force_v <- function(par,no,G,v,vmax,par.dist,par.order,randomN){
   dd <- dim(par$centroid[[1]])
   intel.par <- intel.ffly(par,no)
-  fit_min <- min(par$I)
-  fit_max <- max(par$I)
-  fit_range <- fit_max - fit_min
-  if (!is.finite(fit_range) || fit_range <= .Machine$double.eps) {
-    Mass <- rep(1 / length(par$I), length(par$I))
-  } else {
-    mass <- (fit_max - par$I) / fit_range
-    mass <- pmax(mass, .Machine$double.eps)
-    Mass <- mass / sum(mass)
-  }
+  mass <- (par$I-max(par$I))/(min(par$I)-max(par$I))
+  Mass <- mass/sum(mass)
   Mass.intel <- sort(Mass,decreasing=T)[1:no]
   v1 <- v
   for(i in 1:length(par$centroid)){
@@ -188,7 +181,7 @@ force_v <- function(par,no,G,v,vmax,par.dist,par.order,randomN){
     #   v1[[i]][v1[[i]]> vmax,] <- vmax
     # }
   }
-  return(v1)
+  return(v)
 }
 
 new.move <- function(par,pbest,gbest,randomN){ ##Li dan Dong, 2017 GSA new technique

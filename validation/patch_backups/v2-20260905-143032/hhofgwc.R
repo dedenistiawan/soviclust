@@ -118,26 +118,27 @@ hhofgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
   	hh.other <- lapply(1:nhh, function(x) uij(data,hh.swarm[[x]],m,distance,order))
   	hh.other <- lapply(1:nhh, function(x) renew_uij(data,hh.other[[x]]$u,mi.mj,distmat,alpha,beta,a,b))
   	hh.swarm <- lapply(1:nhh, function(x) vi(data,hh.other[[x]],m))
-  	hh.fit <- sapply(1:nhh, function(x) optimizer_fitness(data,hh.swarm[[x]],m,distance,order))
+  	hh.fit <- sapply(1:nhh, function(x) jfgwcv(data,hh.swarm[[x]],m,distance,order))
     best <- which(hh.fit==min(hh.fit))[1]
     hh.curbest <- hh.swarm[[best]]
     hh.curbest.other <- hh.other[[best]]
     hh.fit.curbest <- hh.fit[best]
+    conv <- c(conv,hh.fit.finalbest)
+    iter <- iter+1
+    if (abs(conv[iter+1]-conv[iter])<error) same <- same+1
+    else same <- 0
     if (hh.fit.curbest<=hh.fit.finalbest) {
       hh.finalpos <- hh.curbest
       hh.finalpos.other <- hh.curbest.other
       hh.fit.finalbest <- hh.fit.curbest
     }
-    iter <- iter + 1L
-    conv <- c(conv, hh.fit.finalbest)
-    if (abs(conv[length(conv)] - conv[length(conv) - 1L]) < error) same <- same + 1L
-    else same <- 0L
     randomN <- randomN+nhh
-    if (iter>=max.iter || same>=hh.same) break
+    if (iter==max.iter || same==hh.same) break
   }
   finaldata=determine_cluster(datax,hh.finalpos.other)
   cluster=finaldata[,ncol(finaldata)]
-  hho <- list("converg"=conv,"f_obj"=optimizer_fitness(data,hh.finalpos,m,distance,order),"fitness_type"="jfgwcv","spatial_obj"=optimizer_spatial_objective(data, hh.finalpos.other, hh.finalpos, m, distance, order),"membership"=hh.finalpos.other,"centroid"=hh.finalpos,
+  print(c(order, ncluster,m, randomN))
+  hho <- list("converg"=conv,"f_obj"=jfgwcv(data,hh.finalpos,m,distance,order),"membership"=hh.finalpos.other,"centroid"=hh.finalpos,
               "validation"=index_fgwc(data,cluster,hh.finalpos.other,hh.finalpos,m,exp(1)), "cluster"=cluster,
               "finaldata"=finaldata, "call"=match.call(),"iteration"=iter,"same"=same,"time"=proc.time()-ptm)
   class(hho) <- 'fgwc'
@@ -188,8 +189,8 @@ hh.attack.heidari <- function(hawk,hawks,rabbit,E,A,p,rand,levy.beta,seed,best,w
 				y <- rabbit-E*(J*rabbit-hawks.m)
 			}
 			z <- y+S*LF
-			fity <- optimizer_fitness(data,y,m,distance,order,mi.mj,dist,alpha,beta,a,b)
-			fitz <- optimizer_fitness(data,z,m,distance,order,mi.mj,dist,alpha,beta,a,b)
+			fity <- jfgwcv2(data,y,m,distance,order,mi.mj,dist,alpha,beta,a,b)
+			fitz <- jfgwcv2(data,z,m,distance,order,mi.mj,dist,alpha,beta,a,b)
 			if(fity<fithawk) return(y)
 			else if(fitz<fithawk) return(z)
 			else return(hawk)

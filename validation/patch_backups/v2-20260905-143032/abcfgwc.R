@@ -96,7 +96,7 @@ abcfgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
   	best <- minmax[1]
   	worst <- minmax[2]
     candfood <- employed.bee(food.swarm,food.fit,pso,food.finalpos,randomN,data,m,distance,order,mi.mj,distmat,alpha,beta,a,b)
-    candfood.fit <- sapply(1:nfood, function(x) optimizer_fitness(data,candfood[[x]],m,distance,order,mi.mj,distmat,alpha,beta,a,b))
+    candfood.fit <- sapply(1:nfood, function(x) jfgwcv2(data,candfood[[x]],m,distance,order,mi.mj,distmat,alpha,beta,a,b))
     newfood <- compare(candfood,food.swarm,candfood.fit,food.fit,t,data,m,distance,order,mi.mj,distmat,alpha,beta,a,b)
     onlook.food <- onlooker.bee(newfood$swarm,newfood$fit,newfood$t,newfood$prob,n.onlooker,pso,food.finalpos,
       randomN+1,data,m,distance,order,mi.mj,distmat,alpha,beta,a,b)
@@ -105,29 +105,29 @@ abcfgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclide
     food.other <- lapply(1:nfood, function(x) uij(data,food.swarm[[x]],m,distance,order))
   	food.other <- lapply(1:nfood, function(x) renew_uij(data,food.other[[x]]$u,mi.mj,distmat,alpha,beta,a,b))
   	food.swarm <- lapply(1:nfood, function(x) vi(data,food.other[[x]],m))
-  	food.fit <- sapply(1:nfood, function(x) optimizer_fitness(data,food.swarm[[x]],m,distance,order))
+  	food.fit <- sapply(1:nfood, function(x) jfgwcv(data,food.swarm[[x]],m,distance,order))
     best <- which(food.fit==min(food.fit))[1]
     food.curbest <- food.swarm[[best]]
     food.curbest.other <- food.other[[best]]
     food.fit.curbest <- food.fit[best]
+    conv <- c(conv,food.fit.finalbest)
+    iter <- iter+1
+    if (abs(conv[iter+1]-conv[iter])<error) same <- same+1
+    else same <- 0
     if (food.fit.curbest<=food.fit.finalbest) {
       food.finalpos <- food.curbest
       food.finalpos.other <- food.curbest.other
       food.fit.finalbest <- food.fit.curbest
     }
-    iter <- iter + 1L
-    conv <- c(conv, food.fit.finalbest)
-    if (abs(conv[length(conv)] - conv[length(conv) - 1L]) < error) same <- same + 1L
-    else same <- 0L
     randomN <- randomN+nfood
-    if (iter>=max.iter || same>=abc.same) break
+    if (iter==max.iter || same==abc.same) break
   }
   finaldata=determine_cluster(datax,food.finalpos.other)
   cluster=finaldata[,ncol(finaldata)]
-  abc <- list("converg"=conv,"f_obj"=optimizer_fitness(data,food.finalpos,m,distance,order),"fitness_type"="jfgwcv","spatial_obj"=optimizer_spatial_objective(data, food.finalpos.other, food.finalpos, m, distance, order),"membership"=food.finalpos.other,"centroid"=food.finalpos,
+  print(c(order, ncluster,m, randomN))
+  abc <- list("converg"=conv,"f_obj"=jfgwcv(data,food.finalpos,m,distance,order),"membership"=food.finalpos.other,"centroid"=food.finalpos,
               "validation"=index_fgwc(data,cluster,food.finalpos.other,food.finalpos,m,exp(1)), "cluster"=cluster,
               "finaldata"=finaldata, "call"=match.call(),"iteration"=iter,"same"=same,"time"=proc.time()-ptm)
-  class(abc) <- 'fgwc'
   return(abc)
 }
 
@@ -178,7 +178,7 @@ onlooker.bee <- function(swarm,fit,t,prob,n.onlooker,pso,gbest,seed,data,m,dista
     }
     oldswarm[[x]]+phi*(oldswarm[[x]]-swarm[[a]])+psi*(gbest-oldswarm[[x]])
   })
-  newfit <- sapply(1:length(newswarm),function(x) optimizer_fitness(data,newswarm[[x]],m,distance,order,mi.mj,dist,alpha,beta,a,b))
+  newfit <- sapply(1:length(newswarm),function(x) jfgwcv2(data,newswarm[[x]],m,distance,order,mi.mj,dist,alpha,beta,a,b))
   swarmlast <- compare(newswarm,oldswarm,newfit,oldfit,t2,data,m,distance,order,mi.mj,dist,alpha,beta,a,b)
   j = 0
   for(i in real){
@@ -191,7 +191,7 @@ onlooker.bee <- function(swarm,fit,t,prob,n.onlooker,pso,gbest,seed,data,m,dista
 }
 
 scout.bee <- function(swarm,t,limit,minmaxdata,seed){
-  ind <- which(t >= limit)
+  ind <- which(t==limit)
   for(i in ind){
     set.seed(seed <- seed+5+i)
     r <- matrix(runif(ncol(swarm[[i]])*nrow(swarm[[i]])),ncol=ncol(swarm[[i]]))
@@ -207,12 +207,8 @@ compare <- function(newswarm,oldswarm,newfit,oldfit,t,data,m,distance,order,mi.m
     oldfit[i] <- newfit[i]
     t[i] <- 0
   }
-  not_improved <- setdiff(seq_along(t), ind)
-  if (length(not_improved) > 0L) {
-    t[not_improved] <- t[not_improved] + 1
-  }
-  obj <- sapply(1:length(oldswarm),function(x) optimizer_fitness(data,oldswarm[[x]],m,distance,order,mi.mj,dist,alpha,beta,a,b))
-  obj_safe <- pmax(obj, .Machine$double.eps)
-  prob <- (1 / obj_safe) / sum(1 / obj_safe)
+  t[-ind] <- t[-ind]+1
+  obj <- sapply(1:length(oldswarm),function(x) jfgwcv2(data,oldswarm[[x]],m,distance,order,mi.mj,dist,alpha,beta,a,b))
+  prob <- (1/obj)/sum(1/obj)
   return(list(swarm=oldswarm,fit=obj,prob=prob,t=t))
 }

@@ -112,26 +112,27 @@ tlbofgwc <- function(data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclid
     stud.other <- lapply(1:nstud, function(x) uij(data,stud.swarm[[x]],m,distance,order))
   	stud.other <- lapply(1:nstud, function(x) renew_uij(data,stud.other[[x]]$u,mi.mj,distmat,alpha,beta,a,b))
   	stud.swarm <- lapply(1:nstud, function(x) vi(data,stud.other[[x]],m))
-  	stud.fit <- sapply(1:nstud, function(x) optimizer_fitness(data,stud.swarm[[x]],m,distance,order))
+  	stud.fit <- sapply(1:nstud, function(x) jfgwcv(data,stud.swarm[[x]],m,distance,order))
     best <- which(stud.fit==min(stud.fit))[1]
     stud.curbest <- stud.swarm[[best]]
     stud.curbest.other <- stud.other[[best]]
     stud.fit.curbest <- stud.fit[best]
+    conv <- c(conv,stud.fit.finalbest)
+    iter <- iter+1
+    if (abs(conv[iter+1]-conv[iter])<error) same <- same+1
+    else same <- 0
     if (stud.fit.curbest<=stud.fit.finalbest) {
       stud.finalpos <- stud.curbest
       stud.finalpos.other <- stud.curbest.other
       stud.fit.finalbest <- stud.fit.curbest
     }
-    iter <- iter + 1L
-    conv <- c(conv, stud.fit.finalbest)
-    if (abs(conv[length(conv)] - conv[length(conv) - 1L]) < error) same <- same + 1L
-    else same <- 0L
     randomN <- randomN+nstud
-    if (iter>=max.iter || same>=tlbo.same) break
+    if (iter==max.iter || same==tlbo.same) break
   }
   finaldata=determine_cluster(datax,stud.finalpos.other)
   cluster=finaldata[,ncol(finaldata)]
-  tlbo <- list("converg"=conv,"f_obj"=optimizer_fitness(data,stud.finalpos,m,distance,order),"fitness_type"="jfgwcv","spatial_obj"=optimizer_spatial_objective(data, stud.finalpos.other, stud.finalpos, m, distance, order),"membership"=stud.finalpos.other,"centroid"=stud.finalpos,
+  print(c(order, ncluster,m, randomN))
+  tlbo <- list("converg"=conv,"f_obj"=jfgwcv(data,stud.finalpos,m,distance,order),"membership"=stud.finalpos.other,"centroid"=stud.finalpos,
               "validation"=index_fgwc(data,cluster,stud.finalpos.other,stud.finalpos,m,exp(1)), "cluster"=cluster,
               "finaldata"=finaldata, "call"=match.call(),"iteration"=iter,"same"=same,"time"=proc.time()-ptm)
   class(tlbo) <- 'fgwc'
@@ -146,7 +147,7 @@ teacher.phase <- function(studs,studs.fit,teacher,average,seed,data,m,distance,o
   diff <- r*(teacher-tf*average)
   nstud <- length(studs)
   stud2 <- lapply(1:nstud, function (x) studs[[x]]+diff)
-  stud.fit2 <- sapply(1:nstud, function (x) optimizer_fitness(data,stud2[[x]],m,distance,order,mi.mj,dist,alpha,beta,a,b))
+  stud.fit2 <- sapply(1:nstud, function (x) jfgwcv2(data,stud2[[x]],m,distance,order,mi.mj,dist,alpha,beta,a,b))
   whichone <- which(stud.fit2<studs.fit)
   for(i in whichone){
     studs[[i]] <- stud2[[i]]
@@ -168,7 +169,7 @@ learner.phase <- function(studs,studs.fit,seed,data,m,distance,order,mi.mj,dist,
 	    b <- sample2[i]
 	    if(studs.fit[a]<studs.fit[b]) stud2 <- studs[[a]]+r*(studs[[a]]-studs[[b]])
 		  else stud2 <- studs[[a]]+r*(studs[[b]]-studs[[a]])
-		  stud.fit2 <- optimizer_fitness(data,stud2,m,distance,order,mi.mj,dist,alpha,beta,a,b)
+		  stud.fit2 <- jfgwcv2(data,stud2,m,distance,order,mi.mj,dist,alpha,beta,a,b)
 			if(stud.fit2<studs.fit[a]){
 				studs[[a]] <- stud2
     		studs.fit[a] <- stud.fit2

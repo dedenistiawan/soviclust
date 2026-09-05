@@ -90,7 +90,7 @@ ifafgwc <- function (data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclid
   n <- nrow(data)
   d <- ncol(data)
   iter=0
-  gen=0
+  gen=1
   beta <- 1-alpha
   same=0
   data <- as.matrix(data)
@@ -122,22 +122,26 @@ ifafgwc <- function (data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclid
     ffly.other <- ffly.new$membership <- lapply(1:nfly, function(x) uij(data,ffly.swarm[[x]],m,distance,order))
     ffly.other <- ffly.new$membership <- lapply(1:nfly, function(x) renew_uij(data,ffly.new$membership[[x]]$u,mi.mj,distmat,alpha,beta,a,b))
     ffly.swarm <- ffly.new$centroid <- lapply(1:nfly, function(x) vi(data,ffly.new$membership[[x]],m))
-    inten <- ffly.new$I <- sapply(1:nfly, function(x) optimizer_fitness(data,ffly.new$centroid[[x]],m,distance,order))
+    inten <- ffly.new$I <- sapply(1:nfly, function(x) jfgwcv(data,ffly.new$centroid[[x]],m,distance,order))
     best <- which(inten==min(inten))[1]
     ffly.curbest <- ffly.swarm[[best]]
     ffly.curbest.other <- ffly.other[[best]]
     inten.curbest <- inten[best]
+    conv <- c(conv,inten.finalbest)
+    if (abs(conv[gen+1]-conv[gen])<error) {
+      same <- same+1
+    }
+    else {
+      same <- 0
+    }
     if (inten.curbest<=inten.finalbest) {
       ffly.finalpos <- ffly.curbest
       ffly.finalpos.other <- ffly.curbest.other
       inten.finalbest <- inten.curbest
     }
-    conv <- c(conv, inten.finalbest)
-    if (abs(conv[length(conv)] - conv[length(conv) - 1L]) < error) same <- same + 1L
-    else same <- 0L
     gen <- gen+1
     randomN <- randomN+nfly
-    if (gen>=max.iter || same>=fa.same) break
+    if (gen==max.iter || same==fa.same) break
   }##end repeat
   # print(class(ffly.finalpos.other))
   if (any(class(ffly.finalpos.other)=="list")) {
@@ -150,9 +154,10 @@ ifafgwc <- function (data, pop=NA, distmat=NA, ncluster=2, m=2, distance='euclid
   }
   finaldata=determine_cluster(datax,new_uij)
   cluster=finaldata[,ncol(finaldata)]
-  ifa <- list("converg"=conv,"f_obj"=optimizer_fitness(data,vi,m,distance,order),"fitness_type"="jfgwcv","spatial_obj"=optimizer_spatial_objective(data, new_uij, vi, m, distance, order),"membership"=new_uij,"centroid"=vi,
+  ifa <- list("converg"=conv,"f_obj"=jfgwcv(data,vi,m,distance,order),"membership"=new_uij,"centroid"=vi,
               "validation"=index_fgwc(data,cluster,new_uij,vi,m,exp(1)), "cluster"=cluster,
               "finaldata"=finaldata, "call"=match.call(),"iteration"=gen,"same"=same,"time"=proc.time()-ptm)
+  print(c(order, ncluster,m, randomN))
   #result <- list(ifa=ifa,fgwc=fgwc)
   class(ifa) <- 'fgwc'
   return (ifa)
@@ -166,7 +171,7 @@ init.swarm <- function(data, pop, distmat, distance, order, vi.dist, ncluster,
 	start.uij <- lapply(1:nfly, function (x) renew_uij(data,start.uij[[x]],pop,distmat,alpha,beta,a,b))
 	start.vi <- lapply(1:nfly, function (x) vi(data,start.uij[[x]],m))
   for(i in 1:nfly) {
-    inten[i] <- optimizer_fitness(data,start.vi[[i]],m,distance,order)
+    inten[i] <- jfgwcv(data,start.vi[[i]],m,distance,order)
   }
   result <- list("membership"=start.uij,"centroid"=start.vi,"I"=inten)
   return(result)
@@ -202,15 +207,15 @@ moving <- function(ffly.all,no,ff.beta,gamma,ff.alpha,ffly.dist,ffly.order,ei.di
       r <- diag(cdist(ffly[[j]],intel.ffly$centroid[[i]],ffly.dist,ffly.order))
       ei <- matrix(eiDist(ei.distr,dd[1]*dd[2],randomN+i+j,r.chaotic,m.chaotic,ind.levy,skew.levy,sca.levy),ncol=dd[2])
       if (fit[j] > intel.ffly$I[i]){
-        ffly[[j]] <- ffly[[j]] + beta*exp(-gamma*r^2)*(intel.ffly$centroid[[i]]-ffly[[j]])+(ff.alpha*ei)
+        ffly[[j]]+beta*exp(-gamma*r^2)*(intel.ffly$centroid[[i]]-ffly[[j]])+(ff.alpha*ei)
       }
       else{
         times <- times+1
         if(times==no){
-          ffly[[j]] <- ffly[[j]] + (ff.alpha*ei)
+          ffly[[j]]+(ff.alpha*ei)
         }
       }
-      fit[j] <- optimizer_fitness(data,ffly[[j]],m,distance,order,mi.mj,dist,alpha,beta,a,b)
+      fit[j] <- jfgwcv2(data,ffly[[j]],m,distance,order,mi.mj,dist,alpha,beta,a,b)
     }
   }
   return(ffly)

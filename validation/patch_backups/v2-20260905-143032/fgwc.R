@@ -418,33 +418,3 @@ jfgwcv2 <- function(data, vi, m, distance, order,
     data, spatial_u, centers, m, distance, order
   )
 }
-
-# =============================================================================
-# Common fitness/evaluation helpers for FGWC metaheuristic optimizers
-# =============================================================================
-
-# Common cross-optimizer fitness.
-#
-# Extra arguments are deliberately accepted and ignored so legacy helper calls
-# that previously supplied spatial parameters can be migrated safely to this
-# common criterion without changing their public signatures.
-optimizer_fitness <- function(data, centers, m,
-                              distance = "euclidean", order = 2, ...) {
-  jfgwcv(data, centers, m, distance, order)
-}
-
-
-# Diagnostic objective evaluated on the FINAL spatially adjusted membership
-# and its associated centroid matrix. This value is intentionally separated
-# from optimizer_fitness() because it is not used for cross-optimizer ranking.
-optimizer_spatial_objective <- function(data, membership, centers, m,
-                                        distance = "euclidean", order = 2) {
-  fgwc_objective(
-    data = data,
-    uij = membership,
-    centers = centers,
-    m = m,
-    distance = distance,
-    order = order
-  )
-}
