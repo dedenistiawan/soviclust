@@ -3,33 +3,33 @@
 \name{Distance_matrix_514}
 \alias{Distance_matrix_514}
 \alias{Distance_matrix_514.xlsx}
-\title{Matriks Jarak 514 Kabupaten/Kota Indonesia}
+\title{Distance Matrix for 514 Indonesian Districts}
 \format{
-Matriks numerik (514 × 514) atau data frame dengan 514 baris dan
-514+ kolom (kolom pertama mungkin berisi label wilayah):
+A numeric matrix (514 x 514) or data frame with 514 rows and
+514+ columns (the first column may contain district labels):
 \describe{
-  \item{[baris i, kolom j]}{Jarak antara Kabupaten/Kota ke-i dan ke-j.
-    Satuan mengikuti sumber data (dapat berupa km atau unit lain).}
+  \item{[row i, column j]}{Distance between district i and district j.
+    Units follow the source data (may be km or other units).}
 }
 }
 \description{
-Matriks jarak simetris berukuran 514 × 514 antar Kabupaten/Kota Indonesia.
-Nilai diagonal adalah 0 (jarak suatu wilayah ke dirinya sendiri).
-Digunakan sebagai input matriks jarak pada analisis FGWC, LFGWC, dan ALFGWC.
+A symmetric 514 x 514 inter-district distance matrix for Indonesian districts.
+Diagonal values are 0 (distance from a district to itself).
+Used as the distance matrix input for FGWC, LFGWC, and ALFGWC analyses.
 }
 \details{
-Matriks ini bersifat simetris: \eqn{d(i,j) = d(j,i)}.
-Nilai diagonal: \eqn{d(i,i) = 0}.
+The matrix is symmetric: \eqn{d(i,j) = d(j,i)}.
+Diagonal values: \eqn{d(i,i) = 0}.
 
-Sebagai alternatif, gunakan \code{Koordinat.xlsx} dan biarkan aplikasi
-menghitung jarak Haversine secara otomatis.
+As an alternative, use \code{Koordinat.xlsx} and let the application
+compute Haversine distances automatically.
 }
 \examples{
-# Akses matriks jarak sampel
+# Access the sample distance matrix
 path <- system.file("extdata", "Distance_matrix_514.xlsx",
                     package = "soviclust")
 df  <- readxl::read_excel(path)
-# Buang kolom label jika ada
+# Remove label column if present
 if (!is.numeric(df[[1]])) df <- df[, -1]
 mat <- data.matrix(df)
 dim(mat)  # [1] 514 514

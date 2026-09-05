@@ -2,18 +2,18 @@
 % Please edit documentation in R/sample_data.R
 \name{sovi_sample_shapefile}
 \alias{sovi_sample_shapefile}
-\title{Baca Shapefile 514 Kabupaten/Kota Indonesia}
+\title{Read Shapefile for 514 Indonesian Districts}
 \usage{
 sovi_sample_shapefile()
 }
 \value{
-Objek `sf` dengan 514 fitur (Polygon/MultiPolygon).
-  Kolom ID wilayah: `idkab`.
-  Sistem koordinat: WGS84 (EPSG:4326).
+An `sf` object with 514 features (Polygon/MultiPolygon).
+  District ID column: `idkab`.
+  Coordinate reference system: WGS84 (EPSG:4326).
 }
 \description{
-Membaca shapefile batas wilayah 514 Kabupaten/Kota Indonesia
-yang disertakan dalam package sebagai objek `sf`.
+Reads the bundled administrative boundary shapefile for 514 Indonesian
+districts included in the package as an `sf` object.
 }
 \examples{
 shp <- sovi_sample_shapefile()
@@ -21,10 +21,10 @@ class(shp)
 names(shp)
 nrow(shp)
 
-# Tampilkan peta sederhana
+# Display a simple map
 plot(sf::st_geometry(shp))
 
-# Gabungkan dengan data SoVI
+# Join with SoVI data
 df  <- sovi_sample_data()
 shp_sovi <- merge(shp, df, by.x = "idkab", by.y = "DISTRICTCODE")
 

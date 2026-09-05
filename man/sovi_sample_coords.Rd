@@ -2,35 +2,35 @@
 % Please edit documentation in R/sample_data.R
 \name{sovi_sample_coords}
 \alias{sovi_sample_coords}
-\title{Baca Koordinat Centroid 514 Kabupaten/Kota}
+\title{Read Centroid Coordinates for 514 Indonesian Districts}
 \usage{
 sovi_sample_coords()
 }
 \value{
-`data.frame` dengan 514 baris dan 3 kolom:
+A `data.frame` with 514 rows and 3 columns:
   \describe{
-    \item{DISTRICTCODE}{Kode unik wilayah.}
-    \item{longitude}{Koordinat bujur (derajat desimal, WGS84).}
-    \item{latitude}{Koordinat lintang (derajat desimal, WGS84).}
+    \item{DISTRICTCODE}{Unique district ID code.}
+    \item{longitude}{Longitude in decimal degrees (WGS84).}
+    \item{latitude}{Latitude in decimal degrees (WGS84).}
   }
 }
 \description{
-Membaca data koordinat geografis (longitude dan latitude) titik centroid
-514 Kabupaten/Kota Indonesia. Berguna untuk menghitung matriks jarak
-Haversine secara manual atau untuk visualisasi.
+Reads the geographic centroid coordinates (longitude and latitude) for
+514 Indonesian districts included in the package. Useful for computing
+Haversine distance matrices manually or for visualization.
 }
 \examples{
 coord <- sovi_sample_coords()
 head(coord)
 
-# Rentang koordinat
+# Coordinate ranges
 range(coord$longitude)  # ~[95, 141]
 range(coord$latitude)   # ~[-11, 6]
 
-# Plot lokasi centroid
+# Plot centroid locations
 plot(coord$longitude, coord$latitude,
      pch = 20, cex = 0.5, col = "steelblue",
      xlab = "Longitude", ylab = "Latitude",
-     main = "Centroid 514 Kabupaten/Kota Indonesia")
+     main = "Centroids of 514 Indonesian Districts")
 
 }

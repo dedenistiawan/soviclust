@@ -3,29 +3,29 @@
 \name{Koordinat}
 \alias{Koordinat}
 \alias{Koordinat.xlsx}
-\title{Koordinat Centroid 514 Kabupaten/Kota Indonesia}
+\title{Centroid Coordinates for 514 Indonesian Districts}
 \format{
-Data frame dengan 514 baris dan minimal 3 kolom:
+A data frame with 514 rows and at least 3 columns:
 \describe{
-  \item{DISTRICTCODE}{Kode unik wilayah Kabupaten/Kota.}
-  \item{longitude}{Koordinat bujur (derajat desimal, WGS84).
-    Rentang: 95--141 (wilayah Indonesia).}
-  \item{latitude}{Koordinat lintang (derajat desimal, WGS84).
-    Rentang: -11 hingga 6 (wilayah Indonesia).}
+  \item{DISTRICTCODE}{Unique district ID code.}
+  \item{longitude}{Longitude in decimal degrees (WGS84).
+    Range: 95--141 (Indonesian territory).}
+  \item{latitude}{Latitude in decimal degrees (WGS84).
+    Range: -11 to 6 (Indonesian territory).}
 }
 }
 \description{
-Dataset koordinat geografis (longitude dan latitude) titik centroid
-514 Kabupaten/Kota di Indonesia. Digunakan untuk menghitung matriks
-jarak Haversine pada analisis FGWC, LFGWC, dan ALFGWC.
+Geographic centroid coordinates (longitude and latitude) for 514 Indonesian
+districts. Used to compute Haversine distance matrices for FGWC, LFGWC,
+and ALFGWC clustering analyses.
 }
 \details{
-Jarak antar wilayah dihitung otomatis menggunakan formula
-\strong{Haversine Distance} (satuan: kilometer) ketika memilih opsi
-"Upload Longitude & Latitude" pada tab Cluster Analysis.
+Inter-district distances are computed automatically using the
+\strong{Haversine Distance} formula (unit: kilometers) when selecting
+the "Upload Longitude & Latitude" option in the Cluster Analysis tab.
 }
 \examples{
-# Akses koordinat sampel
+# Access sample coordinates
 path <- system.file("extdata", "Koordinat.xlsx", package = "soviclust")
 coord <- readxl::read_excel(path)
 head(coord)

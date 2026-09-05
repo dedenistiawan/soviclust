@@ -1,64 +1,84 @@
 Package: soviclust
 Type: Package
-Title: SoVI Interactive Mapper - Social Vulnerability Index Analysis
-Version: 0.7.0
+Title: An Interactive R Package for Social Vulnerability Assessment, Spatial Diagnostics, and Fuzzy Geodemographic Clustering
+Version: 0.7.0.9000
 Authors@R: c(
-    person("Deden", "Istiawan", email = "dedenistiawan@gmail.com",
-           role = c("aut", "cre")),
-    person("ITESA Muhammadiyah", role = "cph")
+    person(
+      given = "Deden",
+      family = "Istiawan",
+      email = "dedenistiawan@gmail.com",
+      role = c("aut", "cre", "cph")
+    )
   )
-Description: An interactive R Shiny platform for computing, visualizing, and analyzing
-    the Social Vulnerability Index (SoVI) at the administrative unit level. Implements
-    the methodology of Cutter et al. (2003) with proportional PCA-based weighting, three
-    variable direction methods, spatial analysis (Moran's I, LISA), and four spatial
-    clustering algorithms: ClustGeo, FCM (Fuzzy C-Means), FGWC (Fuzzy Geographically
-    Weighted Clustering), LFGWC, and ALFGWC with nine metaheuristic optimizers for
-    centroid initialization.
-License: MIT + file LICENSE
+Description: Provides an interactive Shiny workflow for social vulnerability
+    assessment, spatial diagnostics, and geodemographic clustering. The package
+    implements a principal component analysis (PCA)-based Social Vulnerability
+    Index (SoVI) workflow inspired by Cutter, Boruff, and Shirley (2003)
+    <doi:10.1111/1540-6237.8402002>, including alternative indicator-direction
+    strategies, proportional PCA-based weighting, Jenks classification, Global
+    Moran's I, and Local Indicators of Spatial Association (LISA). Clustering
+    methods include K-Means, Fuzzy C-Means (FCM), DBSCAN, ClustGeo, Fuzzy
+    Geographically Weighted Clustering (FGWC), Local Fuzzy Geographically
+    Weighted Clustering (LFGWC), and Adaptive Local Fuzzy Geographically
+    Weighted Clustering (ALFGWC). The FGWC-related implementation is adapted
+    from the GPL-3-licensed 'naspaclust' framework. 'soviclust' extends the
+    optimization options with Grey Wolf Optimizer (GWO) and Whale Optimization
+    Algorithm (WOA), and implements ALFGWC with adaptive neighborhood influence
+    based on Local Moran's I and selectable distance-threshold, Queen, Rook, and
+    Bishop neighborhood structures. The application also provides fuzzy cluster
+    validation, repeated-run stability assessment, interactive mapping,
+    diagnostic visualization, and result export.
+License: GPL-3
 Encoding: UTF-8
+Language: en-US
 LazyData: false
 RoxygenNote: 7.3.3
 Depends:
     R (>= 4.1.0)
 Imports:
+    classInt,
+    cluster,
+    ClustGeo,
+    dbscan,
+    digest,
+    dplyr,
+    DT,
+    fmsb,
+    future,
+    ggplot2,
+    leaflet,
+    MASS,
+    patchwork,
+    ppclust,
+    promises,
+    psych,
+    RColorBrewer,
+    rdist,
+    readxl,
+    Rtsne,
+    sf,
     shiny (>= 1.7.0),
+    shiny.i18n (>= 0.3.0),
     shinydashboard,
     shinyjs,
     shinyWidgets,
-    DT,
-    ggplot2,
-    dplyr,
-    tidyr,
-    readxl,
-    psych,
-    classInt,
-    sf,
-    tmap,
-    leaflet,
-    ClustGeo,
     spdep,
-    cluster,
-    fmsb,
-    RColorBrewer,
-    patchwork,
-    rdist,
     stabledist,
-    MASS,
-    Rtsne,
-    uwot,
-    shiny.i18n,
-    digest,
-    ppclust,
-    dbscan
+    tidyr,
+    tmap,
+    uwot
 Suggests:
     devtools,
+    kableExtra,
+    knitr,
+    pkgdown,
+    rmarkdown,
     roxygen2,
     testthat (>= 3.0.0),
-    withr,
-    knitr,
-    rmarkdown,
-    kableExtra
+    withr
 Config/testthat/edition: 3
+Config/Needs/website: r-lib/pkgdown
 VignetteBuilder: knitr
-URL: https://dedenistiawan.github.io/soviclust/, https://github.com/dedenistiawan/soviclust
+URL: https://dedenistiawan.github.io/soviclust/,
+    https://github.com/dedenistiawan/soviclust
 BugReports: https://github.com/dedenistiawan/soviclust/issues

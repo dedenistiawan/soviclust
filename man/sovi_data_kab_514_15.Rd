@@ -3,39 +3,39 @@
 \name{sovi_data_kab_514_15}
 \alias{sovi_data_kab_514_15}
 \alias{sovi_data_kab_514_15.xlsx}
-\title{Data SoVI 514 Kabupaten/Kota Indonesia (2015)}
+\title{SoVI Data for 514 Indonesian Districts (2015)}
 \format{
-Data frame dengan 514 baris dan 17 kolom:
+A data frame with 514 rows and 17 columns:
 \describe{
-  \item{DISTRICTCODE}{Kode unik wilayah Kabupaten/Kota (ID wilayah).}
-  \item{KABUPATEN}{Nama Kabupaten/Kota.}
-  \item{AGE014}{Persentase penduduk usia 0--14 tahun (\%).}
-  \item{FEMPOP}{Persentase penduduk perempuan (\%).}
-  \item{AGE65P}{Persentase penduduk usia 65 tahun ke atas (\%).}
-  \item{FEMHH}{Persentase rumah tangga dengan kepala keluarga perempuan (\%).}
-  \item{HHSIZE}{Rata-rata jumlah anggota rumah tangga (jiwa).}
-  \item{NOELEC}{Persentase rumah tangga tanpa akses listrik (\%).}
-  \item{LOWEDUC}{Persentase penduduk dengan pendidikan rendah (\%).}
-  \item{POPGRW}{Tingkat pertumbuhan penduduk (\%).}
-  \item{POOR}{Persentase penduduk miskin (\%).}
-  \item{ILLIT}{Tingkat buta huruf (\%).}
-  \item{NOTRAIN}{Persentase penduduk tanpa pelatihan kerja formal (\%).}
-  \item{DISAREA}{Persentase luas wilayah rawan bencana (\%).}
-  \item{RENTHH}{Persentase rumah tangga yang menyewa tempat tinggal (\%).}
-  \item{NOSAN}{Persentase rumah tangga tanpa fasilitas sanitasi layak (\%).}
-  \item{NOWATER}{Persentase rumah tangga tanpa akses air bersih (\%).}
+  \item{DISTRICTCODE}{Unique district ID code.}
+  \item{KABUPATEN}{District name.}
+  \item{AGE014}{Percentage of population aged 0--14 years (\%).}
+  \item{FEMPOP}{Percentage of female population (\%).}
+  \item{AGE65P}{Percentage of population aged 65 years and above (\%).}
+  \item{FEMHH}{Percentage of households with female head of household (\%).}
+  \item{HHSIZE}{Average household size (persons).}
+  \item{NOELEC}{Percentage of households without electricity access (\%).}
+  \item{LOWEDUC}{Percentage of population with low education level (\%).}
+  \item{POPGRW}{Population growth rate (\%).}
+  \item{POOR}{Percentage of population living in poverty (\%).}
+  \item{ILLIT}{Illiteracy rate (\%).}
+  \item{NOTRAIN}{Percentage of population without formal job training (\%).}
+  \item{DISAREA}{Percentage of district area classified as disaster-prone (\%).}
+  \item{RENTHH}{Percentage of households renting their dwelling (\%).}
+  \item{NOSAN}{Percentage of households without adequate sanitation (\%).}
+  \item{NOWATER}{Percentage of households without clean water access (\%).}
 }
 }
 \source{
-Data diolah dari Badan Pusat Statistik (BPS) Indonesia, tahun 2015.
-Metodologi mengacu pada Cutter et al. (2003).
+Data compiled from Statistics Indonesia (BPS), 2015.
+Methodology follows Cutter et al. (2003).
 }
 \description{
-Dataset Social Vulnerability Index (SoVI) untuk 514 Kabupaten/Kota
-di Indonesia tahun 2015, berisi 15 indikator sosial-ekonomi dan kerentanan.
+Social Vulnerability Index (SoVI) dataset for 514 Indonesian districts
+(Kabupaten/Kota) in 2015, containing 15 socioeconomic and vulnerability indicators.
 }
 \examples{
-# Akses dataset sampel
+# Access the sample dataset
 path <- system.file("extdata", "sovi_data_kab_514_15.xlsx",
                     package = "soviclust")
 df <- readxl::read_excel(path)

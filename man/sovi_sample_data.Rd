@@ -2,32 +2,32 @@
 % Please edit documentation in R/sample_data.R
 \name{sovi_sample_data}
 \alias{sovi_sample_data}
-\title{Baca Data SoVI 514 Kabupaten/Kota Indonesia (2015)}
+\title{Read SoVI Data for 514 Indonesian Districts (2015)}
 \usage{
 sovi_sample_data()
 }
 \value{
-`data.frame` dengan 514 baris dan 17 kolom:
+A `data.frame` with 514 rows and 17 columns:
   \describe{
-    \item{DISTRICTCODE}{Kode unik wilayah (ID).}
-    \item{KABUPATEN}{Nama Kabupaten/Kota.}
-    \item{AGE014, FEMPOP, AGE65P, ...}{Indikator SoVI (15 variabel).}
+    \item{DISTRICTCODE}{Unique district ID code.}
+    \item{KABUPATEN}{District name.}
+    \item{AGE014, FEMPOP, AGE65P, ...}{SoVI indicator variables (15 variables).}
   }
 }
 \description{
-Membaca dataset sampel SoVI 514 Kabupaten/Kota Indonesia tahun 2015
-yang disertakan dalam package. Dataset ini siap digunakan untuk
-eksplorasi atau sebagai template format data untuk analisis Anda sendiri.
+Reads the bundled SoVI sample dataset for 514 Indonesian districts (year 2015)
+included in the package. This dataset is ready to use for exploration
+or as a data format template for your own analysis.
 }
 \examples{
 df <- sovi_sample_data()
 head(df[, 1:5])
 dim(df)
 
-# Lihat nama semua variabel
+# View all variable names
 names(df)
 
-# Statistik deskriptif variabel numerik
+# Descriptive statistics for numeric variables
 summary(df[, -(1:2)])
 
 }

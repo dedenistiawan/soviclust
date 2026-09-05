@@ -2,26 +2,26 @@
 % Please edit documentation in R/sample_data.R
 \name{sovi_sample_pop}
 \alias{sovi_sample_pop}
-\title{Baca Data Populasi 514 Kabupaten/Kota}
+\title{Read Population Data for 514 Indonesian Districts}
 \usage{
 sovi_sample_pop()
 }
 \value{
-`data.frame` dengan 514 baris dan minimal 2 kolom (ID + populasi).
+A `data.frame` with 514 rows and at least 2 columns (ID + population).
 }
 \description{
-Membaca data jumlah penduduk 514 Kabupaten/Kota Indonesia
-yang disertakan dalam package. Data ini digunakan sebagai bobot
-populasi pada analisis FGWC, LFGWC, dan ALFGWC.
+Reads the population data for 514 Indonesian districts included in the
+package. This data is used as a population weight in FGWC, LFGWC,
+and ALFGWC clustering analyses.
 }
 \examples{
 pop_df <- sovi_sample_pop()
 head(pop_df)
 
-# Ambil vektor populasi
+# Extract population vector
 pop <- pop_df[[which(sapply(pop_df, is.numeric))[1]]]
 summary(pop)
-hist(pop / 1e6, main = "Distribusi Populasi (juta jiwa)",
-     xlab = "Populasi (juta)", col = "steelblue")
+hist(pop / 1e6, main = "Population Distribution (millions)",
+     xlab = "Population (millions)", col = "steelblue")
 
 }

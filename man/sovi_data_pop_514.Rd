@@ -3,25 +3,24 @@
 \name{sovi_data_pop_514}
 \alias{sovi_data_pop_514}
 \alias{sovi_data_pop_514.xlsx}
-\title{Data Populasi 514 Kabupaten/Kota Indonesia}
+\title{Population Data for 514 Indonesian Districts}
 \format{
-Data frame dengan 514 baris dan minimal 2 kolom:
+A data frame with 514 rows and at least 2 columns:
 \describe{
-  \item{DISTRICTCODE}{Kode unik wilayah Kabupaten/Kota.}
-  \item{POPULATION}{Jumlah penduduk (jiwa). Semua nilai positif.}
+  \item{DISTRICTCODE}{Unique district ID code.}
+  \item{POPULATION}{Total population (persons). All values are positive.}
 }
 }
 \description{
-Dataset jumlah penduduk untuk 514 Kabupaten/Kota di Indonesia.
-Digunakan sebagai vektor bobot populasi pada analisis FGWC, LFGWC,
-dan ALFGWC.
+Population count data for 514 Indonesian districts. Used as a population
+weight vector in FGWC, LFGWC, and ALFGWC clustering analyses.
 }
 \examples{
-# Akses data populasi sampel
+# Access sample population data
 path <- system.file("extdata", "sovi_data_pop_514.xlsx",
                     package = "soviclust")
 pop_df <- readxl::read_excel(path)
-# Ekstrak vektor populasi (kolom numerik pertama)
+# Extract population vector (first numeric column)
 pop <- as.numeric(pop_df[[which(sapply(pop_df, is.numeric))[1]]])
 summary(pop)
 

@@ -2,27 +2,27 @@
 % Please edit documentation in R/sample_data.R
 \name{sovi_sample_distmat}
 \alias{sovi_sample_distmat}
-\title{Baca Matriks Jarak 514 Kabupaten/Kota}
+\title{Read Distance Matrix for 514 Indonesian Districts}
 \usage{
 sovi_sample_distmat()
 }
 \value{
-Matriks numerik 514 × 514. Nilai diagonal = 0.
+A numeric matrix of dimensions 514 x 514. Diagonal values = 0.
 }
 \description{
-Membaca matriks jarak simetris 514 × 514 antar Kabupaten/Kota Indonesia
-yang disertakan dalam package.
+Reads the symmetric 514 x 514 inter-district distance matrix for
+Indonesian districts included in the package.
 }
 \note{
-File ini berukuran ~3.8 MB dan mungkin memerlukan beberapa saat untuk dibaca.
+This file is approximately 3.8 MB and may take a moment to load.
 }
 \examples{
 mat <- sovi_sample_distmat()
 dim(mat)        # [1] 514 514
 diag(mat)[1:5]  # [1] 0 0 0 0 0
 
-# Jarak dari wilayah pertama ke semua wilayah lain
-hist(mat[1, -1], main = "Distribusi Jarak dari Wilayah 1",
-     xlab = "Jarak", col = "coral")
+# Distance from the first district to all others
+hist(mat[1, -1], main = "Distance Distribution from District 1",
+     xlab = "Distance", col = "coral")
 
 }

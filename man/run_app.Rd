@@ -2,34 +2,34 @@
 % Please edit documentation in R/run_app.R
 \name{run_app}
 \alias{run_app}
-\title{Jalankan Aplikasi SoVI Interactive Mapper}
+\title{Launch the SoVI Interactive Mapper Application}
 \usage{
 run_app(...)
 }
 \arguments{
-\item{...}{Argumen tambahan yang diteruskan ke \code{\link[shiny]{runApp}}.
-Misalnya: \code{port = 3838}, \code{launch.browser = FALSE}.}
+\item{...}{Additional arguments passed to \code{\link[shiny]{runApp}}.
+For example: \code{port = 3838}, \code{launch.browser = FALSE}.}
 }
 \value{
-Tidak mengembalikan nilai (dipanggil karena side-effect menjalankan app).
+Invisible. Called for its side effect of launching the Shiny app.
 }
 \description{
-Membuka aplikasi Shiny **SoVI Interactive Mapper** di browser default Anda.
-Aplikasi ini menyediakan platform interaktif untuk menghitung, memvisualisasikan,
-dan menganalisis Social Vulnerability Index (SoVI) di tingkat wilayah administratif.
+Opens the **SoVI Interactive Mapper** Shiny application in your default browser.
+This application provides an interactive platform for computing, visualizing,
+and analyzing the Social Vulnerability Index (SoVI) at the administrative unit level.
 
-Secara default, aplikasi akan langsung terbuka di browser eksternal
-(bukan RStudio Viewer pane) melalui `http://127.0.0.1:<port>`.
+By default, the application opens in an external browser
+(not the RStudio Viewer pane) at `http://127.0.0.1:<port>`.
 }
 \examples{
 \dontrun{
-  # Cara paling sederhana — buka di browser default
+  # Simplest usage — open in default browser
   soviclust::run_app()
 
-  # Tentukan port tertentu
+  # Specify a custom port
   soviclust::run_app(port = 3838)
 
-  # Jalankan tanpa membuka browser otomatis
+  # Run without automatically opening a browser
   soviclust::run_app(launch.browser = FALSE)
 }
 
