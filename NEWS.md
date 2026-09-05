@@ -7,7 +7,79 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # soviclust [Unreleased]
 
+### Added
+
+- Added shared optimizer-evaluation helpers for FGWC metaheuristic algorithms:
+  - `optimizer_fitness()` provides a common cross-optimizer fitness based on `jfgwcv()`;
+  - `optimizer_spatial_objective()` reports the objective of the final spatially adjusted membership-centroid solution separately for diagnostic purposes.
+- Added algorithm-correctness tests covering:
+  - FGWC numerical core;
+  - GWO-FGWC;
+  - WOA-FGWC;
+  - optimizer objective harmonization;
+  - convergence-history behavior;
+  - fixed-seed reproducibility;
+  - membership normalization;
+  - finite centroid and objective values;
+  - ABC trial-counter behavior;
+  - GSA velocity updates;
+  - IFA movement updates.
+- Added isolated optimizer test environments to prevent legacy helper functions with identical names from overwriting one another during testing.
+- Added a portable optimizer test harness that works with both `devtools::test()` from the source project and `R CMD check` from a temporary installed package.
+
 ### Changed
+
+#### Algorithm Correctness Patch v1
+
+- Strengthened the FGWC numerical core with:
+  - finite numeric-data validation;
+  - validation of fuzzifier `m > 1`;
+  - validation of spatial mixing parameter ranges;
+  - robust handling of matrix-based initial centroids;
+  - membership convergence based on maximum absolute change;
+  - centroid convergence based on Frobenius-norm change;
+  - safe membership normalization;
+  - centroid clamping to observed variable ranges.
+- Improved membership computation for observations located exactly on a centroid:
+  - membership is assigned fully to the coincident centroid;
+  - membership is divided equally when multiple centroids occupy the same location.
+- Improved spatial membership renewal by:
+  - excluding self-distance from spatial interaction;
+  - protecting against non-finite spatial weights;
+  - falling back to the observation's original membership when no usable spatial interaction is available.
+- Added explicit FGWC objective helpers to make objective evaluation reusable across clustering and optimizer implementations.
+- Updated GWO-FGWC to use a persistent Alpha-Beta-Delta best-so-far hierarchy and corrected global-best convergence tracking.
+- Updated WOA-FGWC movement logic to distinguish:
+  - prey encircling when `p < 0.5` and `|A| < 1`;
+  - random-whale exploration when `p < 0.5` and `|A| >= 1`;
+  - logarithmic spiral exploitation when `p >= 0.5`.
+- Improved deterministic random-seed handling and centroid-bound enforcement in GWO-FGWC and WOA-FGWC.
+
+#### Optimizer Objective Harmonization Patch v2
+
+- Standardized all nine FGWC metaheuristic optimizers to use the same cross-optimizer fitness through `optimizer_fitness()`:
+  - PSO;
+  - ABC;
+  - GWO;
+  - WOA;
+  - HHO;
+  - FPA;
+  - GSA;
+  - TLBO;
+  - IFA.
+- Standardized optimizer fitness to the `jfgwcv()` criterion so that objective values are directly comparable across optimization methods.
+- Separated optimization fitness from the final spatial diagnostic objective:
+  - `f_obj` represents the common optimization fitness;
+  - `spatial_obj` represents the objective evaluated on the final spatially adjusted membership and centroid solution;
+  - `fitness_type = "jfgwcv"` identifies the optimization criterion used.
+- Standardized convergence-history recording across optimizers to follow:
+
+  `candidate evaluation → global-best update → convergence recording → stagnation check`
+
+- Retained spatial membership projection in the FGWC workflow while preventing the spatially adjusted objective from being mixed with the common cross-optimizer fitness.
+- Standardized stopping comparisons and removed legacy optimizer debug output.
+
+#### Licensing and Project Documentation
 
 - Relicensed the project from the MIT License to the **GNU General Public License v3 (GPL-3)**.
 - Expanded and reorganized `README.md` to document:
@@ -21,6 +93,72 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - related software and current limitations.
 - Updated mathematical notation in `README.md` to use GitHub-compatible fenced `math` blocks for display equations.
 - Updated the software citation year to **2026**.
+
+### Fixed
+
+#### FGWC Core and Cluster Validity Indices
+
+- Corrected FGWC objective evaluation that previously referenced an undefined membership object in `jfgwcu2()`.
+- Corrected the Xie-Beni (`XB`) index to use:
+  - fuzzy weighted within-cluster squared distance in the numerator;
+  - sample size multiplied by minimum squared centroid separation in the denominator.
+- Corrected the Kwon index compactness and centroid-separation formulation.
+- Improved numerical protection for:
+  - Classification Entropy (`CE`) with zero memberships;
+  - Silhouette-related edge cases;
+  - Separation Index calculations;
+  - Improved Fuzzy Validity (`IFV`).
+
+#### Artificial Bee Colony (ABC)
+
+- Removed inconsistent use of `jfgwcv2()` and `jfgwcv()` within the same optimization process.
+- Standardized employed-bee, onlooker-bee, comparison, and final-solution evaluation to the common optimizer fitness.
+- Corrected trial-counter updates when no candidate food source improves.
+- Changed scout activation from exact equality with the abandonment limit to robust `>= limit` handling.
+- Added numerical protection when computing selection probabilities from very small objective values.
+- Standardized ABC output to class `"fgwc"`.
+- Corrected convergence recording so the updated global best is stored rather than the previous iteration's best.
+
+#### Intelligent Firefly Algorithm (IFA)
+
+- Corrected firefly movement expressions that were previously calculated without assigning the resulting position back to `ffly[[j]]`.
+- Corrected the firefly random-movement update to modify the active firefly position.
+- Corrected generation initialization and iteration-count handling to avoid an off-by-one iteration budget.
+- Standardized IFA candidate evaluation to the common optimizer fitness.
+- Corrected convergence-history ordering.
+
+#### Gravitational Search Algorithm (GSA)
+
+- Corrected `force_v()` so that the newly calculated velocity `v1` is returned instead of the stale velocity object `v`.
+- Added protection against zero or undefined particle mass during acceleration calculation.
+- Improved mass normalization when particle fitness values are identical or nearly identical.
+- Standardized GSA candidate evaluation to the common optimizer fitness.
+- Corrected convergence-history ordering.
+
+#### Other FGWC Optimizers
+
+- Corrected convergence-history ordering in:
+  - FPA;
+  - HHO;
+  - PSO;
+  - TLBO.
+- Standardized internal candidate evaluation in HHO and TLBO so intermediate search phases use the same optimization criterion as their final solutions.
+- Harmonized GWO and WOA search fitness with the other seven FGWC metaheuristic optimizers.
+
+### Validation and Testing
+
+- Verified the corrected FGWC one-step numerical kernel against `naspaclust` 0.2.2 using identical initialization:
+  - membership differences were at machine-precision level;
+  - centroid differences were at machine-precision level;
+  - hard-cluster assignment agreement was complete.
+- Added convergence diagnostics to distinguish objective convergence from centroid-separation behavior during spatial membership updates.
+- Expanded automated tests to verify all nine optimization methods under a common objective definition.
+- Verified fixed-seed reproducibility for stochastic optimizer implementations.
+- Verified that optimizer convergence histories are non-increasing best-so-far sequences.
+- Verified final membership normalization and finite objective/centroid outputs.
+- Verified the current development package with `devtools::check()`:
+
+  `0 errors | 0 warnings | 0 notes`
 
 ### Documentation
 
@@ -43,15 +181,14 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Notes
 
-- `v0.3.0` and `v0.4.0`, which exist as Git tags, have now been restored to this changelog.
+- `v0.3.0` and `v0.4.0`, which exist as Git tags, have been restored to this changelog.
 - No `v0.2.0` Git tag currently exists; therefore, no artificial `0.2.0` release entry is included.
+- The current `[Unreleased]` changes are intended to form the basis of the **soviclust 0.8.0** release after optimizer validation is completed.
 
 ---
 
 # soviclust 0.7.0 - 2026-09-04
-
 ### Added
-
 - **Stability Analysis Module** for FGWC, LFGWC, and ALFGWC:
   - repeated independent runs for stochastic clustering algorithms;
   - configurable number of runs and starting random seed;
@@ -79,14 +216,12 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 # soviclust 0.6.0 - 2026-09-03
-
 ### Added
 
 - `run_app()` now opens the Shiny application in the system's external web browser
   by default instead of relying on the RStudio Viewer.
 
 ### Changed
-
 - Completed translation of user-facing application text from Indonesian to English
   across major modules, including:
   - ALFGWC;
@@ -141,7 +276,6 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 # soviclust 0.5.0 - 2026-08-27
-
 ### Changed
 
 - Application changed to an **English-only** interface.
@@ -156,7 +290,6 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - rotated-component scores.
 
 ### Fixed
-
 - Fixed a trailing comma in `dashboardHeader()` in `inst/app/ui.R` that caused
   `run_app()` to fail with:
   `"argument is missing, with no default"`.
@@ -179,9 +312,7 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 # soviclust 0.4.0 - 2026-08-22
-
 ### Added
-
 - **K-Means clustering module** integrated into the Shiny Cluster Analysis workflow.
 - **DBSCAN clustering module** integrated into the Shiny Cluster Analysis workflow.
 - Added `dbscan` as a package dependency.
@@ -347,7 +478,6 @@ soviclust::run_app()
 ---
 
 # soviclust 0.0.1 - 2024-07-01 - Pre-release
-
 ### Added
 
 - Initial standalone Shiny application before conversion into an R package.
@@ -373,5 +503,5 @@ original changelog. No public `v0.2.0` tag is currently present.
 
 ---
 
-_To report bugs or request features, open an issue at:_  
+_To report bugs or request features, open an issue at:_
 <https://github.com/dedenistiawan/soviclust/issues>
