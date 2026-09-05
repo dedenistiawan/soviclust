@@ -1,4 +1,4 @@
-﻿# tests/testthat/test-sample_data.R
+# tests/testthat/test-sample_data.R
 # =============================================================================
 # Tests for exported sample-data helper functions.
 # =============================================================================
