@@ -1,0 +1,2 @@
+"naspaclust_stop_iteration","first_objective_rel_change_lt_1e6","first_objective_rel_change_lt_1e8","first_centroid_change_lt_1e6","first_centroid_change_lt_1e8","first_min_centroid_distance_lt_1e3","first_min_centroid_distance_lt_1e4","first_min_centroid_distance_lt_1e5","objective_at_reference_stop","objective_at_500","min_centroid_distance_at_reference_stop","min_centroid_distance_at_500","XB_at_reference_stop","XB_at_500"
+256,98,195,477,NA,321,471,NA,3.36029064467317,3.36029050282542,0.00266982666119605,6.41479248968068e-05,14285.5436210064,24745581.3107778

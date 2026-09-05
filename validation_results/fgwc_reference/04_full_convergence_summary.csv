@@ -1,0 +1,5 @@
+"Metric","naspaclust","soviclust"
+"Iterations",256,500
+"Reported objective",3.36029064776172,3.36029050282542
+"Common corrected objective",3.36029064467317,3.36029050282542
+"Membership row-sum max error",1.11022302462516e-16,0

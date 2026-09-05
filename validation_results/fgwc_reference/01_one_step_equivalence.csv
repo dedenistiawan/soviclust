@@ -1,0 +1,8 @@
+"Metric","Value","Criterion","Pass"
+"Max abs membership difference",1.11022302462516e-16,"<= 1e-10",TRUE
+"Max abs centroid difference",1.66533453693773e-16,"<= 1e-10",TRUE
+"Hard-label agreement",1,"1.0",TRUE
+"soviclust membership row-sum error",0,"<= 1e-10",TRUE
+"naspaclust membership row-sum error",1.11022302462516e-16,"<= 1e-10",TRUE
+"Common objective - soviclust",3.6055758933488,"descriptive",NA
+"Common objective - naspaclust",3.6055758933488,"descriptive",NA
