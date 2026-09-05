@@ -145,13 +145,13 @@ Depending on the selected clustering method, `soviclust` provides clustering dia
 
 The SoVI workflow follows the general framework introduced by Cutter, Boruff, and Shirley (2003), with extensions implemented in `soviclust` for variable-direction handling, PCA-based weighting, method comparison, spatial diagnostics, and downstream clustering.
 
-For indicator \(x\_{ij}\), standardization begins with:
+For indicator $x_{ij}$, standardization begins with:
 
-\[
-z*{ij} = \frac{x*{ij} - \bar{x}\_{j}}{s_j}
-\]
+$$
+z_{ij} = \frac{x_{ij} - \bar{x}_{j}}{s_j}
+$$
 
-where \(z\_{ij}\) is the standardized value of indicator \(j\) for spatial unit \(i\).
+where $z_{ij}$ is the standardized value of indicator $j$ for spatial unit $i$.
 
 PCA is then used to identify latent vulnerability dimensions. Retained and rotated components are oriented according to the selected variable-direction strategy and aggregated into the final vulnerability score using the weighting configuration implemented in the application.
 
@@ -237,45 +237,45 @@ This distance-threshold formulation serves as the baseline local-neighborhood me
 
 ALFGWC extends LFGWC in **two main ways**:
 
-1. it replaces the single global spatial-mixing parameter with an **adaptive parameter \(\alpha_i\) for each spatial unit**, derived from Local Moran's I information; and
+1. it replaces the single global spatial-mixing parameter with an **adaptive parameter $\alpha_i$ for each spatial unit**, derived from Local Moran's I information; and
 2. it expands the neighborhood definition from the LFGWC **Distance Threshold (`dthr`)** rule to a user-selectable set of local spatial structures: **Distance Threshold, Queen contiguity, Rook contiguity, and Bishop contiguity**.
 
 Together, these extensions allow both the **strength of neighborhood influence** and the **definition of neighborhood itself** to vary more flexibly across spatial analyses.
 
 The current implementation first computes the neighborhood-membership component
 
-\[
-G*{ik}
+$$
+G_{ik}
 =
-\sum*{j \in N*i} W*{ij}U\_{jk},
-\]
+\sum_{j \in N_i} W_{ij}U_{jk},
+$$
 
 and then updates fuzzy membership as
 
-\[
-U*{ik}^{\*}
+$$
+U_{ik}^{*}
 =
-(1-\alpha_i)U*{ik}
-
-- \alpha*i G*{ik},
-  \]
+(1-\alpha_i)U_{ik}
++
+\alpha_i G_{ik},
+$$
 
 where:
 
-- \(U\_{ik}\) is the original membership of spatial unit \(i\) in cluster \(k\);
-- \(N_i\) is the neighborhood of spatial unit \(i\);
-- \(W\_{ij}\) is a row-standardized spatial weight;
-- \(G\_{ik}\) summarizes neighboring membership information; and
-- \(\alpha_i \in [0,1]\) controls the strength of neighborhood influence.
+- $U_{ik}$ is the original membership of spatial unit $i$ in cluster $k$;
+- $N_i$ is the neighborhood of spatial unit $i$;
+- $W_{ij}$ is a row-standardized spatial weight;
+- $G_{ik}$ summarizes neighboring membership information; and
+- $\alpha_i \in [0,1]$ controls the strength of neighborhood influence.
 
-Under the **current source implementation**, a larger \(\alpha_i\) gives greater weight to neighboring membership information, while a smaller \(\alpha_i\) preserves more of the unit's original fuzzy membership.
+Under the **current source implementation**, a larger $\alpha_i$ gives greater weight to neighboring membership information, while a smaller $\alpha_i$ preserves more of the unit's original fuzzy membership.
 
 #### Feature-data options
 
 ALFGWC can be applied to several feature representations available in the Shiny workflow:
 
 - original/raw indicator data;
-- min-max normalized data \([0,1]\);
+- min-max normalized data $[0,1]$;
 - standardized data (Z-score);
 - final SoVI scores; or
 - rotated-component (RC) scores obtained from the PCA stage.
@@ -305,47 +305,47 @@ Two local weighting schemes are available.
 
 **1. Distance decay**
 
-\[
-f*{ij}=\frac{1}{d*{ij}^{\gamma}},
+$$
+f_{ij}=\frac{1}{d_{ij}^{\gamma}},
 \qquad
-W*{ij}=
-\frac{f*{ij}}
-{\sum*{j\in N_i}f*{ij}},
-\]
+W_{ij}=
+\frac{f_{ij}}
+{\sum_{j\in N_i}f_{ij}},
+$$
 
-where \(d\_{ij}\) is the distance between spatial units \(i\) and \(j\), and \(\gamma\) controls the strength of distance decay.
+where $d_{ij}$ is the distance between spatial units $i$ and $j$, and $\gamma$ controls the strength of distance decay.
 
 **2. Spatial interaction**
 
 The current implementation uses a population-distance interaction term
 
-\[
-\phi*{ij}=\frac{P_j}{d*{ij}},
+$$
+\phi_{ij}=\frac{P_j}{d_{ij}},
 \qquad
-W*{ij}=
-\frac{\phi*{ij}}
-{\sum*{j\in N_i}\phi*{ij}},
-\]
+W_{ij}=
+\frac{\phi_{ij}}
+{\sum_{j\in N_i}\phi_{ij}},
+$$
 
-where \(P_j\) is the population of neighboring spatial unit \(j\).
+where $P_j$ is the population of neighboring spatial unit $j$.
 
 Both schemes are row-standardized so that
 
-\[
-\sum*{j\in N_i}W*{ij}=1.
-\]
+$$
+\sum_{j\in N_i}W_{ij}=1.
+$$
 
-#### Adaptive \(\alpha_i\) mechanism
+#### Adaptive $\alpha_i$ mechanism
 
 A user-selected variable is used to compute Local Moran's I. The current implementation then assigns one of three adaptive values:
 
-| Spatial condition                                         | Parameter    | Default |
-| --------------------------------------------------------- | ------------ | ------: |
-| Significant positive Local Moran's I (\(p<0.05,\ I_i>0\)) | `Alpha High` |     0.8 |
-| Significant negative Local Moran's I (\(p<0.05,\ I_i<0\)) | `Alpha Low`  |     0.2 |
-| Non-significant or other pattern                          | `Alpha Mid`  |     0.5 |
+| Spatial condition                                       | Parameter    | Default |
+| ------------------------------------------------------- | ------------ | ------: |
+| Significant positive Local Moran's I ($p<0.05,\ I_i>0$) | `Alpha High` |     0.8 |
+| Significant negative Local Moran's I ($p<0.05,\ I_i<0$) | `Alpha Low`  |     0.2 |
+| Non-significant or other pattern                        | `Alpha Mid`  |     0.5 |
 
-These defaults are configurable in the Shiny interface. Because \(\alpha_i\) is used as the **neighborhood weight in the current implementation**, users should report the selected alpha rules when publishing ALFGWC results.
+These defaults are configurable in the Shiny interface. Because $\alpha_i$ is used as the **neighborhood weight in the current implementation**, users should report the selected alpha rules when publishing ALFGWC results.
 
 #### Optimization and centroid initialization
 
@@ -542,11 +542,11 @@ The stability-analysis module supports repeated runs for FGWC, LFGWC, and ALFGWC
 
 FGWC, LFGWC, and ALFGWC produce **membership values**, not only hard cluster labels.
 
-For spatial unit \(i\):
+For spatial unit $i$:
 
-\[
-\sum*{k=1}^{K} U*{ik}=1
-\]
+$$
+\sum_{k=1}^{K} U_{ik}=1
+$$
 
 A hard cluster label can be obtained from the maximum membership value, but the complete membership vector should be retained whenever possible because it provides information about:
 
