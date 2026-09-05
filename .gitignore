@@ -39,3 +39,6 @@ validation/patch_backups/
 validation/patch_v3/
 validation/patch_v3_*_fix/
 validation/patch_v3_test_isolation/
+
+# Reproducible binary validation outputs
+validation_results/**/*.rds

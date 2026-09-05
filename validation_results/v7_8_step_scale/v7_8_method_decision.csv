@@ -1,0 +1,7 @@
+"method","any_parent_improvement","any_global_best_improvement","best_lambda_global","best_global_candidate_fitness","largest_lambda_with_parent_improvement","smallest_lambda_with_parent_improvement"
+"ABC",FALSE,FALSE,NA,431.57240005901,NA,NA
+"GSA",FALSE,FALSE,NA,604.009426677006,NA,NA
+"GWO",FALSE,FALSE,NA,563.360487027509,NA,NA
+"TLBO_canonical",FALSE,FALSE,NA,389.44975122919,NA,NA
+"TLBO_current",FALSE,FALSE,NA,394.330508864813,NA,NA
+"WOA",FALSE,FALSE,NA,572.891685284373,NA,NA
