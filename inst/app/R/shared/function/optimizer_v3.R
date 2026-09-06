@@ -21,6 +21,79 @@
 # Shared validation/context helpers
 # -----------------------------------------------------------------------------
 
+.soviclust_v3_new_nfe_tracker <- function() {
+  tracker <- new.env(parent = emptyenv())
+  tracker$nfe <- 0L
+  tracker$nfe_initialization <- 0L
+  tracker$nfe_optimization <- 0L
+  tracker$phase <- "optimization"
+  tracker
+}
+
+
+.soviclust_v3_set_nfe_phase <- function(ctx, phase) {
+  if (is.null(ctx$nfe_tracker) || !is.environment(ctx$nfe_tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  phase <- match.arg(
+    phase,
+    choices = c("initialization", "optimization")
+  )
+  ctx$nfe_tracker$phase <- phase
+  invisible(phase)
+}
+
+
+.soviclust_v3_record_nfe <- function(ctx) {
+  tracker <- ctx$nfe_tracker
+  if (is.null(tracker) || !is.environment(tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  phase <- tracker$phase
+  if (!phase %in% c("initialization", "optimization")) {
+    stop("Patch-v3 NFE tracker has an invalid phase.", call. = FALSE)
+  }
+
+  tracker$nfe <- as.integer(tracker$nfe + 1L)
+
+  if (identical(phase, "initialization")) {
+    tracker$nfe_initialization <- as.integer(
+      tracker$nfe_initialization + 1L
+    )
+  } else {
+    tracker$nfe_optimization <- as.integer(
+      tracker$nfe_optimization + 1L
+    )
+  }
+
+  invisible(tracker$nfe)
+}
+
+
+.soviclust_v3_nfe_snapshot <- function(ctx) {
+  tracker <- ctx$nfe_tracker
+  if (is.null(tracker) || !is.environment(tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  out <- list(
+    nfe = as.integer(tracker$nfe),
+    nfe_initialization = as.integer(tracker$nfe_initialization),
+    nfe_optimization = as.integer(tracker$nfe_optimization)
+  )
+
+  if (!identical(
+    out$nfe,
+    as.integer(out$nfe_initialization + out$nfe_optimization)
+  )) {
+    stop("Patch-v3 NFE accounting invariant was violated.", call. = FALSE)
+  }
+
+  out
+}
+
 .soviclust_v3_validate_common <- function(data, pop, distmat, ncluster, m,
                                           alpha) {
   data <- as.matrix(data)
@@ -72,6 +145,7 @@
     p = ncol(data),
     beta = beta,
     mi.mj = popmat %*% t(popmat),
+    nfe_tracker = .soviclust_v3_new_nfe_tracker(),
     distmat = distmat
   )
 }
@@ -163,6 +237,8 @@ evaluate_optimizer_candidate_v3 <- function(
 .soviclust_v3_eval <- function(ctx, search_centers, m, distance, order,
                                alpha, a, b,
                                require_all_clusters = TRUE) {
+  .soviclust_v3_record_nfe(ctx)
+
   evaluate_optimizer_candidate_v3(
     data = ctx$data,
     search_centers = search_centers,
@@ -194,6 +270,13 @@ evaluate_optimizer_candidate_v3 <- function(
     ctx, n_agents, ncluster, vi.dist, randomN,
     m, distance, order, alpha, a, b,
     max_retry = 50L) {
+
+  previous_phase <- ctx$nfe_tracker$phase
+  .soviclust_v3_set_nfe_phase(ctx, "initialization")
+  on.exit(
+    .soviclust_v3_set_nfe_phase(ctx, previous_phase),
+    add = TRUE
+  )
 
   if (n_agents < 2L) {
     stop("Optimizer population must contain at least 2 agents.", call. = FALSE)
@@ -275,10 +358,21 @@ evaluate_optimizer_candidate_v3 <- function(
     iteration,
     same,
     call,
-    ptm) {
+    ptm,
+    ctx = NULL) {
 
   membership <- best_eval$membership
   centers <- best_eval$centroid
+  nfe_info <- if (is.null(ctx)) {
+    list(
+      nfe = NA_integer_,
+      nfe_initialization = NA_integer_,
+      nfe_optimization = NA_integer_
+    )
+  } else {
+    .soviclust_v3_nfe_snapshot(ctx)
+  }
+
 
   finaldata <- determine_cluster(data, membership)
   cluster <- finaldata[, ncol(finaldata)]
@@ -288,6 +382,9 @@ evaluate_optimizer_candidate_v3 <- function(
     f_obj = as.numeric(best_eval$fitness),
     fitness_type = "spatial_XB_feasible",
     spatial_obj = as.numeric(best_eval$spatial_obj),
+    nfe = nfe_info$nfe,
+    nfe_initialization = nfe_info$nfe_initialization,
+    nfe_optimization = nfe_info$nfe_optimization,
     membership = membership,
     centroid = centers,
     search_centroid = best_search,
@@ -319,10 +416,21 @@ evaluate_optimizer_candidate_v3 <- function(
     same,
     call,
     ptm,
-    m) {
+    m,
+    ctx = NULL) {
 
   membership <- best_eval$membership
   centers <- best_eval$centroid
+  nfe_info <- if (is.null(ctx)) {
+    list(
+      nfe = NA_integer_,
+      nfe_initialization = NA_integer_,
+      nfe_optimization = NA_integer_
+    )
+  } else {
+    .soviclust_v3_nfe_snapshot(ctx)
+  }
+
 
   finaldata <- determine_cluster(data, membership)
   cluster <- finaldata[, ncol(finaldata)]
@@ -332,6 +440,9 @@ evaluate_optimizer_candidate_v3 <- function(
     f_obj = as.numeric(best_eval$fitness),
     fitness_type = "spatial_XB_feasible",
     spatial_obj = as.numeric(best_eval$spatial_obj),
+    nfe = nfe_info$nfe,
+    nfe_initialization = nfe_info$nfe_initialization,
+    nfe_optimization = nfe_info$nfe_optimization,
     membership = membership,
     centroid = centers,
     search_centroid = best_search,
@@ -909,7 +1020,7 @@ abcfgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1165,7 +1276,7 @@ fpafgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1291,7 +1402,7 @@ gsafgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1407,7 +1518,7 @@ gwofgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, alpha_pos, alpha_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1637,7 +1748,7 @@ hhofgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, rabbit, rabbit_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1789,7 +1900,7 @@ ifafgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1919,7 +2030,7 @@ psofgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, gbest, gbest_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -2043,7 +2154,7 @@ tlbofgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -2133,6 +2244,6 @@ woafgwc <- function(
 
   .soviclust_v3_result_m(
     ctx$data, prey, prey_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }

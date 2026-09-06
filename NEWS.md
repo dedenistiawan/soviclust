@@ -7,6 +7,16 @@ format and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # soviclust [Unreleased]
 
+### NFE Instrumentation — Patch v3.1a
+
+- Added centralized Number of Function Evaluations (NFE) tracking for all nine optimizers.
+- Added separate initialization and optimization NFE counters.
+- Added the invariant `nfe = nfe_initialization + nfe_optimization`.
+- Preserved optimizer formulas, spatial-XB feasible fitness, and Patch v3 search-state architecture.
+- Added deterministic NFE regression tests across all nine optimizers.
+- Added NFE profiling smoke validation using the 514-district Indonesia dataset.
+- Validation: 385 tests passed; R CMD check 0 errors, 0 warnings, 0 notes; NFE profiling 9/9 optimizers passed.
+
 ### Canonical Optimizer & Spatial Fitness Architecture — Patch v3
 
 - Replaced `jfgwcv` optimizer fitness with feasible spatial Xie-Beni fitness.

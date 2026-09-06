@@ -207,6 +207,10 @@ for (.v3_file in .v3_source_order) {
 
 .v3_required_functions <- c(
   "evaluate_optimizer_candidate_v3",
+  ".soviclust_v3_new_nfe_tracker",
+  ".soviclust_v3_set_nfe_phase",
+  ".soviclust_v3_record_nfe",
+  ".soviclust_v3_nfe_snapshot",
   ".soviclust_v3_abc_neighbor",
   ".soviclust_v3_gsa_distance",
   ".soviclust_v3_tlbo_teacher_candidate",
