@@ -161,7 +161,8 @@ v3_env <- new.env(parent = globalenv())
   "psofgwc.R",
   "tlbofgwc.R",
   "woafgwc.R",
-  "optimizer_v3.R"
+  "optimizer_v3.R",
+  "optimizer_model_evaluators_v3.R"
 )
 
 
@@ -210,6 +211,9 @@ for (.v3_file in .v3_source_order) {
   ".soviclust_v3_validate_evaluator",
   ".soviclust_v3_fgwc_evaluator",
   ".soviclust_v3_resolve_evaluator",
+  ".soviclust_v3_validate_lfgwc_weights",
+  ".soviclust_v3_lfgwc_modify",
+  ".soviclust_v3_lfgwc_evaluator",
   ".soviclust_v3_validate_max_nfe",
   ".soviclust_v3_new_nfe_tracker",
   ".soviclust_v3_budget_available",

@@ -102,6 +102,7 @@ local({
   src("tlbofgwc.R")       # Teaching-Learning Based Optimization
   src("woafgwc.R")        # Whale Optimization Algorithm
   src("optimizer_v3.R")   # Patch v3: canonical operators + unified spatial fitness
+  src("optimizer_model_evaluators_v3.R") # Patch v3.2b: LFGWC model-specific evaluator
 })
 
 # ── Stability Analysis (Multiple Independent Runs) ───────────────────────────
