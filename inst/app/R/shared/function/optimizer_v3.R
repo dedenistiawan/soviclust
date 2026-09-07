@@ -21,8 +21,176 @@
 # Shared validation/context helpers
 # -----------------------------------------------------------------------------
 
+.soviclust_v3_validate_max_nfe <- function(max_nfe) {
+  if (is.null(max_nfe)) return(NA_integer_)
+
+  if (!is.numeric(max_nfe) || length(max_nfe) != 1L ||
+      !is.finite(max_nfe) || max_nfe < 1 ||
+      abs(max_nfe - round(max_nfe)) > sqrt(.Machine$double.eps)) {
+    stop(
+      "`max_nfe` must be NULL or one positive integer.",
+      call. = FALSE
+    )
+  }
+
+  as.integer(round(max_nfe))
+}
+
+
+.soviclust_v3_new_nfe_tracker <- function(max_nfe = NULL) {
+  tracker <- new.env(parent = emptyenv())
+  tracker$nfe <- 0L
+  tracker$nfe_initialization <- 0L
+  tracker$nfe_optimization <- 0L
+  tracker$phase <- "optimization"
+  tracker$max_nfe <- .soviclust_v3_validate_max_nfe(max_nfe)
+  tracker$budget_exhausted <- FALSE
+  tracker$termination_reason <- "max_iter"
+  tracker
+}
+
+
+.soviclust_v3_budget_available <- function(ctx, n = 1L) {
+  tracker <- ctx$nfe_tracker
+  if (is.null(tracker) || !is.environment(tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  n <- as.integer(n)
+  if (length(n) != 1L || is.na(n) || n < 1L) {
+    stop("Requested NFE increment must be a positive integer.", call. = FALSE)
+  }
+
+  if (is.na(tracker$max_nfe)) return(TRUE)
+
+  (tracker$nfe + n) <= tracker$max_nfe
+}
+
+
+.soviclust_v3_mark_budget_exhausted <- function(ctx) {
+  tracker <- ctx$nfe_tracker
+  tracker$budget_exhausted <- TRUE
+  tracker$termination_reason <- "max_nfe"
+  invisible(TRUE)
+}
+
+
+.soviclust_v3_budget_exhausted <- function(ctx) {
+  tracker <- ctx$nfe_tracker
+  exhausted <- isTRUE(tracker$budget_exhausted) ||
+    (!is.na(tracker$max_nfe) && tracker$nfe >= tracker$max_nfe)
+
+  if (exhausted) {
+    .soviclust_v3_mark_budget_exhausted(ctx)
+  }
+
+  exhausted
+}
+
+
+.soviclust_v3_set_termination <- function(ctx, reason) {
+  reason <- match.arg(reason, c("max_iter", "convergence", "max_nfe"))
+  ctx$nfe_tracker$termination_reason <- reason
+  invisible(reason)
+}
+
+
+.soviclust_v3_budget_sentinel <- function(ctx, search_centers) {
+  list(
+    search_centers = clamp_centroids(as.matrix(search_centers), ctx$data),
+    membership = NULL,
+    centroid = NULL,
+    cluster = NULL,
+    occupied_clusters = 0L,
+    feasible = FALSE,
+    fitness = Inf,
+    xb = Inf,
+    spatial_obj = Inf,
+    budget_skipped = TRUE
+  )
+}
+
+
+.soviclust_v3_set_nfe_phase <- function(ctx, phase) {
+  if (is.null(ctx$nfe_tracker) || !is.environment(ctx$nfe_tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  phase <- match.arg(
+    phase,
+    choices = c("initialization", "optimization")
+  )
+  ctx$nfe_tracker$phase <- phase
+  invisible(phase)
+}
+
+
+.soviclust_v3_record_nfe <- function(ctx) {
+  tracker <- ctx$nfe_tracker
+  if (is.null(tracker) || !is.environment(tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  phase <- tracker$phase
+  if (!phase %in% c("initialization", "optimization")) {
+    stop("Patch-v3 NFE tracker has an invalid phase.", call. = FALSE)
+  }
+
+  tracker$nfe <- as.integer(tracker$nfe + 1L)
+
+  if (identical(phase, "initialization")) {
+    tracker$nfe_initialization <- as.integer(
+      tracker$nfe_initialization + 1L
+    )
+  } else {
+    tracker$nfe_optimization <- as.integer(
+      tracker$nfe_optimization + 1L
+    )
+  }
+
+  invisible(tracker$nfe)
+}
+
+
+.soviclust_v3_nfe_snapshot <- function(ctx) {
+  tracker <- ctx$nfe_tracker
+  if (is.null(tracker) || !is.environment(tracker)) {
+    stop("Patch-v3 NFE tracker is missing from optimizer context.", call. = FALSE)
+  }
+
+  exhausted <- .soviclust_v3_budget_exhausted(ctx)
+  remaining <- if (is.na(tracker$max_nfe)) {
+    NA_integer_
+  } else {
+    as.integer(max(0L, tracker$max_nfe - tracker$nfe))
+  }
+
+  out <- list(
+    nfe = as.integer(tracker$nfe),
+    nfe_initialization = as.integer(tracker$nfe_initialization),
+    nfe_optimization = as.integer(tracker$nfe_optimization),
+    max_nfe = as.integer(tracker$max_nfe),
+    budget_exhausted = as.logical(exhausted),
+    nfe_remaining = remaining,
+    termination_reason = as.character(tracker$termination_reason)
+  )
+
+  if (!identical(
+    out$nfe,
+    as.integer(out$nfe_initialization + out$nfe_optimization)
+  )) {
+    stop("Patch-v3 NFE accounting invariant was violated.", call. = FALSE)
+  }
+
+  if (!is.na(out$max_nfe) && out$nfe > out$max_nfe) {
+    stop("Patch-v3 max_nfe accounting invariant was violated.", call. = FALSE)
+  }
+
+  out
+}
+
 .soviclust_v3_validate_common <- function(data, pop, distmat, ncluster, m,
-                                          alpha) {
+                                          alpha, max_nfe = NULL) {
   data <- as.matrix(data)
 
   if (!is.numeric(data) || any(!is.finite(data))) {
@@ -72,6 +240,7 @@
     p = ncol(data),
     beta = beta,
     mi.mj = popmat %*% t(popmat),
+    nfe_tracker = .soviclust_v3_new_nfe_tracker(max_nfe),
     distmat = distmat
   )
 }
@@ -163,6 +332,20 @@ evaluate_optimizer_candidate_v3 <- function(
 .soviclust_v3_eval <- function(ctx, search_centers, m, distance, order,
                                alpha, a, b,
                                require_all_clusters = TRUE) {
+  if (!.soviclust_v3_budget_available(ctx)) {
+    .soviclust_v3_mark_budget_exhausted(ctx)
+    phase <- ctx$nfe_tracker$phase
+    stop(
+      paste0(
+        "`max_nfe` budget exhausted during ", phase,
+        " before candidate evaluation."
+      ),
+      call. = FALSE
+    )
+  }
+
+  .soviclust_v3_record_nfe(ctx)
+
   evaluate_optimizer_candidate_v3(
     data = ctx$data,
     search_centers = search_centers,
@@ -179,6 +362,28 @@ evaluate_optimizer_candidate_v3 <- function(
   )
 }
 
+.soviclust_v3_try_eval <- function(ctx, search_centers, m, distance, order,
+                                   alpha, a, b,
+                                   require_all_clusters = TRUE) {
+  if (!.soviclust_v3_budget_available(ctx)) {
+    .soviclust_v3_mark_budget_exhausted(ctx)
+    return(.soviclust_v3_budget_sentinel(ctx, search_centers))
+  }
+
+  .soviclust_v3_eval(
+    ctx, search_centers, m, distance, order, alpha, a, b,
+    require_all_clusters = require_all_clusters
+  )
+}
+n.soviclust_v3_new_position <- function(data, ncluster, vi.dist, seed) {
+  gen_vi(
+    data = data,
+    ncluster = ncluster,
+    gendist = vi.dist,
+    randomN = seed
+  )
+}
+
 
 .soviclust_v3_new_position <- function(data, ncluster, vi.dist, seed) {
   gen_vi(
@@ -189,11 +394,17 @@ evaluate_optimizer_candidate_v3 <- function(
   )
 }
 
-
 .soviclust_v3_init_population <- function(
     ctx, n_agents, ncluster, vi.dist, randomN,
     m, distance, order, alpha, a, b,
     max_retry = 50L) {
+
+  previous_phase <- ctx$nfe_tracker$phase
+  .soviclust_v3_set_nfe_phase(ctx, "initialization")
+  on.exit(
+    .soviclust_v3_set_nfe_phase(ctx, previous_phase),
+    add = TRUE
+  )
 
   if (n_agents < 2L) {
     stop("Optimizer population must contain at least 2 agents.", call. = FALSE)
@@ -275,10 +486,25 @@ evaluate_optimizer_candidate_v3 <- function(
     iteration,
     same,
     call,
-    ptm) {
+    ptm,
+    ctx = NULL) {
 
   membership <- best_eval$membership
   centers <- best_eval$centroid
+  nfe_info <- if (is.null(ctx)) {
+    list(
+      nfe = NA_integer_,
+      nfe_initialization = NA_integer_,
+      nfe_optimization = NA_integer_,
+      max_nfe = NA_integer_,
+      budget_exhausted = FALSE,
+      nfe_remaining = NA_integer_,
+      termination_reason = NA_character_
+    )
+  } else {
+    .soviclust_v3_nfe_snapshot(ctx)
+  }
+
 
   finaldata <- determine_cluster(data, membership)
   cluster <- finaldata[, ncol(finaldata)]
@@ -288,6 +514,13 @@ evaluate_optimizer_candidate_v3 <- function(
     f_obj = as.numeric(best_eval$fitness),
     fitness_type = "spatial_XB_feasible",
     spatial_obj = as.numeric(best_eval$spatial_obj),
+    nfe = nfe_info$nfe,
+    nfe_initialization = nfe_info$nfe_initialization,
+    nfe_optimization = nfe_info$nfe_optimization,
+    max_nfe = nfe_info$max_nfe,
+    budget_exhausted = nfe_info$budget_exhausted,
+    nfe_remaining = nfe_info$nfe_remaining,
+    termination_reason = nfe_info$termination_reason,
     membership = membership,
     centroid = centers,
     search_centroid = best_search,
@@ -319,10 +552,25 @@ evaluate_optimizer_candidate_v3 <- function(
     same,
     call,
     ptm,
-    m) {
+    m,
+    ctx = NULL) {
 
   membership <- best_eval$membership
   centers <- best_eval$centroid
+  nfe_info <- if (is.null(ctx)) {
+    list(
+      nfe = NA_integer_,
+      nfe_initialization = NA_integer_,
+      nfe_optimization = NA_integer_,
+      max_nfe = NA_integer_,
+      budget_exhausted = FALSE,
+      nfe_remaining = NA_integer_,
+      termination_reason = NA_character_
+    )
+  } else {
+    .soviclust_v3_nfe_snapshot(ctx)
+  }
+
 
   finaldata <- determine_cluster(data, membership)
   cluster <- finaldata[, ncol(finaldata)]
@@ -332,6 +580,13 @@ evaluate_optimizer_candidate_v3 <- function(
     f_obj = as.numeric(best_eval$fitness),
     fitness_type = "spatial_XB_feasible",
     spatial_obj = as.numeric(best_eval$spatial_obj),
+    nfe = nfe_info$nfe,
+    nfe_initialization = nfe_info$nfe_initialization,
+    nfe_optimization = nfe_info$nfe_optimization,
+    max_nfe = nfe_info$max_nfe,
+    budget_exhausted = nfe_info$budget_exhausted,
+    nfe_remaining = nfe_info$nfe_remaining,
+    termination_reason = nfe_info$termination_reason,
     membership = membership,
     centroid = centers,
     search_centroid = best_search,
@@ -737,11 +992,11 @@ abcfgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nfood = 10, n.onlooker = 5, limit = 4, pso = FALSE,
-    abc.same = 10) {
+    abc.same = 10, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nfood < 2L) stop("ABC requires at least 2 food sources.", call. = FALSE)
@@ -767,6 +1022,7 @@ abcfgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     # Employed-bee phase: canonical one-dimension perturbation.
@@ -797,7 +1053,7 @@ abcfgwc <- function(
 
       cand <- clamp_centroids(cand, ctx$data)
 
-      ev <- .soviclust_v3_eval(
+      ev <- .soviclust_v3_try_eval(
         ctx, cand, m, distance, order, alpha, a, b
       )
 
@@ -846,7 +1102,7 @@ abcfgwc <- function(
 
       cand <- clamp_centroids(cand, ctx$data)
 
-      ev <- .soviclust_v3_eval(
+      ev <- .soviclust_v3_try_eval(
         ctx, cand, m, distance, order, alpha, a, b
       )
 
@@ -874,7 +1130,7 @@ abcfgwc <- function(
           randomN + iter * 100000L + i * 1000L + 70000L + attempt
         )
 
-        ev <- .soviclust_v3_eval(
+        ev <- .soviclust_v3_try_eval(
           ctx, cand, m, distance, order, alpha, a, b
         )
 
@@ -902,14 +1158,18 @@ abcfgwc <- function(
     }
 
     conv <- c(conv, best_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= abc.same) break
+    if (same >= abc.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1090,11 +1350,11 @@ fpafgwc <- function(
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nflow = 10, p = 0.8, gamma = 1, lambda = 1.5, delta = 0,
     ei.distr = "normal", flow.same = 10, r = 4, m.chaotic = 0.7,
-    skew = 0, sca = 1) {
+    skew = 0, sca = 1, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nflow < 3L) stop("FPA requires at least 3 flowers.", call. = FALSE)
@@ -1118,6 +1378,7 @@ fpafgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     candidates <- .soviclust_v3_pollination(
@@ -1138,7 +1399,7 @@ fpafgwc <- function(
     for (i in seq_len(nflow)) {
       cand <- clamp_centroids(candidates[[i]], ctx$data)
 
-      ev <- .soviclust_v3_eval(
+      ev <- .soviclust_v3_try_eval(
         ctx, cand, m, distance, order, alpha, a, b
       )
 
@@ -1158,14 +1419,18 @@ fpafgwc <- function(
     }
 
     conv <- c(conv, best_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= flow.same) break
+    if (same >= flow.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1180,11 +1445,11 @@ gsafgwc <- function(
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     npar = 10, par.no = 2, par.dist = "euclidean", par.order = 2,
     gsa.same = 10, G = 1, vmax = 0.7, new = FALSE,
-    gsa.alpha = 20) {
+    gsa.alpha = 20, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (npar < 2L) stop("GSA requires at least 2 particles.", call. = FALSE)
@@ -1217,6 +1482,7 @@ gsafgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     velocity <- .soviclust_v3_gsa_velocity_step(
@@ -1257,7 +1523,7 @@ gsafgwc <- function(
     new_evals <- lapply(
       candidates,
       function(cand) {
-        .soviclust_v3_eval(
+        .soviclust_v3_try_eval(
           ctx, cand, m, distance, order, alpha, a, b
         )
       }
@@ -1284,14 +1550,18 @@ gsafgwc <- function(
     }
 
     conv <- c(conv, best_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= gsa.same) break
+    if (same >= gsa.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1305,11 +1575,11 @@ gwofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7,
     a = 1, b = 1, error = 1e-5, max.iter = 100,
     randomN = 0, vi.dist = "uniform", nwolf = 10,
-    wolf.same = 10) {
+    wolf.same = 10, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nwolf < 3L) stop("GWO requires at least 3 wolves.", call. = FALSE)
@@ -1340,6 +1610,7 @@ gwofgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     a_coef <- if (max.iter == 1L) {
@@ -1362,7 +1633,7 @@ gwofgwc <- function(
     evals <- lapply(
       candidates,
       function(cand) {
-        .soviclust_v3_eval(
+        .soviclust_v3_try_eval(
           ctx, cand, m, distance, order, alpha, a, b
         )
       }
@@ -1400,14 +1671,18 @@ gwofgwc <- function(
     }
 
     conv <- c(conv, alpha_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= wolf.same) break
+    if (same >= wolf.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, alpha_pos, alpha_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1446,11 +1721,11 @@ hhofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nhh = 10, hh.alg = "heidari", A = c(2, 1, 0.5), p = 0.5,
-    hh.same = 10, levy.beta = 1.5, update.type = 5) {
+    hh.same = 10, levy.beta = 1.5, update.type = 5, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nhh < 2L) stop("HHO requires at least 2 hawks.", call. = FALSE)
@@ -1477,6 +1752,7 @@ hhofgwc <- function(
   upper <- apply(ctx$data, 2, max)
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
     current <- search
     current_fit <- fit
@@ -1584,11 +1860,11 @@ hhofgwc <- function(
             Y <- clamp_centroids(Y, ctx$data)
             Z <- clamp_centroids(Z, ctx$data)
 
-            evY <- .soviclust_v3_eval(
+            evY <- .soviclust_v3_try_eval(
               ctx, Y, m, distance, order, alpha, a, b
             )
 
-            evZ <- .soviclust_v3_eval(
+            evZ <- .soviclust_v3_try_eval(
               ctx, Z, m, distance, order, alpha, a, b
             )
 
@@ -1611,7 +1887,7 @@ hhofgwc <- function(
     evals <- lapply(
       candidates,
       function(cand) {
-        .soviclust_v3_eval(
+        .soviclust_v3_try_eval(
           ctx, cand, m, distance, order, alpha, a, b
         )
       }
@@ -1630,14 +1906,18 @@ hhofgwc <- function(
     }
 
     conv <- c(conv, rabbit_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= hh.same) break
+    if (same >= hh.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, rabbit, rabbit_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1676,11 +1956,11 @@ ifafgwc <- function(
     ffly.dist = "euclidean", ffly.order = 2, gamma = 1,
     ffly.beta = 1, ffly.alpha = 1, r.chaotic = 4, m.chaotic = 0.7,
     ind.levy = 1, skew.levy = 0, scale.levy = 1,
-    ffly.alpha.type = 4) {
+    ffly.alpha.type = 4, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nfly < 2L) stop("IFA requires at least 2 fireflies.", call. = FALSE)
@@ -1705,6 +1985,7 @@ ifafgwc <- function(
   alpha_random <- ffly.alpha
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     if (exists("update_alpha", mode = "function")) {
@@ -1761,7 +2042,7 @@ ifafgwc <- function(
     }
 
     for (j in seq_len(nfly)) {
-      ev <- .soviclust_v3_eval(
+      ev <- .soviclust_v3_try_eval(
         ctx, candidates[[j]],
         m, distance, order, alpha, a, b
       )
@@ -1782,14 +2063,18 @@ ifafgwc <- function(
     }
 
     conv <- c(conv, best_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= fa.same) break
+    if (same >= fa.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1803,11 +2088,12 @@ psofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     npar = 10, vmax = 0.7, pso.same = 10, c1 = 0.49, c2 = 0.49,
-    w.inert = "sim.annealing", wmax = 0.9, wmin = 0.4, map = 0.4) {
+    w.inert = "sim.annealing", wmax = 0.9, wmin = 0.4, map = 0.4,
+    max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (npar < 2L) stop("PSO requires at least 2 particles.", call. = FALSE)
@@ -1847,6 +2133,7 @@ psofgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     theta <- if (exists("update_inertia", mode = "function")) {
@@ -1886,7 +2173,7 @@ psofgwc <- function(
     evals <- lapply(
       candidates,
       function(cand) {
-        .soviclust_v3_eval(
+        .soviclust_v3_try_eval(
           ctx, cand, m, distance, order, alpha, a, b
         )
       }
@@ -1912,14 +2199,18 @@ psofgwc <- function(
     }
 
     conv <- c(conv, gbest_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= pso.same) break
+    if (same >= pso.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, gbest, gbest_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -1933,11 +2224,11 @@ tlbofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nstud = 10, tlbo.same = 10, nselection = 10,
-    elitism = FALSE, n.elite = 2) {
+    elitism = FALSE, n.elite = 2, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nstud < 2L) stop("TLBO requires at least 2 students.", call. = FALSE)
@@ -1961,6 +2252,7 @@ tlbofgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     teacher_idx <- which.min(fit)
@@ -1978,7 +2270,7 @@ tlbofgwc <- function(
 
       cand <- clamp_centroids(step$candidate, ctx$data)
 
-      ev <- .soviclust_v3_eval(
+      ev <- .soviclust_v3_try_eval(
         ctx, cand, m, distance, order, alpha, a, b
       )
 
@@ -2004,7 +2296,7 @@ tlbofgwc <- function(
 
       cand <- clamp_centroids(step$candidate, ctx$data)
 
-      ev <- .soviclust_v3_eval(
+      ev <- .soviclust_v3_try_eval(
         ctx, cand, m, distance, order, alpha, a, b
       )
 
@@ -2036,14 +2328,18 @@ tlbofgwc <- function(
     }
 
     conv <- c(conv, best_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= tlbo.same) break
+    if (same >= tlbo.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, best_search, best_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
 
@@ -2059,11 +2355,11 @@ woafgwc <- function(
     alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100,
     randomN = 0, vi.dist = "uniform",
-    nwhale = 10, woa.b = 1, woa.same = 10) {
+    nwhale = 10, woa.b = 1, woa.same = 10, max_nfe = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha
+    data, pop, distmat, ncluster, m, alpha, max_nfe
   )
 
   if (nwhale < 2L) stop("WOA requires at least 2 whales.", call. = FALSE)
@@ -2087,6 +2383,7 @@ woafgwc <- function(
   iter_done <- 0L
 
   for (iter in seq_len(max.iter)) {
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     iter_done <- iter
 
     a_coef <- if (max.iter == 1L) {
@@ -2108,7 +2405,7 @@ woafgwc <- function(
     evals <- lapply(
       candidates,
       function(cand) {
-        .soviclust_v3_eval(
+        .soviclust_v3_try_eval(
           ctx, cand, m, distance, order, alpha, a, b
         )
       }
@@ -2126,13 +2423,17 @@ woafgwc <- function(
     }
 
     conv <- c(conv, prey_fit)
+    if (.soviclust_v3_budget_exhausted(ctx)) break
     same <- .soviclust_v3_stagnation(conv, same, error)
 
-    if (same >= woa.same) break
+    if (same >= woa.same) {
+      .soviclust_v3_set_termination(ctx, "convergence")
+      break
+    }
   }
 
   .soviclust_v3_result_m(
     ctx$data, prey, prey_eval, conv,
-    iter_done, same, match.call(), ptm, m
+    iter_done, same, match.call(), ptm, m, ctx = ctx
   )
 }
