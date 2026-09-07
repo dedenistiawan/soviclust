@@ -219,7 +219,8 @@ lfgwc_tab_ui <- function() {
 
           div(class = "step-header", "5. Select Algorithm"),
           tags$p(style = "font-size:11px; color:#78909c; margin:-4px 0 6px;",
-                 "Classic = pure LFGWC. Others = initial centroid optimization."),
+                 "Classic = pure LFGWC. Metaheuristics optimize centroid candidates ",
+                 "using the same LFGWC evaluator and NFE budget."),
           radioButtons("lfgwc_algorithm", NULL,
                        choices = c(
                          "Classic LFGWC"                          = "classic",
@@ -229,7 +230,7 @@ lfgwc_tab_ui <- function() {
                          "GWO (Grey Wolf Optimizer)"          = "gwo",
                          "HHO (Harris-Hawk Optimization)"     = "hho",
                          "IFA (Intelligent Firefly)"          = "ifa",
-                         "PSO (Particle Swarm) (DLFGWC-PSO)" = "pso",
+                         "PSO (Particle Swarm Optimization)"     = "pso",
                          "TLBO (Teaching-Learning Based)"     = "tlbo",
                          "WOA (Whale Optimization)"           = "woa"
                        ),
@@ -256,6 +257,13 @@ lfgwc_tab_ui <- function() {
             div(class = "step-header", "Convergence (same)"),
             sliderInput("lfgwc_same", NULL,
                         min = 5, max = 30, value = 10, step = 1),
+            div(class = "step-header", "Maximum Function Evaluations (NFE)"),
+            numericInput("lfgwc_max_nfe", NULL,
+                         value = 2000, min = 100, step = 100),
+            tags$p(
+              style = "font-size:10.5px; color:#78909c; margin:-4px 0 6px;",
+              "Shared evaluation budget for fair optimizer comparison."
+            ),
             div(class = "step-header", "Initialization Distribution"),
             selectInput("lfgwc_vi_dist", NULL,
                         choices  = c("Uniform" = "uniform", "Normal"  = "normal"),
@@ -359,7 +367,7 @@ lfgwc_tab_ui <- function() {
                 style = "background:#e8f5e9; border-left-color:#27ae60;
                          font-size:11.5px; margin-bottom:8px;",
                 icon("star", style = "color:#27ae60;"),
-                tags$strong(" DLFGWC-PSO"), " \u2014 Best variant per the paper."),
+                tags$strong(" PSO + LFGWC evaluator"), " \u2014 Best variant per the paper."),
             div(class = "step-header", "Vmax"),
             sliderInput("lfgwc_pso_vmax", NULL,
                         min = 0.1, max = 2.0, value = 0.8, step = 0.1),

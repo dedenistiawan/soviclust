@@ -331,50 +331,89 @@ lfgwc_server <- function(input, output, session, rv) {
     )
     
     # ── Kumpulkan parameter algoritma optimasi ───────────────────────────────
+    # Patch v3.2d: only parameters for the selected optimizer are included.
+    # This prevents duplicate names (gamma, ei_distr, vmax) from leaking
+    # values between different algorithms.
     algo <- input$lfgwc_algorithm
-    opt_params <- list(
-      npar       = input$lfgwc_npar,
-      same       = input$lfgwc_same,
-      vi_dist    = input$lfgwc_vi_dist,
-      # ABC
-      n_onlooker = input$lfgwc_abc_onlooker,
-      limit      = input$lfgwc_abc_limit,
-      # FPA
-      p          = input$lfgwc_fpa_p,
-      gamma      = input$lfgwc_fpa_gamma,
-      lambda     = input$lfgwc_fpa_lambda,
-      ei_distr   = input$lfgwc_fpa_ei,
-      chaos      = 3,
-      # GSA
-      G          = input$lfgwc_gsa_G,
-      vmax       = input$lfgwc_gsa_vmax,
-      new        = input$lfgwc_gsa_new,
-      # HHO
-      hho_algo   = input$lfgwc_hho_algo,
-      a1         = input$lfgwc_hho_a1,
-      a2         = input$lfgwc_hho_a2,
-      a3         = input$lfgwc_hho_a3,
-      # IFA
-      par_no     = input$lfgwc_ifa_parno,
-      gamma      = input$lfgwc_ifa_gamma,
-      beta       = input$lfgwc_ifa_beta,
-      ei_distr   = input$lfgwc_ifa_ei,
-      # PSO
-      vmax       = input$lfgwc_pso_vmax,
-      c1         = input$lfgwc_pso_c1,
-      c2         = input$lfgwc_pso_c2,
-      type       = input$lfgwc_pso_type,
-      wmax       = input$lfgwc_pso_wmax,
-      wmin       = input$lfgwc_pso_wmin,
-      map        = 0.3,
-      # TLBO
-      nselection = input$lfgwc_tlbo_nselect,
-      elitism    = input$lfgwc_tlbo_elitism,
-      n_elite    = input$lfgwc_tlbo_nelite,
-      # WOA
-      woa_b      = input$lfgwc_woa_b
+
+    common_opt_params <- list(
+      npar    = input$lfgwc_npar,
+      same    = input$lfgwc_same,
+      vi_dist = input$lfgwc_vi_dist,
+      max_nfe = as.integer(input$lfgwc_max_nfe)
     )
-    
+
+    opt_params <- if (identical(algo, "classic")) {
+      list()
+    } else {
+      c(
+        common_opt_params,
+        switch(
+          algo,
+
+          abc = list(
+            n_onlooker = input$lfgwc_abc_onlooker,
+            limit      = input$lfgwc_abc_limit,
+            pso        = FALSE
+          ),
+
+          fpa = list(
+            p        = input$lfgwc_fpa_p,
+            gamma    = input$lfgwc_fpa_gamma,
+            lambda   = input$lfgwc_fpa_lambda,
+            ei_distr = input$lfgwc_fpa_ei,
+            chaos    = 3
+          ),
+
+          gsa = list(
+            G    = input$lfgwc_gsa_G,
+            vmax = input$lfgwc_gsa_vmax,
+            new  = input$lfgwc_gsa_new
+          ),
+
+          gwo = list(),
+
+          hho = list(
+            algo = input$lfgwc_hho_algo,
+            a1   = input$lfgwc_hho_a1,
+            a2   = input$lfgwc_hho_a2,
+            a3   = input$lfgwc_hho_a3
+          ),
+
+          ifa = list(
+            par_no   = input$lfgwc_ifa_parno,
+            gamma    = input$lfgwc_ifa_gamma,
+            beta     = input$lfgwc_ifa_beta,
+            ei_distr = input$lfgwc_ifa_ei
+          ),
+
+          pso = list(
+            vmax = input$lfgwc_pso_vmax,
+            c1   = input$lfgwc_pso_c1,
+            c2   = input$lfgwc_pso_c2,
+            type = input$lfgwc_pso_type,
+            wmax = input$lfgwc_pso_wmax,
+            wmin = input$lfgwc_pso_wmin,
+            map  = 0.3
+          ),
+
+          tlbo = list(
+            nselection = input$lfgwc_tlbo_nselect,
+            elitism    = input$lfgwc_tlbo_elitism,
+            n_elite    = input$lfgwc_tlbo_nelite
+          ),
+
+          woa = list(
+            woa_b = input$lfgwc_woa_b
+          ),
+
+          stop(
+            sprintf("Unsupported LFGWC optimizer '%s'.", algo),
+            call. = FALSE
+          )
+        )
+      )
+    }
     # ── Jalankan LFGWC ──────────────────────────────────────────────────────
     withProgress(message = paste("Running LFGWC", toupper(algo), "..."),
                  value = 0, {
@@ -1367,38 +1406,88 @@ lfgwc_server <- function(input, output, session, rv) {
       # randomN diinjeksi oleh run_stability_test()
     )
 
-    opt_params_base <- list(
-      npar       = input$lfgwc_npar          %||% 10,
-      same       = input$lfgwc_same          %||% 10,
-      vi_dist    = input$lfgwc_vi_dist       %||% "uniform",
-      n_onlooker = input$lfgwc_abc_onlooker  %||% 5,
-      limit      = input$lfgwc_abc_limit     %||% 5,
-      p          = input$lfgwc_fpa_p         %||% 0.7,
-      gamma      = input$lfgwc_fpa_gamma     %||% 1.2,
-      lambda     = input$lfgwc_fpa_lambda    %||% 1.5,
-      ei_distr   = input$lfgwc_fpa_ei        %||% "logchaotic",
-      chaos      = 3,
-      G          = input$lfgwc_gsa_G         %||% 1,
-      vmax       = input$lfgwc_pso_vmax      %||% 0.8,
-      new        = input$lfgwc_gsa_new       %||% FALSE,
-      hho_algo   = input$lfgwc_hho_algo      %||% "bairathi",
-      a1         = input$lfgwc_hho_a1        %||% 3,
-      a2         = input$lfgwc_hho_a2        %||% 1,
-      a3         = input$lfgwc_hho_a3        %||% 0.4,
-      par_no     = input$lfgwc_ifa_parno     %||% 3,
-      beta       = input$lfgwc_ifa_beta      %||% 1,
-      c1         = input$lfgwc_pso_c1        %||% 0.7,
-      c2         = input$lfgwc_pso_c2        %||% 0.6,
-      type       = input$lfgwc_pso_type      %||% "chaotic",
-      wmax       = input$lfgwc_pso_wmax      %||% 0.8,
-      wmin       = input$lfgwc_pso_wmin      %||% 0.3,
-      map        = 0.3,
-      nselection = input$lfgwc_tlbo_nselect  %||% 10,
-      elitism    = input$lfgwc_tlbo_elitism  %||% FALSE,
-      n_elite    = input$lfgwc_tlbo_nelite   %||% 2,
-      woa_b      = input$lfgwc_woa_b         %||% 1
+    # Patch v3.2d: use the same algorithm-specific parameter contract and
+    # exact NFE budget in stability runs as in the primary execution path.
+    stability_algo <- res$algorithm
+
+    common_opt_params_base <- list(
+      npar    = input$lfgwc_npar    %||% 10,
+      same    = input$lfgwc_same    %||% 10,
+      vi_dist = input$lfgwc_vi_dist %||% "uniform",
+      max_nfe = as.integer(input$lfgwc_max_nfe %||% 2000L)
     )
 
+    opt_params_base <- if (identical(stability_algo, "classic")) {
+      list()
+    } else {
+      c(
+        common_opt_params_base,
+        switch(
+          stability_algo,
+
+          abc = list(
+            n_onlooker = input$lfgwc_abc_onlooker %||% 5,
+            limit      = input$lfgwc_abc_limit    %||% 5,
+            pso        = FALSE
+          ),
+
+          fpa = list(
+            p        = input$lfgwc_fpa_p      %||% 0.7,
+            gamma    = input$lfgwc_fpa_gamma  %||% 1.2,
+            lambda   = input$lfgwc_fpa_lambda %||% 1.5,
+            ei_distr = input$lfgwc_fpa_ei     %||% "logchaotic",
+            chaos    = 3
+          ),
+
+          gsa = list(
+            G    = input$lfgwc_gsa_G    %||% 1,
+            vmax = input$lfgwc_gsa_vmax %||% 0.7,
+            new  = input$lfgwc_gsa_new  %||% FALSE
+          ),
+
+          gwo = list(),
+
+          hho = list(
+            algo = input$lfgwc_hho_algo %||% "bairathi",
+            a1   = input$lfgwc_hho_a1   %||% 3,
+            a2   = input$lfgwc_hho_a2   %||% 1,
+            a3   = input$lfgwc_hho_a3   %||% 0.4
+          ),
+
+          ifa = list(
+            par_no   = input$lfgwc_ifa_parno %||% 3,
+            gamma    = input$lfgwc_ifa_gamma %||% 1,
+            beta     = input$lfgwc_ifa_beta  %||% 1,
+            ei_distr = input$lfgwc_ifa_ei    %||% "logchaotic"
+          ),
+
+          pso = list(
+            vmax = input$lfgwc_pso_vmax %||% 0.8,
+            c1   = input$lfgwc_pso_c1   %||% 0.7,
+            c2   = input$lfgwc_pso_c2   %||% 0.6,
+            type = input$lfgwc_pso_type %||% "chaotic",
+            wmax = input$lfgwc_pso_wmax %||% 0.8,
+            wmin = input$lfgwc_pso_wmin %||% 0.3,
+            map  = 0.3
+          ),
+
+          tlbo = list(
+            nselection = input$lfgwc_tlbo_nselect %||% 10,
+            elitism    = input$lfgwc_tlbo_elitism %||% FALSE,
+            n_elite    = input$lfgwc_tlbo_nelite  %||% 2
+          ),
+
+          woa = list(
+            woa_b = input$lfgwc_woa_b %||% 1
+          ),
+
+          stop(
+            sprintf("Unsupported LFGWC optimizer '%s'.", stability_algo),
+            call. = FALSE
+          )
+        )
+      )
+    }
     base_args <- list(
       data_source   = res$data_source,
       raw_data      = rv$data,
