@@ -207,6 +207,9 @@ for (.v3_file in .v3_source_order) {
 
 .v3_required_functions <- c(
   "evaluate_optimizer_candidate_v3",
+  ".soviclust_v3_validate_evaluator",
+  ".soviclust_v3_fgwc_evaluator",
+  ".soviclust_v3_resolve_evaluator",
   ".soviclust_v3_validate_max_nfe",
   ".soviclust_v3_new_nfe_tracker",
   ".soviclust_v3_budget_available",
@@ -383,7 +386,7 @@ run_v3_optimizer <- function(
     method,
     dat,
     seed = 42L,
-    max_nfe = NULL) {
+    max_nfe = NULL, evaluator = NULL) {
 
   common <- list(
     data = dat$x,
@@ -399,6 +402,7 @@ run_v3_optimizer <- function(
     error = 0,
     max.iter = 3,
     max_nfe = max_nfe,
+    evaluator = evaluator,
     randomN = seed,
     vi.dist = "uniform"
   )

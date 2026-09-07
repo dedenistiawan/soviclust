@@ -189,9 +189,95 @@
   out
 }
 
+# -----------------------------------------------------------------------------
+# Generic model-specific evaluator contract — Patch v3.2a
+# -----------------------------------------------------------------------------
+
+.soviclust_v3_validate_evaluator <- function(evaluator) {
+  if (!is.list(evaluator)) {
+    stop("`evaluator` must be a list-based Patch-v3 evaluator.", call. = FALSE)
+  }
+
+  required <- c("model_type", "fitness_type", "evaluate")
+  missing <- setdiff(required, names(evaluator))
+
+  if (length(missing)) {
+    stop(
+      paste0(
+        "Patch-v3 evaluator is missing field(s): ",
+        paste(missing, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+  if (!is.character(evaluator$model_type) ||
+      length(evaluator$model_type) != 1L ||
+      !nzchar(evaluator$model_type)) {
+    stop("`evaluator$model_type` must be one non-empty string.", call. = FALSE)
+  }
+
+  if (!is.character(evaluator$fitness_type) ||
+      length(evaluator$fitness_type) != 1L ||
+      !nzchar(evaluator$fitness_type)) {
+    stop("`evaluator$fitness_type` must be one non-empty string.", call. = FALSE)
+  }
+
+  if (!is.function(evaluator$evaluate)) {
+    stop("`evaluator$evaluate` must be a function.", call. = FALSE)
+  }
+
+  evaluator
+}
+
+.soviclust_v3_fgwc_evaluator <- function() {
+  evaluator <- list(
+    model_type = "FGWC",
+    fitness_type = "spatial_XB_feasible",
+    evaluate = function(
+        ctx, search_centers, m, distance, order, alpha, a, b,
+        require_all_clusters = TRUE) {
+
+      evaluate_optimizer_candidate_v3(
+        data = ctx$data,
+        search_centers = search_centers,
+        mi.mj = ctx$mi.mj,
+        distmat = ctx$distmat,
+        m = m,
+        distance = distance,
+        order = order,
+        alpha = alpha,
+        beta = ctx$beta,
+        a = a,
+        b = b,
+        require_all_clusters = require_all_clusters
+      )
+    }
+  )
+
+  .soviclust_v3_validate_evaluator(evaluator)
+}
+
+.soviclust_v3_resolve_evaluator <- function(evaluator = NULL) {
+  if (is.null(evaluator)) {
+    evaluator <- .soviclust_v3_fgwc_evaluator()
+  }
+
+  .soviclust_v3_validate_evaluator(evaluator)
+}
+
+.soviclust_v3_context_fitness_type <- function(ctx) {
+  if (is.null(ctx) || is.null(ctx$evaluator)) {
+    return("spatial_XB_feasible")
+  }
+
+  as.character(ctx$evaluator$fitness_type)
+}
+
 .soviclust_v3_validate_common <- function(data, pop, distmat, ncluster, m,
-                                          alpha, max_nfe = NULL) {
+                                          alpha, max_nfe = NULL, evaluator = NULL) {
   data <- as.matrix(data)
+  evaluator <- .soviclust_v3_resolve_evaluator(evaluator)
 
   if (!is.numeric(data) || any(!is.finite(data))) {
     stop("`data` must be a finite numeric matrix/data.frame.", call. = FALSE)
@@ -239,6 +325,7 @@
     n = n,
     p = ncol(data),
     beta = beta,
+    evaluator = evaluator,
     mi.mj = popmat %*% t(popmat),
     nfe_tracker = .soviclust_v3_new_nfe_tracker(max_nfe),
     distmat = distmat
@@ -346,16 +433,13 @@ evaluate_optimizer_candidate_v3 <- function(
 
   .soviclust_v3_record_nfe(ctx)
 
-  evaluate_optimizer_candidate_v3(
-    data = ctx$data,
+  ctx$evaluator$evaluate(
+    ctx = ctx,
     search_centers = search_centers,
-    mi.mj = ctx$mi.mj,
-    distmat = ctx$distmat,
     m = m,
     distance = distance,
     order = order,
     alpha = alpha,
-    beta = ctx$beta,
     a = a,
     b = b,
     require_all_clusters = require_all_clusters
@@ -375,16 +459,6 @@ evaluate_optimizer_candidate_v3 <- function(
     require_all_clusters = require_all_clusters
   )
 }
-n.soviclust_v3_new_position <- function(data, ncluster, vi.dist, seed) {
-  gen_vi(
-    data = data,
-    ncluster = ncluster,
-    gendist = vi.dist,
-    randomN = seed
-  )
-}
-
-
 .soviclust_v3_new_position <- function(data, ncluster, vi.dist, seed) {
   gen_vi(
     data = data,
@@ -512,7 +586,7 @@ n.soviclust_v3_new_position <- function(data, ncluster, vi.dist, seed) {
   out <- list(
     converg = as.numeric(converg),
     f_obj = as.numeric(best_eval$fitness),
-    fitness_type = "spatial_XB_feasible",
+    fitness_type = .soviclust_v3_context_fitness_type(ctx),
     spatial_obj = as.numeric(best_eval$spatial_obj),
     nfe = nfe_info$nfe,
     nfe_initialization = nfe_info$nfe_initialization,
@@ -578,7 +652,7 @@ n.soviclust_v3_new_position <- function(data, ncluster, vi.dist, seed) {
   out <- list(
     converg = as.numeric(converg),
     f_obj = as.numeric(best_eval$fitness),
-    fitness_type = "spatial_XB_feasible",
+    fitness_type = .soviclust_v3_context_fitness_type(ctx),
     spatial_obj = as.numeric(best_eval$spatial_obj),
     nfe = nfe_info$nfe,
     nfe_initialization = nfe_info$nfe_initialization,
@@ -992,11 +1066,11 @@ abcfgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nfood = 10, n.onlooker = 5, limit = 4, pso = FALSE,
-    abc.same = 10, max_nfe = NULL) {
+    abc.same = 10, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nfood < 2L) stop("ABC requires at least 2 food sources.", call. = FALSE)
@@ -1350,11 +1424,11 @@ fpafgwc <- function(
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nflow = 10, p = 0.8, gamma = 1, lambda = 1.5, delta = 0,
     ei.distr = "normal", flow.same = 10, r = 4, m.chaotic = 0.7,
-    skew = 0, sca = 1, max_nfe = NULL) {
+    skew = 0, sca = 1, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nflow < 3L) stop("FPA requires at least 3 flowers.", call. = FALSE)
@@ -1445,11 +1519,11 @@ gsafgwc <- function(
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     npar = 10, par.no = 2, par.dist = "euclidean", par.order = 2,
     gsa.same = 10, G = 1, vmax = 0.7, new = FALSE,
-    gsa.alpha = 20, max_nfe = NULL) {
+    gsa.alpha = 20, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (npar < 2L) stop("GSA requires at least 2 particles.", call. = FALSE)
@@ -1575,11 +1649,11 @@ gwofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7,
     a = 1, b = 1, error = 1e-5, max.iter = 100,
     randomN = 0, vi.dist = "uniform", nwolf = 10,
-    wolf.same = 10, max_nfe = NULL) {
+    wolf.same = 10, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nwolf < 3L) stop("GWO requires at least 3 wolves.", call. = FALSE)
@@ -1721,11 +1795,11 @@ hhofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nhh = 10, hh.alg = "heidari", A = c(2, 1, 0.5), p = 0.5,
-    hh.same = 10, levy.beta = 1.5, update.type = 5, max_nfe = NULL) {
+    hh.same = 10, levy.beta = 1.5, update.type = 5, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nhh < 2L) stop("HHO requires at least 2 hawks.", call. = FALSE)
@@ -1956,11 +2030,11 @@ ifafgwc <- function(
     ffly.dist = "euclidean", ffly.order = 2, gamma = 1,
     ffly.beta = 1, ffly.alpha = 1, r.chaotic = 4, m.chaotic = 0.7,
     ind.levy = 1, skew.levy = 0, scale.levy = 1,
-    ffly.alpha.type = 4, max_nfe = NULL) {
+    ffly.alpha.type = 4, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nfly < 2L) stop("IFA requires at least 2 fireflies.", call. = FALSE)
@@ -2089,11 +2163,11 @@ psofgwc <- function(
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     npar = 10, vmax = 0.7, pso.same = 10, c1 = 0.49, c2 = 0.49,
     w.inert = "sim.annealing", wmax = 0.9, wmin = 0.4, map = 0.4,
-    max_nfe = NULL) {
+    max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (npar < 2L) stop("PSO requires at least 2 particles.", call. = FALSE)
@@ -2224,11 +2298,11 @@ tlbofgwc <- function(
     distance = "euclidean", order = 2, alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100, randomN = 0, vi.dist = "uniform",
     nstud = 10, tlbo.same = 10, nselection = 10,
-    elitism = FALSE, n.elite = 2, max_nfe = NULL) {
+    elitism = FALSE, n.elite = 2, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nstud < 2L) stop("TLBO requires at least 2 students.", call. = FALSE)
@@ -2355,11 +2429,11 @@ woafgwc <- function(
     alpha = 0.7, a = 1, b = 1,
     error = 1e-5, max.iter = 100,
     randomN = 0, vi.dist = "uniform",
-    nwhale = 10, woa.b = 1, woa.same = 10, max_nfe = NULL) {
+    nwhale = 10, woa.b = 1, woa.same = 10, max_nfe = NULL, evaluator = NULL) {
 
   ptm <- proc.time()
   ctx <- .soviclust_v3_validate_common(
-    data, pop, distmat, ncluster, m, alpha, max_nfe
+    data, pop, distmat, ncluster, m, alpha, max_nfe, evaluator
   )
 
   if (nwhale < 2L) stop("WOA requires at least 2 whales.", call. = FALSE)
