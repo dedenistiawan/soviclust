@@ -473,33 +473,353 @@ lfgwc_classic <- function(data, W_std, ncluster,
 
 # =============================================================================
 # FUNGSI INTI: lfgwc_with_optimizer()
-# LFGWC dengan algoritma optimasi metaheuristik untuk inisialisasi centroid
-# PSO digunakan sebagai DLFGWC-PSO sesuai paper Section 3.2(d)
+# Patch v3.2c — direct runtime integration with model-specific evaluator v3
 #
-# Strategi: algoritma optimasi (abc/fpa/gsa/hho/ifa/pso/tlbo/woa) digunakan
-# untuk mencari centroid awal optimal, kemudian LFGWC iteratif dijalankan
-# dengan centroid hasil optimasi tersebut.
+# Design:
+#   raw optimizer centroid
+#       -> FCM membership
+#       -> ONE local geographic projection through the LFGWC evaluator
+#       -> projected centroid
+#       -> feasible spatial Xie-Beni fitness
+#
+# The optimizer result is the final optimized LFGWC solution. The wrapper does
+# NOT run a second post-optimizer LFGWC iteration, preventing double projection.
 # =============================================================================
 
-#' LFGWC dengan optimasi centroid via swarm intelligence
+.lfgwc_v3_param <- function(x, names, default = NULL) {
+  if (is.null(x)) return(default)
+
+  for (nm in names) {
+    value <- NULL
+
+    if (is.list(x) && !is.null(x[[nm]])) {
+      value <- x[[nm]]
+    } else if (!is.null(base::names(x)) && nm %in% base::names(x)) {
+      value <- x[[nm]]
+    }
+
+    if (!is.null(value) &&
+        length(value) > 0L &&
+        !(length(value) == 1L && is.na(value))) {
+      return(value)
+    }
+  }
+
+  default
+}
+
+
+.lfgwc_v3_distance_to_centroids <- function(data, centroid) {
+  data <- as.matrix(data)
+  centroid <- as.matrix(centroid)
+
+  D <- matrix(
+    0,
+    nrow = nrow(data),
+    ncol = nrow(centroid)
+  )
+
+  for (k in seq_len(nrow(centroid))) {
+    D[, k] <- sqrt(
+      rowSums(
+        sweep(
+          data,
+          2,
+          centroid[k, ],
+          "-"
+        )^2
+      )
+    )
+  }
+
+  D
+}
+
+
+.lfgwc_v3_run_optimizer <- function(
+    data,
+    pop_vec,
+    dist_mat,
+    W_std,
+    ncluster,
+    m,
+    alpha,
+    a,
+    b,
+    max_iter,
+    error,
+    randomN,
+    algorithm,
+    opt_params = list()) {
+
+  algorithm <- tolower(as.character(algorithm)[1])
+
+  supported <- c(
+    "abc", "fpa", "gsa",
+    "gwo", "hho", "ifa",
+    "pso", "tlbo", "woa"
+  )
+
+  if (!algorithm %in% supported) {
+    stop(
+      sprintf(
+        "Unsupported LFGWC optimizer '%s'. Supported optimizers: %s.",
+        algorithm,
+        paste(supported, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+  if (!exists(
+    ".soviclust_v3_lfgwc_evaluator",
+    mode = "function",
+    inherits = TRUE
+  )) {
+    stop(
+      paste0(
+        "LFGWC optimizer evaluator v3 is not loaded. ",
+        "Ensure optimizer_model_evaluators_v3.R is sourced after optimizer_v3.R."
+      ),
+      call. = FALSE
+    )
+  }
+
+  evaluator <- .soviclust_v3_lfgwc_evaluator(W_std)
+
+  vi_dist <- as.character(
+    .lfgwc_v3_param(opt_params, c("vi_dist", "vi.dist"), "uniform")
+  )[1]
+  npar <- as.integer(.lfgwc_v3_param(opt_params, "npar", 10L))[1]
+  same <- as.integer(.lfgwc_v3_param(opt_params, "same", 10L))[1]
+  max_nfe <- .lfgwc_v3_param(opt_params, "max_nfe", NULL)
+  if (!is.null(max_nfe)) max_nfe <- as.integer(max_nfe)[1]
+
+  common <- list(
+    data = as.matrix(data),
+    pop = pop_vec,
+    distmat = dist_mat,
+    ncluster = as.integer(ncluster),
+    m = m,
+    distance = "euclidean",
+    order = 2,
+    alpha = alpha,
+    a = a,
+    b = b,
+    error = error,
+    max.iter = as.integer(max_iter),
+    evaluator = evaluator,
+    max_nfe = max_nfe,
+    randomN = as.integer(randomN),
+    vi.dist = vi_dist
+  )
+
+  extra <- switch(
+    algorithm,
+
+    abc = list(
+      nfood = npar,
+      n.onlooker = as.integer(
+        .lfgwc_v3_param(opt_params, c("n_onlooker", "n.onlooker"), 5L)
+      ),
+      limit = as.integer(.lfgwc_v3_param(opt_params, "limit", 4L)),
+      pso = as.logical(.lfgwc_v3_param(opt_params, "pso", TRUE)),
+      abc.same = same
+    ),
+
+    fpa = list(
+      nflow = npar,
+      p = as.numeric(.lfgwc_v3_param(opt_params, "p", 0.8)),
+      gamma = as.numeric(.lfgwc_v3_param(opt_params, "gamma", 1)),
+      lambda = as.numeric(.lfgwc_v3_param(opt_params, "lambda", 1.5)),
+      delta = as.numeric(.lfgwc_v3_param(opt_params, "delta", 0)),
+      ei.distr = as.character(
+        .lfgwc_v3_param(opt_params, c("ei_distr", "ei.distr"), "normal")
+      ),
+      flow.same = same,
+      r = as.numeric(.lfgwc_v3_param(opt_params, c("chaos", "r"), 4)),
+      m.chaotic = as.numeric(
+        .lfgwc_v3_param(opt_params, c("map", "m.chaotic"), 0.7)
+      ),
+      skew = as.numeric(.lfgwc_v3_param(opt_params, "skew", 0)),
+      sca = as.numeric(.lfgwc_v3_param(opt_params, "sca", 1))
+    ),
+
+    gsa = list(
+      npar = npar,
+      par.no = as.integer(
+        .lfgwc_v3_param(opt_params, c("par_no", "par.no"), 2L)
+      ),
+      par.dist = as.character(
+        .lfgwc_v3_param(opt_params, c("par_dist", "par.dist"), "euclidean")
+      ),
+      par.order = as.numeric(
+        .lfgwc_v3_param(opt_params, c("par_order", "par.order"), 2)
+      ),
+      gsa.same = same,
+      G = as.numeric(.lfgwc_v3_param(opt_params, "G", 1)),
+      vmax = as.numeric(.lfgwc_v3_param(opt_params, "vmax", 0.7)),
+      new = as.logical(.lfgwc_v3_param(opt_params, "new", TRUE))
+    ),
+
+    gwo = list(
+      nwolf = npar,
+      wolf.same = same
+    ),
+
+    hho = list(
+      nhh = npar,
+      hh.alg = as.character(
+        .lfgwc_v3_param(opt_params, c("algo", "hh.alg"), "heidari")
+      ),
+      A = as.numeric(c(
+        .lfgwc_v3_param(opt_params, "a1", 2),
+        .lfgwc_v3_param(opt_params, "a2", 1),
+        .lfgwc_v3_param(opt_params, "a3", 0.5)
+      )),
+      p = as.numeric(.lfgwc_v3_param(opt_params, "p", 0.5)),
+      hh.same = same,
+      levy.beta = as.numeric(
+        .lfgwc_v3_param(opt_params, c("beta", "levy.beta"), 1.5)
+      ),
+      update.type = as.numeric(
+        .lfgwc_v3_param(opt_params, c("update_type", "update.type"), 5)
+      )
+    ),
+
+    ifa = list(
+      nfly = npar,
+      ffly.no = as.integer(
+        .lfgwc_v3_param(opt_params, c("par_no", "par.no", "ffly.no"), 2L)
+      ),
+      ffly.dist = as.character(
+        .lfgwc_v3_param(
+          opt_params,
+          c("par_dist", "par.dist", "ffly.dist"),
+          "euclidean"
+        )
+      ),
+      ffly.order = as.numeric(
+        .lfgwc_v3_param(opt_params, c("par_order", "par.order", "ffly.order"), 2)
+      ),
+      gamma = as.numeric(.lfgwc_v3_param(opt_params, "gamma", 1)),
+      ffly.beta = as.numeric(
+        .lfgwc_v3_param(opt_params, c("beta", "ffly.beta"), 1)
+      ),
+      ffly.alpha = as.numeric(
+        .lfgwc_v3_param(opt_params, c("alpha", "ffly.alpha"), 1)
+      ),
+      r.chaotic = as.numeric(
+        .lfgwc_v3_param(opt_params, c("chaos", "r.chaotic"), 4)
+      ),
+      m.chaotic = as.numeric(
+        .lfgwc_v3_param(opt_params, c("map", "m.chaotic"), 0.7)
+      ),
+      ind.levy = as.numeric(
+        .lfgwc_v3_param(opt_params, c("ind", "ind.levy"), 1)
+      ),
+      skew.levy = as.numeric(
+        .lfgwc_v3_param(opt_params, c("skew", "skew.levy"), 0)
+      ),
+      scale.levy = as.numeric(
+        .lfgwc_v3_param(opt_params, c("sca", "scale.levy"), 1)
+      ),
+      ffly.alpha.type = as.numeric(
+        .lfgwc_v3_param(opt_params, c("update_type", "ffly.alpha.type"), 4)
+      ),
+      ei.distr = as.character(
+        .lfgwc_v3_param(opt_params, c("ei_distr", "ei.distr"), "normal")
+      ),
+      fa.same = same
+    ),
+
+    pso = list(
+      npar = npar,
+      vmax = as.numeric(.lfgwc_v3_param(opt_params, "vmax", 0.7)),
+      pso.same = same,
+      c1 = as.numeric(.lfgwc_v3_param(opt_params, "c1", 0.49)),
+      c2 = as.numeric(.lfgwc_v3_param(opt_params, "c2", 0.49)),
+      w.inert = as.character(
+        .lfgwc_v3_param(opt_params, c("type", "w_inert", "w.inert"),
+                        "sim.annealing")
+      ),
+      wmax = as.numeric(.lfgwc_v3_param(opt_params, "wmax", 0.9)),
+      wmin = as.numeric(.lfgwc_v3_param(opt_params, "wmin", 0.4)),
+      map = as.numeric(.lfgwc_v3_param(opt_params, "map", 0.7))
+    ),
+
+    tlbo = list(
+      nstud = npar,
+      nselection = as.integer(
+        .lfgwc_v3_param(opt_params, "nselection", 10L)
+      ),
+      elitism = as.logical(
+        .lfgwc_v3_param(opt_params, "elitism", FALSE)
+      ),
+      n.elite = as.integer(
+        .lfgwc_v3_param(opt_params, c("n_elite", "n.elite"), 2L)
+      ),
+      tlbo.same = same
+    ),
+
+    woa = list(
+      nwhale = npar,
+      woa.b = as.numeric(
+        .lfgwc_v3_param(opt_params, c("woa_b", "woa.b"), 1)
+      ),
+      woa.same = same
+    )
+  )
+
+  fn_name <- switch(
+    algorithm,
+    abc = "abcfgwc",
+    fpa = "fpafgwc",
+    gsa = "gsafgwc",
+    gwo = "gwofgwc",
+    hho = "hhofgwc",
+    ifa = "ifafgwc",
+    pso = "psofgwc",
+    tlbo = "tlbofgwc",
+    woa = "woafgwc"
+  )
+
+  fn <- get(fn_name, mode = "function", inherits = TRUE)
+
+  result <- do.call(fn, c(common, extra))
+
+  # Patch v3.2c-fix1:
+  # optimizer_v3 already propagates evaluator fitness_type, but model_type
+  # is evaluator metadata and is not guaranteed to be copied to the public
+  # optimizer result. Preserve the model identity at this runtime boundary.
+  if (is.null(result$model_type)) {
+    result$model_type <- evaluator$model_type
+  }
+
+  if (is.null(result$fitness_type)) {
+    result$fitness_type <- evaluator$fitness_type
+  }
+
+  if (!identical(result$fitness_type, evaluator$fitness_type)) {
+    stop(
+      sprintf(
+        "Optimizer returned fitness_type '%s' but LFGWC evaluator requires '%s'.",
+        as.character(result$fitness_type),
+        as.character(evaluator$fitness_type)
+      ),
+      call. = FALSE
+    )
+  }
+
+  result
+}
+
+
+#' LFGWC with centroid optimization via canonical metaheuristic engine
 #'
-#' @param data        Matriks data (n x d), sudah ternormalisasi
-#' @param pop_vec     Vektor populasi (n), untuk objective function FGWC
-#' @param dist_mat    Matriks jarak antar unit (n x n), untuk objective FGWC
-#' @param W_std       Spatial weights matrix row-standardized (n x n)
-#' @param ncluster    Jumlah cluster c
-#' @param m           Fuzzifier
-#' @param alpha       Bobot membership lama
-#' @param a           Parameter SIM-PF (jarak)
-#' @param b           Parameter SIM-PF (populasi)
-#' @param max_iter    Maksimum iterasi LFGWC
-#' @param error       Toleransi konvergensi
-#' @param randomN     Random seed
-#' @param algorithm   Algoritma optimasi: "pso"|"abc"|"fpa"|"gsa"|"hho"|"ifa"|
-#'                    "tlbo"|"woa"
-#' @param opt_params  List parameter algoritma optimasi
-#'
-#' @return List hasil LFGWC (sama dengan lfgwc_classic)
+#' Patch v3.2c routes each optimizer candidate through the LFGWC-specific
+#' evaluator. The returned optimizer solution is already the spatially projected
+#' LFGWC solution and is therefore not projected a second time.
 lfgwc_with_optimizer <- function(data, pop_vec, dist_mat, W_std,
                                  ncluster,
                                  m        = 2,
@@ -511,112 +831,73 @@ lfgwc_with_optimizer <- function(data, pop_vec, dist_mat, W_std,
                                  randomN  = 0,
                                  algorithm  = "pso",
                                  opt_params = list()) {
-  
-  ptm  <- proc.time()
+
+  ptm <- proc.time()
   data <- as.matrix(data)
-  
-  # ── FASE 1: Cari centroid optimal via algoritma optimasi ──────────────────
-  # Gunakan fgwc() dari naspaclust (yang sudah di-source dari FGWC_OPT)
-  # sebagai engine untuk menemukan centroid awal yang baik.
-  # Catatan: fgwc() menggunakan FGWC global untuk optimasi centroid,
-  # hasilnya (centroid) kemudian dipakai sebagai inisialisasi LFGWC.
-  
-  param_fgwc <- c(
-    kind     = "v",
-    ncluster = ncluster,
-    m        = m,
-    distance = "euclidean",
-    order    = 2,
-    alpha    = alpha,
-    a        = a,
-    b        = b,
-    max.iter = max_iter,
-    error    = error,
-    randomN  = randomN
-  )
-  
-  opt_param <- build_opt_param(algorithm, opt_params)
-  
-  message(sprintf("[LFGWC] Running %s for centroid initialization...",
-                  toupper(algorithm)))
-  
-  opt_result <- tryCatch({
-    fgwc(
-      data       = as.data.frame(data),
-      pop        = pop_vec,
-      distmat    = dist_mat,
-      algorithm  = algorithm,
-      fgwc_param = param_fgwc,
-      opt_param  = opt_param
-    )
-  }, error = function(e) {
-    message(sprintf("[LFGWC] Optimasi %s gagal: %s. Fallback ke random init.",
-                    toupper(algorithm), e$message))
-    NULL
-  })
-  
-  # ── Ambil centroid hasil optimasi, atau fallback ke random ────────────────
-  if (!is.null(opt_result)) {
-    V_init <- opt_result$centroid
-    message(sprintf("[LFGWC] Centroid dari %s: J_init = %.4f",
-                    toupper(algorithm), opt_result$f_obj))
-  } else {
-    V_init <- lfgwc_init_centroid(data, ncluster, "uniform", randomN)
-    message("[LFGWC] Menggunakan random initialization.")
-  }
-  
-  # ── FASE 2: Hitung membership awal dari centroid hasil optimasi ───────────
-  md  <- lfgwc_compute_membership(data, V_init, m)
-  U   <- md$U
-  D   <- md$D
-  V   <- V_init
-  
-  conv <- numeric(0)
-  iter <- 0
-  
-  # ── Loop utama LFGWC dengan centroid teroptimasi ──────────────────────────
-  repeat {
-    
-    # FASE 3: Geographic modification (Local) — Persamaan (12)
-    U <- lfgwc_geographic_modify(U, W_std, alpha)
-    
-    # FASE 4: Update cluster centers — Persamaan (5)
-    V <- lfgwc_update_centers(data, U, m)
-    
-    # FASE 2: Hitung membership baru — Persamaan (4)
-    md  <- lfgwc_compute_membership(data, V, m)
-    U   <- md$U
-    D   <- md$D
-    
-    # FASE 5: Hitung objective function — Persamaan (3)
-    J    <- lfgwc_objective(U, D, m)
-    conv <- c(conv, J)
-    iter <- iter + 1
-    
-    message(sprintf("[LFGWC-%s] Iter %d | J = %.6f",
-                    toupper(algorithm), iter, J))
-    
-    # Cek konvergensi
-    if (iter > 1 && abs(conv[iter] - conv[iter - 1]) < error) break
-    if (iter >= max_iter) break
-  }
-  
-  # ── FASE 6: Assign cluster & validasi ────────────────────────────────────
-  cluster   <- apply(U, 1, which.max)
-  finaldata <- cbind(as.data.frame(data), cluster = cluster)
-  validity  <- lfgwc_validity(U, V, D, m)
-  
-  return(list(
-    converg    = conv,
-    f_obj      = J,
-    membership = U,
-    centroid   = V,
-    validation = validity,
-    cluster    = cluster,
-    finaldata  = finaldata,
-    iteration  = iter,
-    time       = proc.time() - ptm
+
+  message(sprintf(
+    "[LFGWC] Running %s with model-specific evaluator v3...",
+    toupper(algorithm)
   ))
+
+  result <- .lfgwc_v3_run_optimizer(
+    data = data,
+    pop_vec = pop_vec,
+    dist_mat = dist_mat,
+    W_std = W_std,
+    ncluster = ncluster,
+    m = m,
+    alpha = alpha,
+    a = a,
+    b = b,
+    max_iter = max_iter,
+    error = error,
+    randomN = randomN,
+    algorithm = algorithm,
+    opt_params = opt_params
+  )
+
+  if (!identical(result$model_type, "LFGWC")) {
+    stop(
+      "LFGWC runtime received a non-LFGWC optimizer result.",
+      call. = FALSE
+    )
+  }
+
+  if (!identical(
+    result$fitness_type,
+    "lfgwc_spatial_XB_feasible"
+  )) {
+    stop(
+      "LFGWC runtime received an unexpected optimizer fitness type.",
+      call. = FALSE
+    )
+  }
+
+  D_final <- .lfgwc_v3_distance_to_centroids(
+    data,
+    result$centroid
+  )
+
+  result$validation <- lfgwc_validity(
+    U = result$membership,
+    V = result$centroid,
+    D = D_final,
+    m = m
+  )
+
+  result$finaldata <- cbind(
+    as.data.frame(data),
+    cluster = result$cluster
+  )
+
+  result$time <- proc.time() - ptm
+
+  if (is.null(result$iteration)) {
+    result$iteration <- length(result$converg)
+  }
+
+  result
 }
 
 # =============================================================================
@@ -887,6 +1168,20 @@ run_lfgwc_shiny <- function(data_source,
     conv         = result$converg,
     f_obj        = result$f_obj,
     iteration    = result$iteration,
+    # Optimizer v3 metadata (NULL/NA for classic mode)
+    model_type         = result$model_type %||% "LFGWC",
+    fitness_type       = result$fitness_type %||% if (algorithm == "classic") "lfgwc_iterative_objective" else NA_character_,
+    search_centroid    = result$search_centroid %||% NULL,
+    spatial_obj        = result$spatial_obj %||% NA_real_,
+    occupied_clusters = result$occupied_clusters %||% length(unique(result$cluster)),
+    feasible           = result$feasible %||% TRUE,
+    nfe                = result$nfe %||% NA_integer_,
+    nfe_initialization = result$nfe_initialization %||% NA_integer_,
+    nfe_optimization   = result$nfe_optimization %||% NA_integer_,
+    max_nfe            = result$max_nfe %||% NA_integer_,
+    nfe_remaining      = result$nfe_remaining %||% NA_integer_,
+    budget_exhausted   = result$budget_exhausted %||% FALSE,
+    termination_reason = result$termination_reason %||% if (algorithm == "classic") "classic" else NA_character_,
     # Info LFGWC spesifik
     dthr         = dthr,
     si           = si,
