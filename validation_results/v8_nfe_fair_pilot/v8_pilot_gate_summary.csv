@@ -1,0 +1,9 @@
+"metric","value"
+"planned_runs",180
+"observed_unique_runs",180
+"pass_runs",180
+"failed_or_error_runs",0
+"missing_runs",0
+"all_exact_budget",1
+"all_nfe_invariant",1
+"all_occupancy_4_of_4",1
